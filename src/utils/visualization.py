@@ -29,26 +29,24 @@ def get_segmentation_matrix(data, cell_types, pca_obj, archetype_obj, color_fun,
     x = data['y'].to_numpy()
     t = data['cell_type'].to_numpy()
 
-    for x_i in range(len(x_span)-1):
-        for y_i in range(len(y_span)-1):
-            site = []
-            for c_idx in range(len(x)):
-                x_center = (x_span[x_i+1] + x_span[x_i]) / 2
-                y_center = (y_span[y_i+1] + y_span[y_i]) / 2
-                if CellAbundance.is_in_cirle(x[c_idx], y[c_idx], x_center, y_center, radius):
-                    site.append((x[c_idx], y[c_idx], t[c_idx]))
-            site = np.array(site)
-            counts = CellAbundance.calculate_cells_count(site, cell_types)
+    mesh = np.array(np.meshgrid(range(len(x_span) - 1), range(len(y_span) - 1)))
+    combinations = list(mesh.T.reshape(-1, 2))
 
-            new_pc = pca_obj.transform(counts.reshape(1, -1))
-            _, alfa = archetype_obj.transform(new_pc[:, :3])
-            color_submatrix = np.array([color_fun(alfa).T for _ in range(granularity)])
-            m[x_span[x_i]:x_span[x_i+1], y_span[y_i]:y_span[y_i+1], :] = color_submatrix
+    results = [site_generation(x, y, t, x_span, y_span, radius, grid_point) for grid_point in combinations]
+    for site, grid_point in results:
+        if len(site) > 0:
+            counts = CellAbundance.calculate_cells_count(site, cell_types)
+        else:
+            counts = np.zeros(len(cell_types))
+        new_pc = pca_obj.transform(counts.reshape(1, -1))
+        _, alfa = archetype_obj.transform(new_pc[:, :3])
+        color_submatrix = np.tile(color_fun(alfa[:, 0]), granularity * granularity).reshape((granularity, granularity, -1))
+        m[x_span[grid_point[0]]:x_span[grid_point[0]+1], y_span[grid_point[1]]:y_span[grid_point[1]+1], :] = color_submatrix
 
     return m
 
 
-def site_generation_and_count(x, y, t, x_span, y_span, radius, grid_point):
+def site_generation_old(x, y, t, x_span, y_span, radius, grid_point):
     site = []
     for c_idx in range(len(x)):
         x_center = (x_span[grid_point[0]+1] + x_span[grid_point[0]]) / 2
@@ -57,6 +55,14 @@ def site_generation_and_count(x, y, t, x_span, y_span, radius, grid_point):
             site.append((x[c_idx], y[c_idx], t[c_idx]))
     site = np.array(site)
 
+    return site, grid_point
+
+
+def site_generation(x, y, t, x_span, y_span, radius, grid_point):
+    x_center = (x_span[grid_point[0]+1] + x_span[grid_point[0]]) / 2
+    y_center = (y_span[grid_point[1]+1] + y_span[grid_point[1]]) / 2
+    idx = np.where((x - x_center) * (x - x_center) + (y - y_center) * (y - y_center) <= radius * radius)
+    site = np.array([(x[i], y[i], t[i]) for i in idx])
     return site, grid_point
 
 
@@ -72,7 +78,7 @@ def get_segmentation_matrix_parallel(data, cell_types, pca_obj, archetype_obj, c
     mesh = np.array(np.meshgrid(range(len(x_span)-1), range(len(y_span)-1)))
     combinations = list(mesh.T.reshape(-1, 2))
     sites_pool = multiprocessing.Pool(20)
-    f = partial(site_generation_and_count, x, y, t, x_span, y_span, radius)
+    f = partial(site_generation, x, y, t, x_span, y_span, radius)
     results = sites_pool.map(f, combinations)
 
     for site, grid_point in results:
