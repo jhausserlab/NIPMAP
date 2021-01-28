@@ -90,7 +90,7 @@ def get_segmentation_matrix_parallel(data, cell_types, pca_obj, archetype_obj, c
         _, alfa = archetype_obj.transform(new_pc[:, :3])
         color_submatrix = np.tile(color_fun(alfa[:, 0]), granularity * granularity).reshape((granularity, granularity, -1))
         m[x_span[grid_point[0]]:x_span[grid_point[0]+1], y_span[grid_point[1]]:y_span[grid_point[1]+1], :] = color_submatrix
-
+    #comment
     return m
 
 
