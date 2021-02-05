@@ -70,17 +70,10 @@ class CellAbundance:
             raise ValueError("radius too big!")
         x_centers = np.random.uniform(low=self.sites_radius, high=800-self.sites_radius, size=self.n_sites)
         y_centers = np.random.uniform(low=self.sites_radius, high=800-self.sites_radius, size=self.n_sites)
-        #print(x_centers, y_centers)
         sites = {}
         for c_idx in range(x_centers.shape[0]):
-            sites[c_idx] = []
-            for p_idx in range(x.shape[0]):
-                xx = x[p_idx]
-                yy = y[p_idx]
-                tt = t[p_idx]
-                if self.is_in_cirle(xx, yy, x_centers[c_idx], y_centers[c_idx], self.sites_radius):
-                    sites[c_idx].append((xx, yy, tt))
-            sites[c_idx] = np.array(sites[c_idx])
+            idx = np.where(self.is_in_cirle(x, y, x_centers[c_idx], y_centers[c_idx], self.sites_radius))
+            sites[c_idx] = np.array([(x[i], y[i], t[i]) for i in idx])
 
         return sites
 

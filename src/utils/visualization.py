@@ -20,42 +20,42 @@ def is_in_square(x, y, x_min, x_max, y_min, y_max):
     return x_min < x < x_max and y_min < y < y_max
 
 
-def get_segmentation_matrix(data, cell_types, pca_obj, archetype_obj, color_fun, h=800, w=800, radius=100, granularity=200):
-    m = np.zeros((h, w, 3), dtype='uint8')
-    x_span = np.arange(0, h+granularity, granularity)
-    y_span = np.arange(0, w+granularity, granularity)
-
-    y = data['x'].to_numpy()
-    x = data['y'].to_numpy()
-    t = data['cell_type'].to_numpy()
-
-    mesh = np.array(np.meshgrid(range(len(x_span) - 1), range(len(y_span) - 1)))
-    combinations = list(mesh.T.reshape(-1, 2))
-
-    results = [site_generation(x, y, t, x_span, y_span, radius, grid_point) for grid_point in combinations]
-    for site, grid_point in results:
-        if len(site) > 0:
-            counts = CellAbundance.calculate_cells_count(site, cell_types)
-        else:
-            counts = np.zeros(len(cell_types))
-        new_pc = pca_obj.transform(counts.reshape(1, -1))
-        _, alfa = archetype_obj.transform(new_pc[:, :3])
-        color_submatrix = np.tile(color_fun(alfa[:, 0]), granularity * granularity).reshape((granularity, granularity, -1))
-        m[x_span[grid_point[0]]:x_span[grid_point[0]+1], y_span[grid_point[1]]:y_span[grid_point[1]+1], :] = color_submatrix
-
-    return m
-
-
-def site_generation_old(x, y, t, x_span, y_span, radius, grid_point):
-    site = []
-    for c_idx in range(len(x)):
-        x_center = (x_span[grid_point[0]+1] + x_span[grid_point[0]]) / 2
-        y_center = (y_span[grid_point[1]+1] + y_span[grid_point[1]]) / 2
-        if CellAbundance.is_in_cirle(x[c_idx], y[c_idx], x_center, y_center, radius):
-            site.append((x[c_idx], y[c_idx], t[c_idx]))
-    site = np.array(site)
-
-    return site, grid_point
+# def get_segmentation_matrix(data, cell_types, pca_obj, archetype_obj, color_fun, h=800, w=800, radius=100, granularity=200):
+#     m = np.zeros((h, w, 3), dtype='uint8')
+#     x_span = np.arange(0, h+granularity, granularity)
+#     y_span = np.arange(0, w+granularity, granularity)
+#
+#     y = data['x'].to_numpy()
+#     x = data['y'].to_numpy()
+#     t = data['cell_type'].to_numpy()
+#
+#     mesh = np.array(np.meshgrid(range(len(x_span) - 1), range(len(y_span) - 1)))
+#     combinations = list(mesh.T.reshape(-1, 2))
+#
+#     results = [site_generation(x, y, t, x_span, y_span, radius, grid_point) for grid_point in combinations]
+#     for site, grid_point in results:
+#         if len(site) > 0:
+#             counts = CellAbundance.calculate_cells_count(site, cell_types)
+#         else:
+#             counts = np.zeros(len(cell_types))
+#         new_pc = pca_obj.transform(counts.reshape(1, -1))
+#         _, alfa = archetype_obj.transform(new_pc[:, :3])
+#         color_submatrix = np.tile(color_fun(alfa[:, 0]), granularity * granularity).reshape((granularity, granularity, -1))
+#         m[x_span[grid_point[0]]:x_span[grid_point[0]+1], y_span[grid_point[1]]:y_span[grid_point[1]+1], :] = color_submatrix
+#
+#     return m
+#
+#
+# def site_generation_old(x, y, t, x_span, y_span, radius, grid_point):
+#     site = []
+#     for c_idx in range(len(x)):
+#         x_center = (x_span[grid_point[0]+1] + x_span[grid_point[0]]) / 2
+#         y_center = (y_span[grid_point[1]+1] + y_span[grid_point[1]]) / 2
+#         if CellAbundance.is_in_cirle(x[c_idx], y[c_idx], x_center, y_center, radius):
+#             site.append((x[c_idx], y[c_idx], t[c_idx]))
+#     site = np.array(site)
+#
+#     return site, grid_point
 
 
 def site_generation(x, y, t, x_span, y_span, radius, grid_point):
@@ -66,8 +66,8 @@ def site_generation(x, y, t, x_span, y_span, radius, grid_point):
     return site, grid_point
 
 
-def get_segmentation_matrix_parallel(data, cell_types, pca_obj, archetype_obj, color_fun, h=800, w=800, radius=100, granularity=200):
-    m = np.zeros((h, w, 3), dtype='uint8')
+def get_segmentation_matrix_parallel(data, cell_types, pca_obj, archetype_obj, color_fun, h=800, w=800, radius=100, granularity=25):
+    m = np.empty((h, w, 3), dtype='uint8')
     x_span = np.arange(0, h+granularity, granularity)
     y_span = np.arange(0, w+granularity, granularity)
 
@@ -88,9 +88,17 @@ def get_segmentation_matrix_parallel(data, cell_types, pca_obj, archetype_obj, c
             counts = np.zeros(len(cell_types))
         new_pc = pca_obj.transform(counts.reshape(1, -1))
         _, alfa = archetype_obj.transform(new_pc[:, :3])
-        color_submatrix = np.tile(color_fun(alfa[:, 0]), granularity * granularity).reshape((granularity, granularity, -1))
-        m[x_span[grid_point[0]]:x_span[grid_point[0]+1], y_span[grid_point[1]]:y_span[grid_point[1]+1], :] = color_submatrix
-    #comment
+
+        x_min = x_span[grid_point[0]]
+        x_max = np.minimum(x_span[grid_point[0]+1], h)
+        y_min = y_span[grid_point[1]]
+        y_max = np.minimum(y_span[grid_point[1]+1], h)
+        x_dim = x_max - x_min
+        y_dim = y_max - y_min
+        color_submatrix = np.tile(
+            color_fun(alfa[:, 0]),
+            x_dim * y_dim).reshape((x_dim, y_dim, -1))
+        m[x_min:x_max, y_min:y_max, :] = color_submatrix
     return m
 
 
@@ -117,14 +125,14 @@ def plot_cells_positions(data, cell_types, segment_image=False, segmentation_typ
     plt.show()
 
 
-def plot_all_cells_positions(patient_ids, cell_types, segment_image=False, segmentation_type='hard', granularity=25, pca_obj=None, AA_obj=None, to_plot='all'):
+def plot_all_tumors_cell_positions(patient_ids, cell_types, segment_image=False, segmentation_type='hard', granularity=25, pca_obj=None, AA_obj=None, to_plot='all'):
     plt.figure(figsize=(30, 50))
 
     for i, patientID in enumerate(patient_ids):
         plt.subplot(8, 5, i+1)
         data = pd.read_csv("../../output/cell_positions_data/patient{}_cell_positions.csv".format(patientID))
         groups = data.groupby('cell_type')
-
+        plt.title("Patient ID: {}".format(patientID))
         if segment_image is True:
             if pca_obj is None or AA_obj is None:
                 raise ValueError("To segment the image pca and archetypes objects are needed")
@@ -140,8 +148,6 @@ def plot_all_cells_positions(patient_ids, cell_types, segment_image=False, segme
             if to_plot == 'all' or name in to_plot:
                 plt.scatter(group['x'], group['y'], marker="o", s=5, label=name, c=col)
 
-
-    #plt.legend(bbox_to_anchor=(1.0, 1), loc='upper left')
     plt.show()
 
 
@@ -457,18 +463,39 @@ def archetypes_bar_plot(cell_number_archetypes, cell_types, colors, y_axis='coun
     ax.bar(y_pos, data[2], color=colors[2], width=width, label="Arch 2")
     ax.bar(y_pos + width, data[3], color=colors[3], width=width, label="Arch 3")
 
+    plt.xlabel('Cells Type')
+    if y_axis == 'log':
+        plt.ylabel('log(#cells)')
+    elif y_axis == 'density':
+        plt.ylabel('density [#cells / 100 um^2]')
+    else:
+        plt.ylabel('#cells')
+
     plt.legend()
 
     plt.xticks(y_pos, cell_types, rotation=45)
     plt.show()
 
 
-def archetype_simple_plot(cell_number_archetypes, archetype_id, colors, cell_types):
+def archetype_simple_plot(cell_number_archetypes, archetype_id, colors, cell_types, y_axis='count', radius=100):
+    if y_axis not in ['log', 'count', 'density']:
+        raise ValueError("Wrong parameter: y_axis paramenter must be log, count or density")
+
+    if y_axis == 'log':
+        cell_number_archetypes = np.log(cell_number_archetypes)
+    elif y_axis == 'density':
+        cell_number_archetypes = 100 * (cell_number_archetypes / (radius * radius * np.pi))
+
     plt.figure(figsize=(20, 5))
     y_pos = np.arange(len(cell_number_archetypes))
     plt.bar(y_pos, cell_number_archetypes, color=colors[archetype_id])
     plt.xticks(y_pos, cell_types, rotation=45)
 
     plt.xlabel('Cells Type')
-    plt.ylabel("Count")
-    plt.title("Archetype {} cells count".format(archetype_id))
+    if y_axis == 'log':
+        plt.ylabel('log(#cells)')
+    elif y_axis == 'density':
+        plt.ylabel('density [#cells / 100 um^2]')
+    else:
+        plt.ylabel('#cells')
+    plt.title("Archetype {} {}".format(archetype_id, y_axis))
