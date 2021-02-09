@@ -20,44 +20,6 @@ def is_in_square(x, y, x_min, x_max, y_min, y_max):
     return x_min < x < x_max and y_min < y < y_max
 
 
-# def get_segmentation_matrix(data, cell_types, pca_obj, archetype_obj, color_fun, h=800, w=800, radius=100, granularity=200):
-#     m = np.zeros((h, w, 3), dtype='uint8')
-#     x_span = np.arange(0, h+granularity, granularity)
-#     y_span = np.arange(0, w+granularity, granularity)
-#
-#     y = data['x'].to_numpy()
-#     x = data['y'].to_numpy()
-#     t = data['cell_type'].to_numpy()
-#
-#     mesh = np.array(np.meshgrid(range(len(x_span) - 1), range(len(y_span) - 1)))
-#     combinations = list(mesh.T.reshape(-1, 2))
-#
-#     results = [site_generation(x, y, t, x_span, y_span, radius, grid_point) for grid_point in combinations]
-#     for site, grid_point in results:
-#         if len(site) > 0:
-#             counts = CellAbundance.calculate_cells_count(site, cell_types)
-#         else:
-#             counts = np.zeros(len(cell_types))
-#         new_pc = pca_obj.transform(counts.reshape(1, -1))
-#         _, alfa = archetype_obj.transform(new_pc[:, :3])
-#         color_submatrix = np.tile(color_fun(alfa[:, 0]), granularity * granularity).reshape((granularity, granularity, -1))
-#         m[x_span[grid_point[0]]:x_span[grid_point[0]+1], y_span[grid_point[1]]:y_span[grid_point[1]+1], :] = color_submatrix
-#
-#     return m
-#
-#
-# def site_generation_old(x, y, t, x_span, y_span, radius, grid_point):
-#     site = []
-#     for c_idx in range(len(x)):
-#         x_center = (x_span[grid_point[0]+1] + x_span[grid_point[0]]) / 2
-#         y_center = (y_span[grid_point[1]+1] + y_span[grid_point[1]]) / 2
-#         if CellAbundance.is_in_cirle(x[c_idx], y[c_idx], x_center, y_center, radius):
-#             site.append((x[c_idx], y[c_idx], t[c_idx]))
-#     site = np.array(site)
-#
-#     return site, grid_point
-
-
 def site_generation(x, y, t, x_span, y_span, radius, grid_point):
     x_center = (x_span[grid_point[0]+1] + x_span[grid_point[0]]) / 2
     y_center = (y_span[grid_point[1]+1] + y_span[grid_point[1]]) / 2
@@ -156,7 +118,7 @@ def plot_scatter_pca(principal_components, evr, labels=None, original_axis=None,
 
     if labels is not None:
         ax.scatter(principal_components[:, 0], principal_components[:, 1],
-                   color=labels, alpha=0.9, cmap=plt.cm.nipy_spectral)
+                   c=labels, alpha=0.9, cmap=plt.cm.nipy_spectral)
     else:
         ax.scatter(principal_components[:, 0], principal_components[:, 1], alpha=0.5)
 
@@ -169,11 +131,11 @@ def plot_scatter_pca(principal_components, evr, labels=None, original_axis=None,
             plt.plot([origin[0], original_axis[i, 0]], [origin[1], original_axis[i, 1]], 'k-', color='b', alpha=0.5)
             #plt.arrow(origin[0], origin[1], original_axis[i, 0], original_axis[i, 1], color=colors[i%len(colors)])
             plt.text(original_axis[i, 0], original_axis[i, 1], i, color='r', ha='center', va='center')
-            red_patch.append(mpatches.Patch(color=colors[i%len(colors)], label="{} = {}".format(i, cell_type[i])))
+            red_patch.append(mpatches.Patch(color=colors[i % len(colors)], label="{} = {}".format(i, cell_type[i])))
             plt.legend(handles=red_patch, title='Cell Type', bbox_to_anchor=(1.0, 1), loc='upper left')
 
     if archetypes is not None:
-        plt.scatter(archetypes[0,:], archetypes[1,:], marker="^", s=100, color='orange')
+        plt.scatter(archetypes[0, :], archetypes[1, :], marker="^", s=100, color='orange')
 
 
     tot_evr = np.sum(evr[0:2])
@@ -499,3 +461,40 @@ def archetype_simple_plot(cell_number_archetypes, archetype_id, colors, cell_typ
     else:
         plt.ylabel('#cells')
     plt.title("Archetype {} {}".format(archetype_id, y_axis))
+
+
+def get_explained_variance_matrix(X, Y, expl_var_ratio):
+    z = np.empty((X.shape[0], Y.shape[1]))
+    for i, x in enumerate(X.T):
+        if x[0] != 0:
+            z[:, i] = np.insert(expl_var_ratio[x[0]], 0, 0.0)
+        else:
+            z[:, i] = np.zeros(18)
+
+    return z
+
+
+def radius_pc_variance_contourf(patient_ids, expl_var_cum_ratio):
+    plt.figure(figsize=(30, 50))
+
+    for i, patientID in enumerate(patient_ids):
+        plt.subplot(8, 5, i + 1)
+        data = pd.read_csv("../../output/cell_positions_data/patient{}_cell_positions.csv".format(patientID))
+        groups = data.groupby('cell_type')
+        plt.title("Patient ID: {}".format(patientID))
+        if segment_image is True:
+            if pca_obj is None or AA_obj is None:
+                raise ValueError("To segment the image pca and archetypes objects are needed")
+            if segmentation_type == 'hard':
+                color_fun = alfa2color
+            else:
+                color_vector = np.array([[255, 0, 0], [0, 255, 0], [0, 0, 255], [255, 255, 0]]).T
+                color_fun = partial(color_mapper, color_vector)
+            z = get_segmentation_matrix_parallel(data, cell_types, pca_obj, AA_obj, color_fun, granularity=granularity)
+            plt.imshow(z, origin='lower')
+
+        for (name, group), col in zip(groups, colors):
+            if to_plot == 'all' or name in to_plot:
+                plt.scatter(group['x'], group['y'], marker="o", s=5, label=name, c=col)
+
+    plt.show()

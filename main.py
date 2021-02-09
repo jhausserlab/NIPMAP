@@ -11,9 +11,8 @@ def generate_xy_position_csv(df, patientID):
     print("Getting cells from image for patient: {}".format(patientID))
     group = patient_data['Group']
     immune_group = patient_data['immuneGroup']
-    tumorYN = patient_data['tumorYN']
-    cell_type = [group_map(g, t) if t == 1 else group_map(ig, t)
-                 for g, ig, t in zip(group, immune_group, tumorYN)]
+    cell_type = [group_map(g, ig) for g, ig in zip(group, immune_group)]
+    #print(cell_type)
     _ = image.get_cells(list(patient_data['cellLabelInImage']), cell_type)
     image.to_csv("{}/patient{}_cell_positions.csv".format(OUTPUT_PATH, patientID))
 
@@ -27,10 +26,9 @@ if __name__ == "__main__":
     patients_idx = data['SampleID'].unique()
     to_remove = np.array([42, 43, 44])
     patients_idx = np.setdiff1d(patients_idx, to_remove)
-    print(patients_idx)
-    #with Pool(processes=20) as pool:
-    #    results = [pool.apply_async(generate_xy_position_csv, args=(data, patientID)) for patientID in patients_idx]
-    #    results = [p.get() for p in results]
+    with Pool(processes=20) as pool:
+        results = [pool.apply_async(generate_xy_position_csv, args=(data, patientID)) for patientID in patients_idx]
+        results = [p.get() for p in results]
 
     print("Finished!")
 

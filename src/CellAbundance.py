@@ -106,7 +106,6 @@ class CellAbundance:
         X = self.abundance_matrix
         if scale:
             X = StandardScaler().fit_transform(X)
-
         principal_components = self.pca.fit_transform(X)
         return principal_components
 

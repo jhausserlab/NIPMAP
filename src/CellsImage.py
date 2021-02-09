@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from src.Cell import Cell
 
-ROOT_DATA_PATH = "../../david_data"
+ROOT_DATA_PATH = "../david_data"
 
 
 def _get_centroid(x_indices, y_indices, N):
