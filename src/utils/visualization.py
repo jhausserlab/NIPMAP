@@ -20,15 +20,71 @@ def is_in_square(x, y, x_min, x_max, y_min, y_max):
     return x_min < x < x_max and y_min < y < y_max
 
 
-def site_generation(x, y, t, x_span, y_span, radius, grid_point):
+def dist_from_borders(x, y):
+    return x, 800-x, y, 800-y
+
+
+def calculate_outside_area(x_center, y_center, radius, circle_out_area_dict):
+    x_left, x_right, y_bottom, y_upper = dist_from_borders(x_center, y_center)
+    outsite_area = 0
+    if min(x_left, x_right) < radius and min(y_bottom, y_upper) < radius:
+        # is an angle
+        try:
+            outsite_area = circle_out_area_dict[(min(x_left, x_right), min(y_bottom, y_upper))]
+        except KeyError:
+            outsite_area = calculate_out_area(x_center, y_center, radius, 'angle')
+            circle_out_area_dict[(min(x_left, x_right), min(y_bottom, y_upper))] = outsite_area
+    elif min(x_left, x_right, y_bottom, y_upper) < radius:
+        try:
+            outsite_area = circle_out_area_dict[min(x_left, x_right, y_bottom, y_upper)]
+        except KeyError:
+            # print(x_center, y_center, radius)
+            outsite_area = calculate_out_area(400, min(x_left, x_right, y_bottom, y_upper), radius, 'segment')
+            circle_out_area_dict[min(x_left, x_right, y_bottom, y_upper)] = outsite_area
+
+    return outsite_area
+
+
+def site_generation(x, y, t, x_span, y_span, radius, grid_point, circle_out_area_dict):
     x_center = (x_span[grid_point[0]+1] + x_span[grid_point[0]]) / 2
     y_center = (y_span[grid_point[1]+1] + y_span[grid_point[1]]) / 2
+
+    area_outside = calculate_outside_area(x_center, y_center, radius, circle_out_area_dict)
+
     idx = np.where((x - x_center) * (x - x_center) + (y - y_center) * (y - y_center) <= radius * radius)
     site = np.array([(x[i], y[i], t[i]) for i in idx])
-    return site, grid_point
+    return site, area_outside
 
 
-def get_segmentation_matrix_parallel(data, cell_types, pca_obj, archetype_obj, color_fun, h=800, w=800, radius=100, granularity=25):
+def calculate_out_area(x_center, y_center, radius, type='segment'):
+    if type not in ['segment', 'angle']:
+        raise ValueError("wrong type, must be segment or angle")
+    area = 0
+    if type == 'segment':
+        x_1 = x_center + np.sqrt(radius**2 - y_center**2)
+        x_2 = x_center - np.sqrt(radius**2 - y_center**2)
+        alfa = np.arccos((2*(radius**2) - np.abs(x_2-x_1)**2)/(2*(radius**2)))
+        area = 0.5 * (alfa - np.sin(alfa)) * radius**2
+    elif type == 'angle':
+        n_sample = 10000
+        r = np.random.uniform(0, radius, n_sample)
+        theta = np.random.uniform(0, 360, n_sample)
+        x = r*np.cos(theta) + x_center
+        y = r*np.sin(theta) + y_center
+        in_points = np.sum((x >= 0) & (y >= 0))
+        area = ((n_sample-in_points) * (np.pi * radius ** 2)) / n_sample
+
+    return area
+
+
+def xfrange(start, stop, step):
+    i = 0
+    while start + i * step < stop:
+        yield start + i * step
+        i += 1
+
+
+def get_segmentation_matrix(data, cell_types, pca_obj, archetype_obj, color_fun, h=800, w=800, radius=100, granularity=25):
     m = np.empty((h, w, 3), dtype='uint8')
     x_span = np.arange(0, h+granularity, granularity)
     y_span = np.arange(0, w+granularity, granularity)
@@ -39,13 +95,14 @@ def get_segmentation_matrix_parallel(data, cell_types, pca_obj, archetype_obj, c
 
     mesh = np.array(np.meshgrid(range(len(x_span)-1), range(len(y_span)-1)))
     combinations = list(mesh.T.reshape(-1, 2))
-    sites_pool = multiprocessing.Pool(20)
-    f = partial(site_generation, x, y, t, x_span, y_span, radius)
-    results = sites_pool.map(f, combinations)
+    circle_out_area = {}
 
-    for site, grid_point in results:
+    total_site_area = np.pi * radius ** 2
+    for grid_point in combinations:
+        site, area_outside = site_generation(x, y, t, x_span, y_span, radius, grid_point, circle_out_area)
         if len(site) > 0:
             counts = CellAbundance.calculate_cells_count(site, cell_types)
+            counts = np.ceil(counts/(1-(area_outside/total_site_area)))
         else:
             counts = np.zeros(len(cell_types))
         new_pc = pca_obj.transform(counts.reshape(1, -1))
@@ -71,12 +128,12 @@ def plot_cells_positions(data, cell_types, segment_image=False, segmentation_typ
     if segment_image is True:
         if pca_obj is None or AA_obj is None:
             raise ValueError("To segment the image pca and archetypes objects are needed")
+        color_vector = np.array([[255, 0, 0], [0, 153, 51], [0, 0, 255], [255, 255, 0]])
         if segmentation_type == 'hard':
-            color_fun = alfa2color
+            color_fun = partial(alfa2color, color_vector)
         else:
-            color_vector = np.array([[255, 0, 0], [0, 255, 0], [0, 0, 255], [255, 255, 0]]).T
-            color_fun = partial(color_mapper, color_vector)
-        z = get_segmentation_matrix_parallel(data, cell_types, pca_obj, AA_obj, color_fun, granularity=granularity)
+            color_fun = partial(color_mapper, color_vector.T)
+        z = get_segmentation_matrix(data, cell_types, pca_obj, AA_obj, color_fun, granularity=granularity)
         plt.imshow(z, origin='lower')
 
     for (name, group), col in zip(groups, colors):
@@ -98,12 +155,12 @@ def plot_all_tumors_cell_positions(patient_ids, cell_types, segment_image=False,
         if segment_image is True:
             if pca_obj is None or AA_obj is None:
                 raise ValueError("To segment the image pca and archetypes objects are needed")
+            color_vector = np.array([[255, 0, 0], [0, 153, 51], [0, 0, 255], [255, 255, 0]])
             if segmentation_type == 'hard':
-                color_fun = alfa2color
+                color_fun = partial(alfa2color, color_vector)
             else:
-                color_vector = np.array([[255, 0, 0], [0, 255, 0], [0, 0, 255], [255, 255, 0]]).T
-                color_fun = partial(color_mapper, color_vector)
-            z = get_segmentation_matrix_parallel(data, cell_types, pca_obj, AA_obj, color_fun, granularity=granularity)
+                color_fun = partial(color_mapper, color_vector.T)
+            z = get_segmentation_matrix(data, cell_types, pca_obj, AA_obj, color_fun, granularity=granularity)
             plt.imshow(z, origin='lower')
 
         for (name, group), col in zip(groups, colors):
@@ -187,7 +244,7 @@ def plot_3Dscatter_pca(principal_components, evr, labels, archetypes=None):
 
     if archetypes is not None:
         ax.scatter(archetypes[0, :], archetypes[1, :], archetypes[2, :],
-                   marker = "^", s = 100, color = 'orange')
+                   marker = "^", s = 100, color='orange')
 
     plt.show()
 
@@ -475,26 +532,25 @@ def get_explained_variance_matrix(X, Y, expl_var_ratio):
 
 
 def radius_pc_variance_contourf(patient_ids, expl_var_cum_ratio):
-    plt.figure(figsize=(30, 50))
-
+    fig, axes = plt.subplots(nrows=8, ncols=5, figsize=(30, 50))
+    axes = axes.flat
     for i, patientID in enumerate(patient_ids):
-        plt.subplot(8, 5, i + 1)
-        data = pd.read_csv("../../output/cell_positions_data/patient{}_cell_positions.csv".format(patientID))
-        groups = data.groupby('cell_type')
-        plt.title("Patient ID: {}".format(patientID))
-        if segment_image is True:
-            if pca_obj is None or AA_obj is None:
-                raise ValueError("To segment the image pca and archetypes objects are needed")
-            if segmentation_type == 'hard':
-                color_fun = alfa2color
-            else:
-                color_vector = np.array([[255, 0, 0], [0, 255, 0], [0, 0, 255], [255, 255, 0]]).T
-                color_fun = partial(color_mapper, color_vector)
-            z = get_segmentation_matrix_parallel(data, cell_types, pca_obj, AA_obj, color_fun, granularity=granularity)
-            plt.imshow(z, origin='lower')
+        x = [0] + list(expl_var_cum_ratio[patientID].keys())
+        y = np.arange(0, 18)
+        X, Y = np.meshgrid(x, y)
+        Z = get_explained_variance_matrix(X, Y, expl_var_cum_ratio[patientID])
+        im = axes[i].contourf(X, Y, Z)
+        axes[i].axvline(x=100, color='r', linestyle='--')
+        axes[i].axhline(y=3, color='r', linestyle='--')
+        axes[i].set_ylim(0, 8)
 
-        for (name, group), col in zip(groups, colors):
-            if to_plot == 'all' or name in to_plot:
-                plt.scatter(group['x'], group['y'], marker="o", s=5, label=name, c=col)
+        axes[i].set_title("Patient ID: {}".format(patientID))
+        axes[i].set_xlabel("Radius")
+        axes[i].set_ylabel("#PC")
+
+        plt.colorbar(im, ax=axes[i])
+
+    #plt.colorbar(im, ax=axes[0], orientation='horizontal')
+
 
     plt.show()

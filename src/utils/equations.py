@@ -18,8 +18,9 @@ def alfa2rgb(v):
     return rgb_vect
 
 
-def alfa2color(v):
-    d = {0: [255, 0, 0], 1: [0, 255, 0], 2: [0, 0, 255], 3: [255, 255, 0]}
+def alfa2color(colors, v):
+    # d = {0: [255, 0, 0], 1: [0, 255, 0], 2: [0, 0, 255], 3: [255, 255, 0]}
+    d = {i: c for i, c in enumerate(colors)}
     return np.array(d[np.argmax(v)])
 
 
