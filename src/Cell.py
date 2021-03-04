@@ -21,8 +21,9 @@ def group_map(cell_id, immune_id):
 
 
 class Cell:
-    def __init__(self, x, y, cell_label, cell_type):
+    def __init__(self, x, y, cell_label, cell_type, cell_size_pixel):
         self.x = x
         self.y = y
         self.label = cell_label
         self.cell_type = cell_type
+        self.cell_size_pixel = cell_size_pixel

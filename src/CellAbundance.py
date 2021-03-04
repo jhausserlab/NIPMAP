@@ -3,11 +3,9 @@ import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-ROOT_DATA_PATH = "../../output"
 
-
-def generate_abundance_matrix(cell_types, patient_ids, n_site, radius, method, snr=1):
-    return [CellAbundance(p, n_site, radius, cell_types, method=method,snr=snr, root="../../output") for p in patient_ids]
+def generate_abundance_matrix(cell_types, patient_ids, n_site, radius, method, snr=1, root="../../output/"):
+    return [CellAbundance(p, n_site, radius, cell_types, method=method,snr=snr, root=root) for p in patient_ids]
 
 
 def join_abundance_matrices(cell_abundances_list):
@@ -17,14 +15,13 @@ def join_abundance_matrices(cell_abundances_list):
         sites.extend(ca.abundance_matrix)
         patients_ids.extend([ca.patient_id]*len(ca.abundance_matrix))
 
-
     return np.array(sites), np.array(patients_ids)
 
 
 class CellAbundance:
     def __init__(self, patient_id, n_sites,
-                 sites_radius, cell_types, root=ROOT_DATA_PATH,
-                 method='abs', snr=1, random_seed=False):
+                 sites_radius, cell_types, root='',
+                 method='abs', snr=1, random_seed=False, image_x_size=800, image_y_size=800):
         if random_seed:
             np.random.seed(random_seed)
 
@@ -37,6 +34,8 @@ class CellAbundance:
         self.snr = snr
         self.k = self.snr * self.snr
         self.pca = None
+        self.image_x_size = image_x_size
+        self.image_y_size = image_y_size
 
         self.cell_types = np.array(cell_types)
         self.abundance_matrix = self.calculate_abundace_matrix()
@@ -58,7 +57,7 @@ class CellAbundance:
         return counts
 
     def _load_cell_position_from_csv(self):
-        df = pd.read_csv("{}/cell_positions_data/patient{}_cell_positions.csv".format(self.root, self.patient_id))
+        df = pd.read_csv("{}/patient{}_cell_positions.csv".format(self.root, self.patient_id))
         return df
 
     def calculate_site_groups(self):
@@ -66,10 +65,10 @@ class CellAbundance:
         x = self.cell_positions_df['x'].to_numpy()
         y = self.cell_positions_df['y'].to_numpy()
         t = self.cell_positions_df['cell_type'].to_numpy()
-        if self.sites_radius > 800-self.sites_radius:
+        if self.sites_radius > min(self.image_x_size, self.image_y_size)-self.sites_radius:
             raise ValueError("radius too big!")
-        x_centers = np.random.uniform(low=self.sites_radius, high=800-self.sites_radius, size=self.n_sites)
-        y_centers = np.random.uniform(low=self.sites_radius, high=800-self.sites_radius, size=self.n_sites)
+        x_centers = np.random.uniform(low=self.sites_radius, high=self.image_x_size-self.sites_radius, size=self.n_sites)
+        y_centers = np.random.uniform(low=self.sites_radius, high=self.image_y_size-self.sites_radius, size=self.n_sites)
         sites = {}
         for c_idx in range(x_centers.shape[0]):
             idx = np.where(self.is_in_cirle(x, y, x_centers[c_idx], y_centers[c_idx], self.sites_radius))

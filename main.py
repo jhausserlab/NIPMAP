@@ -13,7 +13,7 @@ def generate_xy_position_csv(df, patientID):
     immune_group = patient_data['immuneGroup']
     cell_type = [group_map(g, ig) for g, ig in zip(group, immune_group)]
     #print(cell_type)
-    _ = image.get_cells(list(patient_data['cellLabelInImage']), cell_type)
+    _ = image.get_cells(list(patient_data['cellLabelInImage']), cell_type, patient_data['cellSize'])
     image.to_csv("{}/patient{}_cell_positions.csv".format(OUTPUT_PATH, patientID))
 
     return 1

@@ -25,7 +25,7 @@ class CellsImage:
     def _load_image(self):
         return plt.imread("{}/p{}_labeledcellData.tiff".format(ROOT_DATA_PATH, self.patientID))
 
-    def _get_single_cell(self, cell_label, cell_type, center='bb_center'):
+    def _get_single_cell(self, cell_label, cell_type, cell_size, center='bb_center'):
         if center not in ['bb_center', 'centroid']:
             raise ValueError('Wrong center. Center parameters must be one of '
                              'the following values: bb_center, centroid.')
@@ -43,15 +43,15 @@ class CellsImage:
             x, y = _get_centroid(indices[0], indices[1], N_pixels)
 
         # TODO: human readable cell type
-        return Cell(x, y, cell_label, cell_type)
+        return Cell(x, y, cell_label, cell_type, cell_size)
 
-    def get_cells(self, cells_idx, cell_types):
+    def get_cells(self, cells_idx, cell_types, cell_sizes):
         if not len(cells_idx) == len(cell_types):
             raise ValueError("cells_idx and cell type lists must have the same length")
 
         if self.cells is None:
-            self.cells = [self._get_single_cell(cell_id, ct)
-                          for cell_id, ct in zip(cells_idx, cell_types)]
+            self.cells = [self._get_single_cell(cell_id, ct, cs)
+                          for cell_id, ct, cs in zip(cells_idx, cell_types, cell_sizes)]
 
         return self.cells
 

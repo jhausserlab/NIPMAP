@@ -149,7 +149,7 @@ def plot_all_tumors_cell_positions(patient_ids, cell_types, segment_image=False,
 
     for i, patientID in enumerate(patient_ids):
         plt.subplot(8, 5, i+1)
-        data = pd.read_csv("../../output/cell_positions_data/patient{}_cell_positions.csv".format(patientID))
+        data = pd.read_csv("../../../output/cell_positions_data/patient{}_cell_positions.csv".format(patientID))
         groups = data.groupby('cell_type')
         plt.title("Patient ID: {}".format(patientID))
         if segment_image is True:
@@ -477,10 +477,10 @@ def archetypes_bar_plot(cell_number_archetypes, cell_types, colors, y_axis='coun
     elif y_axis == 'density':
         data = [100 * (d / (radius*radius*np.pi)) for d in cell_number_archetypes]
 
-    ax.bar(y_pos - 2*width, data[0], color=colors[0], width=width, label="Arch 0")
-    ax.bar(y_pos - width, data[1], color=colors[1], width=width, label="Arch 1")
-    ax.bar(y_pos, data[2], color=colors[2], width=width, label="Arch 2")
-    ax.bar(y_pos + width, data[3], color=colors[3], width=width, label="Arch 3")
+    ax.bar(y_pos - 2*width, data[0], color=colors[0], width=width, label="Arch 1")
+    ax.bar(y_pos - width, data[1], color=colors[1], width=width, label="Arch 2")
+    ax.bar(y_pos, data[2], color=colors[2], width=width, label="Arch 3")
+    ax.bar(y_pos + width, data[3], color=colors[3], width=width, label="Arch 4")
 
     plt.xlabel('Cells Type')
     if y_axis == 'log':
@@ -517,7 +517,7 @@ def archetype_simple_plot(cell_number_archetypes, archetype_id, colors, cell_typ
         plt.ylabel('density [#cells / 100 um^2]')
     else:
         plt.ylabel('#cells')
-    plt.title("Archetype {} {}".format(archetype_id, y_axis))
+    plt.title("Archetype {} {}".format(archetype_id+1, y_axis))
 
 
 def get_explained_variance_matrix(X, Y, expl_var_ratio):
@@ -554,3 +554,21 @@ def radius_pc_variance_contourf(patient_ids, expl_var_cum_ratio):
 
 
     plt.show()
+
+def radius_pc_all_variance(expl_var_cum_ratio):
+    plt.figure(figsize=(15, 15))
+    x = [0] + list(expl_var_cum_ratio.keys())
+    y = np.arange(0, 18)
+    X, Y = np.meshgrid(x, y)
+    Z = get_explained_variance_matrix(X, Y, expl_var_cum_ratio)
+    im = plt.contourf(X, Y, Z)
+    plt.axvline(x=100, color='r', linestyle='--')
+    plt.axhline(y=3, color='r', linestyle='--')
+    plt.ylim(0, 8)
+
+    plt.xlabel("Radius")
+    plt.ylabel("#PC")
+
+    plt.colorbar()
+    plt.show()
+
