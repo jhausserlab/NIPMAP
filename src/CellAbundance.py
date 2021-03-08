@@ -58,6 +58,11 @@ class CellAbundance:
 
     def _load_cell_position_from_csv(self):
         df = pd.read_csv("{}/patient{}_cell_positions.csv".format(self.root, self.patient_id))
+
+        # Load the image size (for Nature paper)
+        if 'x_size' in df.columns and 'y_size' in df.columns:
+            self.image_x_size = df['x_size'][0]
+            self.image_y_size = df['y_size'][0]
         return df
 
     def calculate_site_groups(self):
