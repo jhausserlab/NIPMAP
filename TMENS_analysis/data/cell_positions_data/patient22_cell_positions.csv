@@ -1,0 +1,3073 @@
+x,y,label,cell_type,cell_size_pixel
+122.265,14.235,2,Keratin-positive tumor,283
+208.845,13.455000000000002,3,Macrophages,242
+261.3,14.43,5,Keratin-positive tumor,488
+289.96500000000003,13.260000000000002,6,Keratin-positive tumor,135
+321.75,13.455000000000002,7,Macrophages,217
+334.23,14.235,8,Keratin-positive tumor,185
+370.69500000000005,13.455000000000002,9,Keratin-positive tumor,168
+391.17,13.065000000000001,10,Keratin-positive tumor,184
+421.2,16.38,11,Keratin-positive tumor,777
+459.81000000000006,13.844999999999999,12,Keratin-positive tumor,224
+477.94500000000005,14.235,13,Keratin-positive tumor,224
+546.3900000000001,15.015,14,Macrophages,425
+559.845,13.65,15,Keratin-positive tumor,193
+329.745,14.82,16,Keratin-positive tumor,195
+553.4100000000001,13.455000000000002,17,Keratin-positive tumor,108
+229.71,16.77,18,Keratin-positive tumor,527
+508.95000000000005,15.405000000000001,19,Macrophages,506
+630.435,13.844999999999999,20,Keratin-positive tumor,233
+218.01,16.38,21,Keratin-positive tumor,540
+135.135,15.990000000000002,22,Keratin-positive tumor,496
+195.195,15.21,23,Macrophages,301
+202.60500000000002,15.795000000000002,24,Macrophages,332
+316.68,16.185000000000002,25,Macrophages,393
+472.29,18.915000000000003,26,Keratin-positive tumor,1062
+536.445,15.795000000000002,27,Keratin-positive tumor,409
+151.125,15.6,28,Keratin-positive tumor,249
+308.1,17.16,29,Keratin-positive tumor,470
+566.475,17.745,30,Keratin-positive tumor,553
+636.09,16.575,31,Keratin-positive tumor,126
+281.58000000000004,16.575,32,Keratin-positive tumor,173
+396.43500000000006,18.72,33,Keratin-positive tumor,583
+158.535,19.89,34,Keratin-positive tumor,516
+340.66499999999996,16.38,35,Tumor,341
+452.985,18.135,36,Keratin-positive tumor,219
+631.4100000000001,17.94,38,Keratin-positive tumor,142
+172.77,19.695,39,Keratin-positive tumor,521
+552.63,19.89,40,Keratin-positive tumor,285
+295.42499999999995,19.305,41,Keratin-positive tumor,352
+129.87,21.84,42,Keratin-positive tumor,552
+270.855,23.595,43,Keratin-positive tumor,871
+379.275,21.84,44,Keratin-positive tumor,628
+405.405,20.28,45,Keratin-positive tumor,140
+280.21500000000003,21.645,46,Keratin-positive tumor,378
+88.72500000000001,23.985,47,Keratin-positive tumor,951
+141.76500000000001,22.815,48,Keratin-positive tumor,653
+499.59000000000003,20.28,49,Unidentified,706
+180.375,22.035,50,Keratin-positive tumor,485
+319.8,23.400000000000002,51,Keratin-positive tumor,635
+560.82,21.645,52,Keratin-positive tumor,146
+582.27,20.67,53,Keratin-positive tumor,386
+78.975,21.84,54,Keratin-positive tumor,242
+164.19,23.595,55,Keratin-positive tumor,342
+215.28,22.035,56,Keratin-positive tumor,109
+681.135,23.009999999999998,58,Unidentified,190
+739.83,22.62,59,Keratin-positive tumor,220
+487.305,24.57,60,Keratin-positive tumor,456
+676.6500000000001,23.595,61,Unidentified,143
+224.25,23.985,62,Keratin-positive tumor,350
+413.20500000000004,23.79,63,Keratin-positive tumor,151
+464.295,24.375,64,Keratin-positive tumor,445
+577.005,25.935000000000002,65,Keratin-positive tumor,633
+306.15,24.18,66,Keratin-positive tumor,182
+618.345,25.155,67,Keratin-positive tumor,509
+311.22,25.545,68,Keratin-positive tumor,104
+586.365,24.18,69,Unidentified,122
+344.175,27.69,70,Keratin-positive tumor,635
+606.645,27.105,71,Keratin-positive tumor,528
+362.895,25.545,72,Keratin-positive tumor,498
+566.085,28.665,73,Keratin-positive tumor,799
+420.03,25.35,74,Keratin-positive tumor,348
+402.87,27.495000000000005,75,Keratin-positive tumor,362
+391.365,27.105,76,Keratin-positive tumor,246
+519.2850000000001,28.08,78,Keratin-positive tumor,468
+673.14,26.52,79,Unidentified,177
+354.315,30.225,81,Keratin-positive tumor,587
+635.115,30.615000000000002,82,Keratin-positive tumor,626
+294.06000000000006,30.225,83,Keratin-positive tumor,800
+71.565,31.98,84,Keratin-positive tumor,717
+147.81,33.15,85,Keratin-positive tumor,559
+200.46,32.175,86,Keratin-positive tumor,565
+308.685,30.810000000000002,87,Keratin-positive tumor,130
+302.44500000000005,31.200000000000003,88,Keratin-positive tumor,430
+529.62,31.590000000000003,89,Keratin-positive tumor,498
+22.23,30.615000000000002,90,Keratin-positive tumor,188
+454.545,31.785000000000004,91,Keratin-positive tumor,303
+550.6800000000001,32.37,92,Keratin-positive tumor,532
+589.875,32.955,93,Keratin-positive tumor,716
+674.895,31.395000000000003,94,Unidentified,339
+493.935,33.54,95,Keratin-positive tumor,425
+665.73,31.98,96,Unidentified,269
+365.04,33.93,97,Keratin-positive tumor,447
+84.045,35.295,98,Keratin-positive tumor,826
+242.19,35.88,99,Keratin-positive tumor,784
+579.345,36.66,100,Keratin-positive tumor,535
+573.885,34.71,101,Keratin-positive tumor,177
+647.595,33.54,102,Keratin-positive tumor,476
+474.82500000000005,34.905,103,Keratin-positive tumor,174
+517.725,38.415,104,Keratin-positive tumor,911
+130.65,35.49,105,Keratin-positive tumor,297
+252.72000000000003,34.71,106,Keratin-positive tumor,282
+267.93,34.71,107,Keratin-positive tumor,126
+609.1800000000001,35.1,108,Keratin-positive tumor,304
+122.85,35.88,109,Keratin-positive tumor,338
+479.895,36.075,110,Keratin-positive tumor,216
+486.72,37.05,111,Keratin-positive tumor,201
+626.925,37.635,112,Keratin-positive tumor,609
+33.150000000000006,36.855000000000004,113,Keratin-positive tumor,290
+157.17000000000002,37.83,114,Keratin-positive tumor,324
+263.25,37.44,115,Keratin-positive tumor,224
+384.93,38.61,116,Keratin-positive tumor,533
+20.28,37.83,117,Keratin-positive tumor,414
+222.10500000000002,39.585,118,Keratin-positive tumor,761
+499.395,38.61,119,Keratin-positive tumor,425
+375.765,37.245000000000005,121,Keratin-positive tumor,249
+544.245,37.83,122,Keratin-positive tumor,305
+568.62,40.365,124,Keratin-positive tumor,590
+645.0600000000001,40.365,125,Keratin-positive tumor,638
+257.78999999999996,38.415,126,Keratin-positive tumor,285
+273.0,37.050000000000004,127,Keratin-positive tumor,339
+283.33500000000004,41.730000000000004,128,Keratin-positive tumor,987
+615.81,38.61,129,Keratin-positive tumor,317
+671.97,39.585,131,Keratin-positive tumor,371
+350.61,39.974999999999994,132,Keratin-positive tumor,165
+127.92000000000002,42.705,133,Keratin-positive tumor,417
+421.785,41.145,134,Keratin-positive tumor,552
+252.525,41.144999999999996,135,Keratin-positive tumor,167
+634.53,40.95,136,Keratin-positive tumor,307
+367.96500000000003,43.29,137,Keratin-positive tumor,546
+536.835,41.144999999999996,138,Keratin-positive tumor,238
+608.985,42.315,139,Keratin-positive tumor,341
+659.2950000000001,42.510000000000005,140,Keratin-positive tumor,618
+454.155,43.875,141,Keratin-positive tumor,731
+24.375,41.925,142,Tumor,94
+345.735,44.46,143,Keratin-positive tumor,195
+134.94,43.68,144,Keratin-positive tumor,332
+227.175,44.265,145,Keratin-positive tumor,101
+543.27,45.63,146,Keratin-positive tumor,571
+413.01,46.215,147,Keratin-positive tumor,818
+389.805,45.63,149,Keratin-positive tumor,381
+555.36,45.825,150,Keratin-positive tumor,620
+233.22000000000003,46.02,151,Unidentified,255
+197.73000000000002,47.97,152,Keratin-positive tumor,806
+622.83,44.655,153,Keratin-positive tumor,181
+92.235,47.190000000000005,154,Keratin-positive tumor,521
+217.23000000000002,46.41,155,Keratin-positive tumor,108
+401.115,47.190000000000005,156,Keratin-positive tumor,546
+512.85,49.53,157,Keratin-positive tumor,966
+604.89,46.605000000000004,158,Keratin-positive tumor,266
+164.97,42.705,159,Keratin-positive tumor,700
+210.015,47.97,160,Keratin-positive tumor,403
+641.355,48.36,161,Keratin-positive tumor,502
+525.915,50.31,162,Keratin-positive tumor,889
+27.884999999999998,45.435,164,Tumor,377
+590.0699999999999,49.53,165,Keratin-positive tumor,630
+666.9000000000001,48.945,166,Keratin-positive tumor,419
+19.5,48.36,167,Mesenchymal-like,248
+484.38,51.09,168,Keratin-positive tumor,819
+654.615,50.895,170,Keratin-positive tumor,781
+128.115,50.505,171,Keratin-positive tumor,368
+81.705,50.895,172,Keratin-positive tumor,605
+159.9,52.650000000000006,173,Keratin-positive tumor,709
+293.475,53.625,174,Keratin-positive tumor,742
+431.34000000000003,53.43000000000001,175,Keratin-positive tumor,642
+629.85,50.115,176,Keratin-positive tumor,267
+622.635,51.675,177,Keratin-positive tumor,249
+440.895,54.015,179,Keratin-positive tumor,473
+27.299999999999997,52.650000000000006,180,Unidentified,303
+143.52,53.43,181,Keratin-positive tumor,398
+217.03500000000003,53.235,182,Unidentified,104
+423.54,53.625,183,Keratin-positive tumor,364
+616.7850000000001,53.625,184,Keratin-positive tumor,397
+15.405,54.015,185,Macrophages,208
+53.43,53.82000000000001,186,Keratin-positive tumor,459
+447.915,54.405,188,Unidentified,265
+628.29,55.769999999999996,189,Keratin-positive tumor,184
+208.65,55.77,190,Keratin-positive tumor,316
+284.895,54.795,191,Unidentified,400
+669.6300000000001,54.405,192,Keratin-positive tumor,264
+134.355,57.525000000000006,193,Keratin-positive tumor,881
+334.23,56.355000000000004,194,Keratin-positive tumor,330
+686.4000000000001,56.355000000000004,195,Tumor,284
+121.875,60.84,197,Keratin-positive tumor,1049
+264.03,54.6,198,Keratin-positive tumor,332
+437.19000000000005,58.5,199,Keratin-positive tumor,365
+167.505,57.135000000000005,200,Keratin-positive tumor,274
+663.0,58.89,201,Keratin-positive tumor,408
+381.03,58.11,202,Keratin-positive tumor,329
+599.04,57.33,203,Keratin-positive tumor,402
+405.99,60.84,204,Unidentified,146
+524.55,58.5,205,Keratin-positive tumor,153
+545.22,58.69500000000001,206,Keratin-positive tumor,338
+567.45,58.11,207,Keratin-positive tumor,336
+590.265,63.57000000000001,208,Keratin-positive tumor,1168
+258.57,60.06,209,Keratin-positive tumor,481
+79.17,58.5,210,Keratin-positive tumor,126
+100.42500000000001,61.620000000000005,211,Keratin-positive tumor,548
+110.565,59.475,212,Keratin-positive tumor,346
+552.825,61.035,213,Unidentified,478
+672.165,61.230000000000004,214,Keratin-positive tumor,423
+32.955,60.45,215,Keratin-positive tumor,434
+82.875,62.790000000000006,216,Keratin-positive tumor,472
+606.84,63.18000000000001,217,Keratin-positive tumor,735
+741.0,62.205,218,Mesenchymal-like,421
+506.025,61.815,219,Keratin-positive tumor,307
+266.565,65.715,220,Keratin-positive tumor,866
+490.23,61.815000000000005,221,Keratin-positive tumor,254
+144.69,62.79,223,Keratin-positive tumor,185
+378.3,63.375,224,Keratin-positive tumor,297
+499.005,64.935,225,Keratin-positive tumor,376
+617.175,64.155,226,Keratin-positive tumor,301
+237.12,66.69,227,Keratin-positive tumor,406
+557.115,64.35,228,Unidentified,93
+691.47,67.47,229,Keratin-positive tumor,600
+733.59,64.935,230,Mesenchymal-like,328
+700.44,65.91,232,Unidentified,236
+711.9449999999999,65.91,233,Unidentified,182
+470.34000000000003,64.74000000000001,234,Keratin-positive tumor,677
+579.9300000000001,69.81,235,Keratin-positive tumor,978
+92.235,67.86,236,Keratin-positive tumor,594
+518.505,68.835,237,Keratin-positive tumor,528
+659.49,67.86,238,Keratin-positive tumor,574
+685.23,66.105,239,Keratin-positive tumor,151
+436.8,67.665,241,Keratin-positive tumor,334
+448.11,69.22500000000001,242,Keratin-positive tumor,706
+490.62,69.81,243,Keratin-positive tumor,760
+554.19,67.47,244,Unidentified,213
+526.6949999999999,67.86,245,Keratin-positive tumor,286
+508.95,71.955,246,Keratin-positive tumor,672
+373.23,72.53999999999999,247,Keratin-positive tumor,940
+513.24,68.83500000000001,248,Keratin-positive tumor,163
+566.6700000000001,70.19999999999999,249,Keratin-positive tumor,388
+604.3050000000001,70.2,250,Keratin-positive tumor,309
+207.09,71.175,251,Keratin-positive tumor,612
+343.785,70.785,252,Macrophages,443
+590.655,70.39500000000001,253,Keratin-positive tumor,226
+183.10500000000002,71.37,256,Keratin-positive tumor,521
+459.03,69.61500000000001,257,Keratin-positive tumor,249
+291.135,71.37,258,Keratin-positive tumor,379
+304.98,75.27000000000001,259,Keratin-positive tumor,1013
+686.595,73.32,260,Keratin-positive tumor,426
+165.945,73.905,261,Keratin-positive tumor,563
+468.78000000000003,72.73500000000001,262,Macrophages,95
+327.795,73.32,263,Keratin-positive tumor,360
+501.735,73.515,264,Keratin-positive tumor,135
+608.985,76.245,265,Keratin-positive tumor,689
+725.985,73.32,266,Keratin-positive tumor,150
+412.81500000000005,75.075,267,Unidentified,626
+154.05,75.855,270,Keratin-positive tumor,413
+717.6,74.685,271,Keratin-positive tumor,232
+221.13,75.66,272,Keratin-positive tumor,268
+263.25,76.83000000000001,273,Keratin-positive tumor,393
+88.14000000000001,78.58500000000001,274,Keratin-positive tumor,649
+656.955,76.245,275,Unidentified,158
+326.235,77.61,276,Keratin-positive tumor,71
+349.635,77.41499999999999,278,Keratin-positive tumor,137
+365.43,78.0,279,Keratin-positive tumor,452
+486.72,78.39000000000001,280,Macrophages,367
+495.69000000000005,78.78,281,Keratin-positive tumor,315
+588.12,79.755,282,Keratin-positive tumor,536
+694.98,78.78,283,Keratin-positive tumor,476
+749.385,78.58500000000001,284,Keratin-positive tumor,263
+406.38,79.17000000000002,285,Unidentified,527
+505.05,80.34,287,Keratin-positive tumor,524
+516.9449999999999,79.17,288,Unidentified,180
+82.68,82.28999999999999,289,Keratin-positive tumor,785
+224.835,79.56,290,Unidentified,288
+570.7650000000001,79.755,291,Keratin-positive tumor,244
+677.8199999999999,82.485,292,Keratin-positive tumor,918
+720.915,79.755,293,Keratin-positive tumor,464
+124.605,80.14500000000001,294,Keratin-positive tumor,199
+639.405,81.315,295,Keratin-positive tumor,436
+242.77500000000003,79.17000000000002,296,Unidentified,358
+522.405,80.535,297,Unidentified,177
+529.425,82.28999999999999,298,Keratin-positive tumor,360
+593.7750000000001,82.28999999999999,300,Keratin-positive tumor,151
+61.620000000000005,85.02000000000001,301,Keratin-positive tumor,909
+164.385,83.07,302,Keratin-positive tumor,235
+515.58,82.68,303,Unidentified,197
+446.16,83.07,304,Keratin-positive tumor,279
+654.03,84.825,305,Keratin-positive tumor,707
+564.72,86.385,306,Macrophages,691
+368.355,84.825,307,Keratin-positive tumor,422
+740.0250000000001,87.75,308,Keratin-positive tumor,1031
+73.125,85.02000000000001,309,Keratin-positive tumor,367
+522.7950000000001,85.995,310,Unidentified,110
+549.12,84.63,311,Keratin-positive tumor,404
+666.51,83.265,312,Keratin-positive tumor,319
+358.8,85.41,313,Unidentified,217
+639.405,86.775,314,Unidentified,166
+242.58,86.775,315,Keratin-positive tumor,194
+315.12,87.94500000000001,316,Keratin-positive tumor,693
+331.30500000000006,85.995,317,Tumor,467
+416.13,88.14000000000001,318,Keratin-positive tumor,482
+463.32000000000005,87.36000000000001,319,Keratin-positive tumor,472
+473.85,87.165,320,Keratin-positive tumor,359
+613.2750000000001,86.97,321,Keratin-positive tumor,134
+190.515,87.94500000000001,323,Mesenchymal-like,632
+127.72500000000001,88.14000000000001,324,Keratin-positive tumor,557
+214.5,88.53,325,Keratin-positive tumor,544
+435.63,89.7,326,Keratin-positive tumor,739
+556.335,89.7,327,Keratin-positive tumor,616
+302.44500000000005,88.92000000000002,328,Keratin-positive tumor,491
+624.78,89.89500000000001,329,Keratin-positive tumor,784
+452.79,89.70000000000002,330,Keratin-positive tumor,617
+392.92500000000007,88.72500000000001,332,Keratin-positive tumor,513
+402.48,88.53,333,Unidentified,269
+504.07500000000005,91.065,334,Keratin-positive tumor,659
+167.89499999999998,90.87,335,Mesenchymal-like,937
+424.515,89.89500000000001,336,Keratin-positive tumor,448
+518.895,90.47999999999999,337,Unidentified,582
+670.9950000000001,91.845,338,Keratin-positive tumor,744
+380.64,91.25999999999999,339,Keratin-positive tumor,585
+691.2750000000001,90.87,340,Keratin-positive tumor,306
+478.725,90.67500000000001,341,Keratin-positive tumor,204
+545.025,91.45500000000001,342,Unidentified,409
+681.72,90.87,343,Mono / Neu,280
+83.85,94.38,344,Keratin-positive tumor,763
+281.385,88.92000000000002,345,Unidentified,365
+328.18500000000006,94.185,346,Keratin-positive tumor,695
+358.41,94.38,348,Keratin-positive tumor,812
+208.845,91.26,349,Keratin-positive tumor,240
+348.65999999999997,92.625,351,Keratin-positive tumor,217
+535.47,93.015,352,Unidentified,323
+596.3100000000001,93.6,353,Keratin-positive tumor,157
+445.38,96.72,354,Keratin-positive tumor,681
+615.81,94.77000000000001,355,Keratin-positive tumor,504
+315.70500000000004,96.135,356,Keratin-positive tumor,436
+715.065,95.355,357,Unidentified,561
+235.56,96.72,359,Keratin-positive tumor,693
+475.995,100.035,362,Tumor,709
+689.52,94.965,363,Keratin-positive tumor,280
+512.0699999999999,97.5,364,Keratin-positive tumor,532
+680.745,96.72,365,Keratin-positive tumor,276
+387.66,96.915,366,Keratin-positive tumor,532
+420.225,98.86500000000001,367,Keratin-positive tumor,476
+282.165,97.11000000000001,368,Keratin-positive tumor,369
+561.21,99.64500000000001,369,Keratin-positive tumor,910
+632.58,98.47500000000001,370,Keratin-positive tumor,718
+750.1650000000001,96.915,371,Keratin-positive tumor,417
+371.08500000000004,97.305,372,Keratin-positive tumor,493
+140.985,97.5,373,Unidentified,365
+307.125,98.28,375,Keratin-positive tumor,501
+411.64500000000004,99.84,376,Keratin-positive tumor,608
+465.07500000000005,100.62,377,Keratin-positive tumor,774
+652.2750000000001,99.45,378,Keratin-positive tumor,540
+547.7550000000001,100.815,379,Keratin-positive tumor,757
+598.455,98.08500000000001,380,Unidentified,155
+743.925,101.4,381,Keratin-positive tumor,695
+20.085,100.035,382,Keratin-positive tumor,703
+698.2950000000001,97.5,383,Keratin-positive tumor,417
+336.57,100.815,384,Keratin-positive tumor,645
+485.55,99.64500000000001,385,Keratin-positive tumor,341
+530.4000000000001,101.00999999999999,386,Keratin-positive tumor,536
+610.155,99.06,387,Keratin-positive tumor,105
+759.72,98.28,388,Unidentified,335
+732.615,99.84,389,Keratin-positive tumor,346
+399.165,101.00999999999999,390,Keratin-positive tumor,690
+690.885,101.01,391,Keratin-positive tumor,139
+216.06,101.01,392,Keratin-positive tumor,209
+455.71500000000003,103.155,393,Keratin-positive tumor,513
+679.965,101.595,394,Keratin-positive tumor,127
+717.6,103.545,396,Keratin-positive tumor,574
+88.92000000000002,104.91,397,Keratin-positive tumor,686
+686.595,105.105,398,Keratin-positive tumor,466
+254.085,103.74000000000001,399,Keratin-positive tumor,461
+449.475,104.13,400,Keratin-positive tumor,180
+505.05,104.13,401,Keratin-positive tumor,471
+497.64,106.86000000000001,403,Keratin-positive tumor,524
+424.905,103.35,404,Keratin-positive tumor,398
+478.53000000000003,104.13,405,Tumor,208
+605.085,106.08000000000001,406,Keratin-positive tumor,709
+115.05000000000001,105.30000000000001,408,Keratin-positive tumor,566
+277.485,104.91,409,Keratin-positive tumor,380
+372.645,105.495,410,Keratin-positive tumor,455
+673.53,105.30000000000001,411,Keratin-positive tumor,148
+733.2,104.91,412,Unidentified,161
+176.085,105.105,413,Keratin-positive tumor,310
+523.1850000000001,105.885,414,Keratin-positive tumor,412
+99.45,108.61500000000001,415,Keratin-positive tumor,737
+445.38,107.64000000000001,416,Keratin-positive tumor,317
+534.69,107.64000000000001,417,Keratin-positive tumor,233
+302.25,104.715,418,Keratin-positive tumor,377
+591.0450000000001,108.03,419,Keratin-positive tumor,573
+678.405,104.91,420,Keratin-positive tumor,194
+749.58,107.055,421,Keratin-positive tumor,297
+757.185,107.25,422,Keratin-positive tumor,409
+19.305,109.97999999999999,423,Keratin-positive tumor,670
+290.745,108.81,424,Keratin-positive tumor,932
+650.52,110.17500000000001,425,Keratin-positive tumor,670
+195.195,108.61500000000001,426,Keratin-positive tumor,441
+339.885,108.61500000000001,427,Unidentified,279
+227.175,108.42,428,Unidentified,250
+359.58000000000004,109.59,429,Endothelial,449
+532.35,110.565,430,Keratin-positive tumor,117
+707.655,110.955,431,Keratin-positive tumor,857
+668.07,111.15,433,Macrophages,401
+181.74,108.81,434,Keratin-positive tumor,153
+689.52,113.49000000000001,435,Keratin-positive tumor,634
+156.195,112.905,436,Keratin-positive tumor,861
+218.79000000000002,110.75999999999999,437,Keratin-positive tumor,334
+479.70000000000005,114.465,438,Keratin-positive tumor,899
+523.3800000000001,113.1,439,Keratin-positive tumor,355
+491.01,112.125,440,Keratin-positive tumor,485
+780.78,112.71000000000001,441,Keratin-positive tumor,473
+12.870000000000001,112.515,442,Keratin-positive tumor,171
+174.72,112.125,444,Keratin-positive tumor,226
+452.79,113.295,446,Keratin-positive tumor,448
+566.085,114.855,447,Keratin-positive tumor,954
+344.76,110.565,448,Unidentified,146
+468.975,114.855,449,Keratin-positive tumor,817
+86.97,114.27000000000001,450,Keratin-positive tumor,549
+233.41500000000002,112.515,451,Macrophages,242
+549.51,115.83000000000001,453,Keratin-positive tumor,614
+745.6800000000001,114.27000000000001,454,Keratin-positive tumor,138
+753.48,114.27000000000001,455,Unidentified,129
+69.61500000000001,115.635,456,Tumor,255
+182.71500000000003,117.19500000000001,457,Keratin-positive tumor,611
+661.83,113.88,458,Keratin-positive tumor,293
+215.865,115.05000000000001,460,Keratin-positive tumor,250
+226.395,115.05000000000001,461,Keratin-positive tumor,168
+343.98,115.83000000000001,462,Keratin-positive tumor,208
+379.665,115.83000000000001,463,Keratin-positive tumor,455
+537.03,116.61000000000001,464,Keratin-positive tumor,465
+579.735,115.44,465,Keratin-positive tumor,305
+749.97,114.855,466,Keratin-positive tumor,154
+394.095,115.05000000000001,467,Keratin-positive tumor,382
+772.005,116.61000000000001,469,Keratin-positive tumor,567
+231.66000000000003,118.17000000000002,470,Unidentified,347
+508.56000000000006,116.025,471,Keratin-positive tumor,245
+62.79,116.805,472,Tumor,191
+450.84000000000003,120.51,473,Keratin-positive tumor,779
+653.6400000000001,120.70500000000001,474,Keratin-positive tumor,696
+201.63,118.56,475,Keratin-positive tumor,571
+318.045,116.61000000000001,476,Keratin-positive tumor,251
+703.95,118.75500000000001,477,Keratin-positive tumor,362
+114.66,120.12,478,Keratin-positive tumor,642
+169.65,122.07,480,Keratin-positive tumor,970
+371.08500000000004,120.12,481,Keratin-positive tumor,503
+220.35000000000002,119.92500000000001,482,Keratin-positive tumor,356
+502.125,119.535,483,Keratin-positive tumor,321
+103.74000000000001,120.9,484,Keratin-positive tumor,734
+344.37,120.70500000000001,485,Keratin-positive tumor,189
+492.375,121.095,486,Keratin-positive tumor,552
+663.195,122.655,487,Keratin-positive tumor,508
+133.96500000000003,122.655,488,Keratin-positive tumor,584
+318.435,121.095,489,Keratin-positive tumor,145
+293.08500000000004,118.755,490,Keratin-positive tumor,358
+14.82,123.82500000000002,491,Keratin-positive tumor,481
+511.485,123.435,492,Keratin-positive tumor,509
+675.09,122.265,493,Keratin-positive tumor,444
+707.85,122.655,494,Keratin-positive tumor,323
+690.885,126.945,495,Keratin-positive tumor,874
+23.985,125.58,496,Keratin-positive tumor,653
+94.575,124.41,497,Keratin-positive tumor,392
+349.83000000000004,123.825,498,Keratin-positive tumor,125
+597.09,126.165,499,Keratin-positive tumor,642
+304.59000000000003,127.725,500,Keratin-positive tumor,897
+523.965,127.33500000000001,501,Keratin-positive tumor,755
+569.985,127.33500000000001,502,Keratin-positive tumor,987
+201.24,125.19,503,Keratin-positive tumor,169
+317.265,129.09,504,Keratin-positive tumor,1147
+415.545,125.97,505,Keratin-positive tumor,442
+448.305,125.97,506,Keratin-positive tumor,173
+383.565,127.33500000000001,507,Keratin-positive tumor,746
+294.645,128.505,508,Keratin-positive tumor,707
+534.885,125.97,509,Keratin-positive tumor,398
+629.2650000000001,125.97,510,Unidentified,765
+142.74,126.16499999999999,511,Keratin-positive tumor,480
+422.565,126.555,512,Keratin-positive tumor,282
+556.1400000000001,127.92000000000002,513,Keratin-positive tumor,607
+66.105,129.09,514,Keratin-positive tumor,606
+490.425,129.09,515,Keratin-positive tumor,574
+444.015,128.7,516,Keratin-positive tumor,596
+478.92,127.53,517,Keratin-positive tumor,183
+674.505,129.09,518,Keratin-positive tumor,431
+582.465,130.065,519,Keratin-positive tumor,616
+260.71500000000003,128.31,520,Keratin-positive tumor,278
+404.82,128.505,521,Keratin-positive tumor,159
+153.07500000000002,129.675,523,Keratin-positive tumor,347
+737.685,131.43,524,Keratin-positive tumor,463
+620.88,133.185,525,Keratin-positive tumor,758
+39.195,128.70000000000002,526,Keratin-positive tumor,325
+164.775,130.845,527,Keratin-positive tumor,471
+396.63,132.99,528,Keratin-positive tumor,427
+565.5,134.55,529,Unidentified,168
+757.575,133.185,530,Unidentified,139
+378.885,133.57500000000002,531,Keratin-positive tumor,431
+432.51,132.99,532,Keratin-positive tumor,299
+593.19,134.16000000000003,533,Unidentified,376
+704.34,134.16000000000003,534,Keratin-positive tumor,549
+747.825,132.60000000000002,535,Keratin-positive tumor,283
+262.47,133.965,536,Keratin-positive tumor,194
+108.42000000000002,135.525,537,Keratin-positive tumor,642
+497.445,134.94,538,Unidentified,316
+25.35,137.08499999999998,539,Keratin-positive tumor,746
+130.26,137.865,540,Keratin-positive tumor,622
+223.66500000000002,136.305,541,Keratin-positive tumor,517
+408.33000000000004,136.305,542,Keratin-positive tumor,571
+353.145,138.255,543,Keratin-positive tumor,445
+208.84500000000003,139.62,544,Keratin-positive tumor,432
+215.47500000000002,139.425,545,Keratin-positive tumor,401
+390.19500000000005,136.5,546,Keratin-positive tumor,190
+418.86,138.255,547,Keratin-positive tumor,352
+579.54,138.45,548,Keratin-positive tumor,371
+641.94,137.865,550,Macrophages,265
+332.28000000000003,139.425,551,Keratin-positive tumor,396
+483.795,138.84,552,Keratin-positive tumor,261
+268.125,140.79000000000002,553,Keratin-positive tumor,663
+630.0450000000001,138.45,554,Keratin-positive tumor,253
+52.650000000000006,140.985,555,Keratin-positive tumor,844
+286.845,139.23000000000002,557,Keratin-positive tumor,334
+478.53,138.45,558,Keratin-positive tumor,237
+756.405,140.205,559,Keratin-positive tumor,450
+234.39,140.79000000000002,560,Keratin-positive tumor,408
+360.94500000000005,141.96,561,Keratin-positive tumor,446
+194.41500000000002,140.59500000000003,562,Keratin-positive tumor,260
+319.8,142.35000000000002,563,Keratin-positive tumor,487
+615.615,142.15500000000003,564,Keratin-positive tumor,727
+598.6500000000001,141.57,565,Keratin-positive tumor,344
+310.44000000000005,144.885,566,Keratin-positive tumor,859
+302.83500000000004,141.96,568,Keratin-positive tumor,269
+228.15,141.76500000000001,569,Unidentified,112
+412.62,143.715,570,Keratin-positive tumor,297
+641.1600000000001,142.935,571,Keratin-positive tumor,236
+275.92499999999995,144.885,572,Keratin-positive tumor,497
+297.57000000000005,143.13,573,Unidentified,141
+355.68,143.91,574,Keratin-positive tumor,115
+497.83500000000004,147.225,575,Keratin-positive tumor,799
+747.825,144.495,576,Unidentified,216
+87.75,145.86,577,Keratin-positive tumor,335
+544.635,144.3,578,Keratin-positive tumor,398
+71.565,147.81,579,Keratin-positive tumor,805
+112.71000000000001,146.835,580,Keratin-positive tumor,539
+286.06500000000005,148.785,581,Keratin-positive tumor,694
+239.46,146.055,582,Keratin-positive tumor,217
+678.015,145.86,583,Keratin-positive tumor,419
+159.51,146.445,584,Keratin-positive tumor,457
+606.255,149.37,585,Keratin-positive tumor,606
+633.945,147.81,586,Keratin-positive tumor,424
+18.72,150.54000000000002,587,Keratin-positive tumor,768
+453.96000000000004,151.71,588,Keratin-positive tumor,899
+619.32,151.32,589,Keratin-positive tumor,776
+712.9200000000001,148.005,590,Keratin-positive tumor,408
+569.4,149.37,591,Keratin-positive tumor,255
+639.405,150.15,592,Keratin-positive tumor,256
+262.47,149.95499999999998,593,Keratin-positive tumor,330
+335.01,149.175,594,Keratin-positive tumor,379
+371.475,151.71,595,Keratin-positive tumor,813
+29.055,152.49,596,Keratin-positive tumor,782
+328.96500000000003,152.29500000000002,597,Keratin-positive tumor,664
+492.375,152.29500000000002,598,Keratin-positive tumor,548
+200.265,152.88,599,Keratin-positive tumor,741
+183.495,152.29500000000002,600,Keratin-positive tumor,111
+205.335,150.34500000000003,601,Endothelial,151
+422.17500000000007,152.29500000000002,602,Keratin-positive tumor,595
+661.05,152.49,603,Keratin-positive tumor,519
+167.31,151.125,604,Keratin-positive tumor,450
+476.97,154.05,605,Keratin-positive tumor,772
+437.19,153.07500000000002,606,Keratin-positive tumor,494
+593.97,154.245,607,Keratin-positive tumor,689
+739.05,154.05,608,Keratin-positive tumor,677
+256.23,151.32,609,Keratin-positive tumor,419
+390.39,151.90500000000003,610,Keratin-positive tumor,219
+701.22,152.88,611,Keratin-positive tumor,872
+730.275,154.83,612,Keratin-positive tumor,603
+96.72,153.27,613,Keratin-positive tumor,340
+511.095,152.88,614,Keratin-positive tumor,123
+360.94500000000005,156.0,615,Keratin-positive tumor,773
+583.635,153.075,616,Keratin-positive tumor,243
+711.5550000000001,155.61,617,Keratin-positive tumor,386
+631.02,155.805,618,Keratin-positive tumor,239
+50.505,156.97500000000002,619,Keratin-positive tumor,557
+396.63,156.97500000000002,620,Keratin-positive tumor,556
+405.40500000000003,154.83,621,Keratin-positive tumor,219
+765.375,155.025,622,Unidentified,292
+460.20000000000005,158.53500000000003,624,Keratin-positive tumor,606
+291.33000000000004,159.12,625,Keratin-positive tumor,602
+569.79,157.17000000000002,626,Keratin-positive tumor,272
+586.1700000000001,158.34,627,Keratin-positive tumor,455
+269.88,158.53500000000003,628,Keratin-positive tumor,497
+651.4950000000001,157.365,629,Unidentified,232
+64.545,158.73000000000002,630,Keratin-positive tumor,377
+511.485,160.875,631,Keratin-positive tumor,784
+668.655,158.53500000000003,632,Keratin-positive tumor,459
+719.55,157.755,633,Unidentified,272
+70.98,157.95,634,Keratin-positive tumor,268
+423.15,159.51,636,Keratin-positive tumor,226
+213.525,159.12,637,Keratin-positive tumor,274
+58.11,161.07,638,Keratin-positive tumor,331
+125.19,163.02,640,Keratin-positive tumor,848
+314.34000000000003,161.46,641,Keratin-positive tumor,180
+406.575,163.8,642,Keratin-positive tumor,777
+435.43500000000006,161.85000000000002,643,Unidentified,197
+428.61,161.46,644,Keratin-positive tumor,92
+556.9200000000001,163.02,645,Keratin-positive tumor,676
+601.77,161.85000000000002,646,Macrophages,137
+681.135,162.435,647,Keratin-positive tumor,167
+740.415,166.14000000000001,648,Keratin-positive tumor,835
+394.68,164.19,649,Keratin-positive tumor,483
+570.1800000000001,163.8,650,Keratin-positive tumor,136
+453.375,163.60500000000002,651,Keratin-positive tumor,349
+308.1,164.385,652,Keratin-positive tumor,498
+438.165,163.995,653,Unidentified,95
+52.845,164.57999999999998,654,Keratin-positive tumor,170
+199.68,163.995,655,Keratin-positive tumor,483
+627.1200000000001,165.16500000000002,656,Keratin-positive tumor,555
+260.71500000000003,167.115,658,Keratin-positive tumor,840
+92.03999999999999,165.16500000000002,659,Keratin-positive tumor,405
+111.735,165.555,660,Keratin-positive tumor,414
+644.28,164.775,661,Keratin-positive tumor,704
+653.835,164.775,662,Keratin-positive tumor,505
+673.1400000000001,168.09,663,Keratin-positive tumor,733
+272.22,167.505,664,Keratin-positive tumor,433
+361.92,169.65,665,Keratin-positive tumor,974
+534.885,167.89499999999998,666,Keratin-positive tumor,590
+612.885,164.775,667,Keratin-positive tumor,253
+136.11,170.82,668,Keratin-positive tumor,1013
+420.03000000000003,169.845,669,Keratin-positive tumor,1124
+431.34000000000003,166.335,670,Keratin-positive tumor,267
+503.1,166.92000000000002,671,Keratin-positive tumor,215
+481.26,167.31,672,Keratin-positive tumor,205
+460.395,170.04000000000002,674,Keratin-positive tumor,646
+492.76500000000004,171.015,675,Keratin-positive tumor,605
+706.875,170.04000000000002,677,Keratin-positive tumor,719
+13.65,168.675,678,Keratin-positive tumor,113
+296.985,170.235,680,Keratin-positive tumor,204
+691.08,169.45499999999998,681,Tumor,135
+785.655,169.65,682,Keratin-positive tumor,129
+288.405,171.99,683,Keratin-positive tumor,692
+73.905,170.82,684,Keratin-positive tumor,418
+313.17,170.625,685,Endothelial,249
+513.63,169.26,686,Keratin-positive tumor,215
+635.7,171.015,687,Keratin-positive tumor,316
+779.61,170.82,688,Keratin-positive tumor,308
+597.48,173.35500000000002,689,Keratin-positive tumor,725
+612.4950000000001,171.40500000000003,690,Keratin-positive tumor,232
+328.185,172.965,691,Keratin-positive tumor,344
+499.785,173.55,692,Keratin-positive tumor,452
+112.125,171.99,694,Keratin-positive tumor,178
+123.82499999999999,175.305,695,Keratin-positive tumor,889
+394.485,176.28,696,Keratin-positive tumor,917
+623.0250000000001,175.11,697,Keratin-positive tumor,760
+429.975,174.135,698,Keratin-positive tumor,453
+522.015,174.32999999999998,699,Keratin-positive tumor,632
+444.015,173.35500000000002,700,Unidentified,349
+683.28,173.55,701,Keratin-positive tumor,133
+13.455000000000002,174.91500000000002,702,Keratin-positive tumor,183
+530.9850000000001,173.94,703,Keratin-positive tumor,275
+764.4000000000001,173.16,705,Keratin-positive tumor,288
+343.98,176.28,706,Keratin-positive tumor,565
+554.19,176.28,707,Macrophages,352
+258.57,178.62,708,Keratin-positive tumor,714
+609.375,174.33,709,Keratin-positive tumor,505
+61.620000000000005,178.425,710,Keratin-positive tumor,960
+333.645,174.525,711,Keratin-positive tumor,236
+403.06500000000005,176.28,712,Keratin-positive tumor,338
+639.21,178.815,713,Keratin-positive tumor,799
+321.165,176.865,714,Keratin-positive tumor,380
+477.75,176.865,715,Keratin-positive tumor,234
+463.32000000000005,181.155,717,Keratin-positive tumor,611
+761.865,178.23000000000002,718,Keratin-positive tumor,354
+91.845,178.815,719,Keratin-positive tumor,539
+680.7450000000001,176.475,720,Keratin-positive tumor,158
+735.1500000000001,179.01,722,Keratin-positive tumor,567
+146.83499999999998,181.35000000000002,723,Keratin-positive tumor,671
+246.09000000000003,180.375,724,Keratin-positive tumor,833
+455.13,181.935,726,Keratin-positive tumor,553
+546.9749999999999,180.76500000000001,727,Macrophages,405
+105.30000000000001,181.54500000000002,728,Keratin-positive tumor,468
+111.345,179.20499999999998,729,Macrophages,186
+233.22000000000003,183.885,730,Keratin-positive tumor,1115
+73.125,181.74,731,Keratin-positive tumor,581
+266.175,181.54500000000002,732,Keratin-positive tumor,573
+670.2149999999999,180.76500000000001,733,Keratin-positive tumor,219
+312.78000000000003,181.155,734,Keratin-positive tumor,408
+334.035,179.79000000000002,735,Keratin-positive tumor,203
+627.9,180.57,736,Unidentified,157
+99.84,180.96,737,Unidentified,164
+534.3,184.08,739,Keratin-positive tumor,631
+438.555,185.055,740,Unidentified,469
+19.5,185.25,741,Keratin-positive tumor,783
+170.625,182.91,742,Keratin-positive tumor,330
+489.45000000000005,183.3,743,Keratin-positive tumor,160
+374.01,184.66500000000002,744,Keratin-positive tumor,428
+559.4549999999999,183.3,745,Macrophages,281
+681.915,186.03,746,Keratin-positive tumor,779
+157.17000000000002,185.25,747,Keratin-positive tumor,532
+296.595,183.10500000000002,749,Keratin-positive tumor,100
+632.7750000000001,184.86,750,Keratin-positive tumor,340
+327.6,187.005,751,Keratin-positive tumor,1060
+469.365,187.395,752,Keratin-positive tumor,696
+730.47,187.005,753,Keratin-positive tumor,581
+760.5,187.005,754,Keratin-positive tumor,423
+420.42,187.59,755,Endothelial,478
+772.395,187.395,756,Keratin-positive tumor,856
+296.985,187.005,760,Keratin-positive tumor,186
+308.68500000000006,190.71,761,Keratin-positive tumor,841
+566.865,190.125,762,Keratin-positive tumor,534
+98.86500000000001,188.37,763,Keratin-positive tumor,249
+280.02,190.32,764,Keratin-positive tumor,618
+432.12,189.345,765,Unidentified,641
+710.19,188.76,766,Keratin-positive tumor,222
+248.235,190.32,767,Keratin-positive tumor,493
+317.46000000000004,189.735,768,Keratin-positive tumor,266
+604.3050000000001,189.735,769,Keratin-positive tumor,395
+692.25,191.685,770,Unidentified,459
+672.1650000000001,192.46500000000003,771,Keratin-positive tumor,486
+256.035,191.29500000000002,772,Keratin-positive tumor,233
+262.86,191.88,773,Keratin-positive tumor,397
+122.265,192.66000000000003,774,Unidentified,406
+360.165,192.85500000000002,775,Keratin-positive tumor,365
+74.49000000000001,192.27,776,Keratin-positive tumor,548
+202.02,193.44,777,Keratin-positive tumor,472
+783.7049999999999,192.85500000000002,778,Keratin-positive tumor,253
+503.88,193.245,779,Keratin-positive tumor,397
+48.555,193.63500000000002,780,Keratin-positive tumor,481
+531.96,194.61,782,Keratin-positive tumor,698
+763.6200000000001,195.0,783,Keratin-positive tumor,408
+611.13,194.025,785,Mesenchymal-like,268
+96.915,195.78,786,Keratin-positive tumor,571
+194.22000000000003,194.805,787,Keratin-positive tumor,264
+438.36,195.39,788,Unidentified,310
+585.78,193.245,789,Keratin-positive tumor,286
+490.23,197.34,791,Keratin-positive tumor,902
+679.575,198.51,792,Keratin-positive tumor,851
+772.98,195.97500000000002,793,Keratin-positive tumor,309
+657.15,191.29500000000002,794,Unidentified,828
+346.515,196.17000000000002,795,Macrophages,298
+733.005,197.145,796,Keratin-positive tumor,469
+186.615,198.315,797,Unidentified,559
+379.08000000000004,197.73000000000002,798,Keratin-positive tumor,411
+286.45500000000004,198.70499999999998,799,Keratin-positive tumor,561
+206.505,198.51,800,Keratin-positive tumor,304
+780.0,197.34,801,Keratin-positive tumor,405
+385.515,198.9,802,Keratin-positive tumor,310
+161.26500000000001,198.315,803,Keratin-positive tumor,245
+368.15999999999997,197.73000000000002,804,Tumor,128
+141.57,199.875,805,Macrophages,294
+355.68,201.825,806,Keratin-positive tumor,822
+429.39,200.26500000000001,807,Keratin-positive tumor,468
+591.24,199.68,808,Keratin-positive tumor,356
+606.645,199.095,809,Keratin-positive tumor,595
+262.86,199.095,810,Keratin-positive tumor,186
+364.06500000000005,199.485,811,Macrophages,201
+746.85,200.265,812,Keratin-positive tumor,352
+303.615,202.41000000000003,813,Keratin-positive tumor,797
+464.49,202.02,814,Keratin-positive tumor,750
+575.4449999999999,203.19,815,Keratin-positive tumor,962
+210.60000000000002,202.41000000000003,816,Keratin-positive tumor,243
+509.145,201.63,817,Keratin-positive tumor,471
+20.475,201.435,818,Keratin-positive tumor,330
+337.35,201.63,819,Keratin-positive tumor,986
+619.71,204.16500000000002,820,Keratin-positive tumor,687
+49.335,202.60500000000002,821,Keratin-positive tumor,406
+168.675,202.41000000000003,822,Keratin-positive tumor,465
+392.535,202.41000000000003,823,Keratin-positive tumor,447
+541.515,201.82500000000002,824,Keratin-positive tumor,98
+148.78500000000003,203.58,825,Keratin-positive tumor,425
+263.25,203.385,826,Keratin-positive tumor,232
+640.575,204.75,827,Keratin-positive tumor,693
+228.93,203.97000000000003,828,Keratin-positive tumor,391
+535.665,204.16500000000002,829,Unidentified,442
+482.04,203.97,830,Keratin-positive tumor,403
+665.73,204.945,831,Keratin-positive tumor,583
+155.805,202.8,832,Keratin-positive tumor,141
+73.125,206.115,834,Keratin-positive tumor,515
+411.255,205.14,835,Keratin-positive tumor,457
+15.600000000000001,206.895,836,Keratin-positive tumor,540
+219.375,206.7,837,Keratin-positive tumor,693
+368.745,206.895,838,Macrophages,776
+423.54,205.92000000000002,839,Keratin-positive tumor,444
+161.07,205.53,840,Keratin-positive tumor,283
+179.01,207.09,841,Keratin-positive tumor,502
+59.67,206.115,842,Keratin-positive tumor,378
+516.165,208.45499999999998,843,Keratin-positive tumor,782
+399.165,206.7,844,Keratin-positive tumor,237
+404.235,206.7,845,Keratin-positive tumor,227
+385.71000000000004,208.26,846,Keratin-positive tumor,456
+52.260000000000005,206.89499999999998,847,Keratin-positive tumor,200
+143.91000000000003,208.065,848,Unidentified,371
+295.62,206.89499999999998,849,Macrophages,378
+552.825,208.065,850,Keratin-positive tumor,419
+769.47,209.235,851,Keratin-positive tumor,486
+470.73,206.895,852,Keratin-positive tumor,156
+232.44,208.845,853,Unidentified,191
+728.13,211.575,854,Keratin-positive tumor,878
+153.66000000000003,209.82,855,Macrophages,404
+565.6949999999999,207.48000000000002,856,Unidentified,166
+30.03,209.43,857,Keratin-positive tumor,430
+442.26,211.965,859,Keratin-positive tumor,1008
+607.035,212.35500000000002,860,Keratin-positive tumor,555
+747.63,211.77,861,Unidentified,301
+101.78999999999999,211.185,862,Mesenchymal-like,287
+286.65,209.82,863,Keratin-positive tumor,609
+660.075,212.35500000000002,864,Keratin-positive tumor,542
+755.04,213.52500000000003,865,Keratin-positive tumor,664
+225.03,213.33,866,Keratin-positive tumor,627
+469.17,212.35500000000002,867,Keratin-positive tumor,129
+473.46000000000004,212.16000000000003,868,Keratin-positive tumor,112
+531.5699999999999,213.72000000000003,869,Keratin-positive tumor,563
+320.97,215.47500000000002,870,Keratin-positive tumor,829
+577.395,214.89000000000001,871,Keratin-positive tumor,456
+89.7,216.45,872,Keratin-positive tumor,618
+428.025,215.67000000000002,873,Keratin-positive tumor,493
+366.21000000000004,217.62,874,Keratin-positive tumor,868
+189.93,217.035,876,Keratin-positive tumor,713
+479.70000000000005,216.45,877,Keratin-positive tumor,779
+493.35,217.815,878,Keratin-positive tumor,963
+506.025,217.23000000000002,879,Macrophages,492
+782.145,217.23000000000002,880,Keratin-positive tumor,464
+303.615,216.255,881,Macrophages,420
+381.42,217.23000000000002,882,Keratin-positive tumor,413
+45.435,217.03500000000003,883,Keratin-positive tumor,153
+104.715,216.84,884,Macrophages,427
+568.425,218.01,885,Keratin-positive tumor,185
+598.6500000000001,218.01,886,Macrophages,167
+295.23,219.57,887,Keratin-positive tumor,610
+546.975,219.375,888,Keratin-positive tumor,741
+435.045,218.4,889,Keratin-positive tumor,338
+646.815,221.32500000000002,890,Keratin-positive tumor,716
+660.855,221.91000000000003,891,Keratin-positive tumor,660
+785.0699999999999,220.54500000000002,892,Keratin-positive tumor,153
+774.7350000000001,219.57,893,Keratin-positive tumor,244
+501.93,220.935,894,Macrophages,92
+592.215,219.18,895,Unidentified,127
+68.64,222.3,896,Keratin-positive tumor,464
+227.37,222.10500000000002,897,Keratin-positive tumor,325
+589.6800000000001,220.935,898,Keratin-positive tumor,164
+255.83999999999997,223.08,899,Keratin-positive tumor,517
+49.725,221.71500000000003,900,Unidentified,389
+117.39000000000001,222.885,901,Keratin-positive tumor,309
+275.73,223.66500000000002,902,Mesenchymal-like,753
+385.905,226.78500000000003,903,Macrophages,568
+481.06500000000005,225.81,904,Keratin-positive tumor,635
+602.55,222.88500000000002,905,Macrophages,297
+462.54,225.615,906,Keratin-positive tumor,536
+373.035,226.005,907,Keratin-positive tumor,493
+554.19,226.39499999999998,908,Keratin-positive tumor,640
+107.44500000000001,225.81,909,Keratin-positive tumor,521
+245.115,224.64000000000001,910,Unidentified,214
+359.775,226.98000000000002,911,Keratin-positive tumor,778
+206.115,228.735,912,Keratin-positive tumor,925
+588.705,225.615,913,Keratin-positive tumor,638
+47.97,229.51500000000001,914,Keratin-positive tumor,561
+216.06,227.175,915,Keratin-positive tumor,395
+223.86,226.98000000000002,916,Keratin-positive tumor,265
+238.875,228.93,917,CD3-T,674
+14.04,227.175,918,Keratin-positive tumor,181
+300.69,228.15,920,Keratin-positive tumor,527
+492.57000000000005,227.76,921,Keratin-positive tumor,411
+325.26,226.59,922,Keratin-positive tumor,500
+785.46,227.76,923,Keratin-positive tumor,89
+56.745000000000005,230.10000000000002,924,Keratin-positive tumor,493
+178.62,229.71,925,Keratin-positive tumor,664
+90.87,228.54000000000002,926,Keratin-positive tumor,155
+662.8050000000001,229.90500000000003,927,Keratin-positive tumor,366
+118.56,230.49,928,Keratin-positive tumor,218
+534.495,233.805,929,Keratin-positive tumor,1270
+197.925,230.685,931,Unidentified,221
+40.56,231.465,932,Keratin-positive tumor,345
+347.29499999999996,234.78000000000003,933,Keratin-positive tumor,784
+434.46000000000004,231.66000000000003,934,Keratin-positive tumor,784
+570.57,231.66000000000003,935,Keratin-positive tumor,215
+12.870000000000001,233.61,936,Keratin-positive tumor,148
+644.865,231.465,937,Keratin-positive tumor,152
+33.735,234.585,938,Keratin-positive tumor,498
+605.085,233.025,939,Keratin-positive tumor,248
+148.39499999999998,236.53500000000003,940,Keratin-positive tumor,606
+260.52,232.82999999999998,941,Keratin-positive tumor,186
+324.675,233.61,942,Keratin-positive tumor,425
+497.25,235.365,943,Keratin-positive tumor,537
+515.97,232.83,944,Keratin-positive tumor,292
+599.4300000000001,233.61,945,Keratin-positive tumor,283
+229.90500000000003,236.14499999999998,946,Keratin-positive tumor,640
+218.985,237.12,947,Keratin-positive tumor,768
+365.04,234.585,948,Keratin-positive tumor,335
+676.065,235.56,949,Keratin-positive tumor,540
+659.1,236.535,950,Keratin-positive tumor,715
+725.79,235.365,951,Macrophages,134
+447.33000000000004,234.78000000000003,952,Keratin-positive tumor,266
+593.19,233.805,953,Keratin-positive tumor,315
+288.795,234.0,954,Keratin-positive tumor,425
+466.635,235.95,955,Keratin-positive tumor,605
+179.79000000000002,238.485,956,Keratin-positive tumor,500
+647.595,238.29000000000002,957,Keratin-positive tumor,570
+249.405,238.29000000000002,958,Keratin-positive tumor,674
+392.73,237.12,959,Keratin-positive tumor,269
+52.650000000000006,240.24,960,Keratin-positive tumor,676
+154.635,240.82500000000002,961,Keratin-positive tumor,556
+637.845,238.095,962,Tumor,286
+769.2750000000001,238.68,963,Keratin-positive tumor,242
+40.17,239.265,964,Keratin-positive tumor,260
+279.82500000000005,239.46,965,Keratin-positive tumor,334
+738.4649999999999,238.095,966,Keratin-positive tumor,235
+162.825,239.07,967,Keratin-positive tumor,380
+372.06,240.63,968,Keratin-positive tumor,460
+472.29,237.705,969,Keratin-positive tumor,141
+516.75,242.19,970,Keratin-positive tumor,989
+489.645,239.85000000000002,971,Keratin-positive tumor,464
+774.54,238.875,972,Keratin-positive tumor,212
+783.7049999999999,240.04500000000002,973,Keratin-positive tumor,317
+167.7,242.58,975,Keratin-positive tumor,637
+363.09000000000003,243.16500000000002,976,Keratin-positive tumor,428
+195.39000000000001,242.19,977,Macrophages,260
+207.28500000000003,243.36,978,Macrophages,665
+449.67,241.995,979,Keratin-positive tumor,152
+564.72,244.53,980,Keratin-positive tumor,623
+721.695,243.75,981,Keratin-positive tumor,519
+119.73,245.31,982,Keratin-positive tumor,645
+322.33500000000004,244.335,983,Keratin-positive tumor,143
+651.3000000000001,242.775,984,Keratin-positive tumor,141
+311.415,243.75,985,CD4-T,231
+62.595,243.945,986,Keratin-positive tumor,405
+276.51,243.555,987,Keratin-positive tumor,346
+455.32500000000005,242.385,988,Keratin-positive tumor,130
+466.635,245.505,989,Keratin-positive tumor,309
+240.435,248.235,991,Keratin-positive tumor,856
+368.355,246.675,992,Keratin-positive tumor,369
+473.85,246.09,993,Keratin-positive tumor,450
+638.235,245.115,994,Keratin-positive tumor,367
+422.95500000000004,247.455,995,Keratin-positive tumor,835
+455.32500000000005,246.09,996,Keratin-positive tumor,99
+490.815,246.675,997,Keratin-positive tumor,375
+582.6600000000001,247.26,998,Keratin-positive tumor,645
+304.20000000000005,245.505,1000,Keratin-positive tumor,289
+412.81500000000005,246.675,1001,Unidentified,332
+644.28,246.87,1002,Keratin-positive tumor,132
+218.985,247.65,1004,Keratin-positive tumor,361
+330.135,250.185,1005,Keratin-positive tumor,608
+497.44500000000005,248.43,1006,Keratin-positive tumor,369
+609.765,249.21,1007,Keratin-positive tumor,504
+52.650000000000006,248.43,1008,Unidentified,101
+253.305,252.13500000000002,1009,Keratin-positive tumor,643
+382.78499999999997,248.04000000000002,1010,Keratin-positive tumor,108
+758.1600000000001,249.60000000000002,1011,Keratin-positive tumor,376
+116.61000000000001,249.60000000000002,1012,Unidentified,126
+401.505,249.79500000000002,1013,Macrophages,252
+480.48,251.745,1014,Keratin-positive tumor,714
+595.335,249.79500000000002,1016,Keratin-positive tumor,145
+110.17500000000001,248.43,1017,Keratin-positive tumor,406
+523.1850000000001,250.575,1018,Keratin-positive tumor,356
+60.06,252.72000000000003,1019,Keratin-positive tumor,636
+315.51,249.60000000000002,1020,Keratin-positive tumor,523
+217.03500000000003,252.525,1021,Keratin-positive tumor,105
+378.495,253.305,1023,Keratin-positive tumor,558
+444.21000000000004,252.135,1024,Unidentified,349
+719.745,252.135,1025,Keratin-positive tumor,507
+337.545,253.695,1026,Keratin-positive tumor,419
+386.88,251.745,1027,Keratin-positive tumor,255
+512.46,253.695,1028,Keratin-positive tumor,528
+620.685,251.55,1029,Keratin-positive tumor,117
+426.27,255.06,1030,Keratin-positive tumor,676
+638.625,253.11,1031,Keratin-positive tumor,386
+295.23,257.4,1032,Keratin-positive tumor,979
+553.995,257.985,1033,Keratin-positive tumor,1087
+77.415,255.45,1034,Keratin-positive tumor,577
+324.48,257.40000000000003,1035,Keratin-positive tumor,802
+15.21,253.89000000000001,1036,Keratin-positive tumor,277
+210.99,253.695,1037,Tumor,205
+624.585,254.47500000000002,1038,Keratin-positive tumor,309
+184.47000000000003,256.815,1039,Keratin-positive tumor,524
+248.235,259.155,1040,Keratin-positive tumor,639
+460.785,257.595,1041,Keratin-positive tumor,713
+31.395000000000003,256.815,1042,Unidentified,341
+307.515,255.64499999999998,1043,Keratin-positive tumor,282
+593.7750000000001,255.84000000000003,1044,Keratin-positive tumor,259
+280.40999999999997,258.375,1045,Keratin-positive tumor,362
+400.725,256.035,1046,Keratin-positive tumor,276
+409.5,259.35,1047,Keratin-positive tumor,645
+494.91,257.595,1048,Keratin-positive tumor,478
+38.415000000000006,259.545,1049,Keratin-positive tumor,531
+213.72000000000003,257.595,1050,Tumor,282
+571.74,259.74,1051,Keratin-positive tumor,771
+715.845,257.595,1052,Keratin-positive tumor,223
+352.365,260.13,1054,Keratin-positive tumor,645
+390.78000000000003,260.13,1055,Keratin-positive tumor,624
+522.7950000000001,261.3,1056,Keratin-positive tumor,688
+535.2750000000001,261.69000000000005,1057,Keratin-positive tumor,1046
+342.615,260.13,1058,Keratin-positive tumor,442
+374.595,259.155,1059,Keratin-positive tumor,264
+639.7950000000001,259.545,1060,Keratin-positive tumor,224
+726.375,259.35,1061,Keratin-positive tumor,124
+26.325000000000003,259.35,1062,Keratin-positive tumor,322
+157.95,260.52,1063,Unidentified,395
+222.69,260.71500000000003,1064,Keratin-positive tumor,533
+15.405000000000001,261.495,1065,Keratin-positive tumor,394
+430.17,263.64,1066,Keratin-positive tumor,693
+733.395,259.545,1067,Unidentified,224
+307.71000000000004,261.885,1068,Keratin-positive tumor,249
+511.68000000000006,263.055,1069,Keratin-positive tumor,722
+715.455,262.275,1070,Keratin-positive tumor,217
+335.20500000000004,263.44500000000005,1071,Keratin-positive tumor,529
+623.8050000000001,263.44500000000005,1072,Keratin-positive tumor,479
+400.14,263.44500000000005,1073,Keratin-positive tumor,381
+415.93500000000006,265.005,1074,Keratin-positive tumor,819
+593.58,262.86,1075,Macrophages,270
+46.800000000000004,263.83500000000004,1076,Keratin-positive tumor,524
+602.355,263.25,1077,Keratin-positive tumor,451
+759.915,263.83500000000004,1078,Keratin-positive tumor,331
+455.32500000000005,263.83500000000004,1079,Unidentified,324
+501.735,262.47,1080,Keratin-positive tumor,136
+107.44500000000001,264.225,1081,Keratin-positive tumor,347
+736.125,264.225,1082,Keratin-positive tumor,221
+318.24,266.56500000000005,1083,Keratin-positive tumor,806
+546.975,265.005,1084,Keratin-positive tumor,314
+482.235,264.615,1086,Keratin-positive tumor,145
+728.9100000000001,267.15,1087,Keratin-positive tumor,442
+755.235,264.615,1088,Unidentified,157
+641.94,267.15,1089,Keratin-positive tumor,649
+463.515,267.93,1090,Keratin-positive tumor,489
+82.68,269.88,1091,Keratin-positive tumor,937
+290.55,267.345,1092,Keratin-positive tumor,332
+582.27,269.1,1093,Keratin-positive tumor,600
+678.6,267.53999999999996,1094,Unidentified,160
+158.34,267.735,1095,Unidentified,199
+206.31,268.32000000000005,1096,Keratin-positive tumor,138
+174.91500000000002,267.54,1097,Unidentified,163
+184.275,269.1,1098,Keratin-positive tumor,303
+502.32000000000005,268.71000000000004,1099,Keratin-positive tumor,340
+91.065,268.71000000000004,1100,Keratin-positive tumor,409
+111.15,270.46500000000003,1101,Keratin-positive tumor,602
+403.065,271.44,1102,Keratin-positive tumor,644
+198.70499999999998,269.685,1104,Unidentified,498
+542.1,268.32,1105,Keratin-positive tumor,205
+740.6100000000001,269.88,1106,Keratin-positive tumor,149
+190.905,269.49,1107,Keratin-positive tumor,324
+757.965,269.88,1108,Keratin-positive tumor,225
+123.24000000000001,271.635,1109,Keratin-positive tumor,551
+688.5450000000001,269.88,1110,Keratin-positive tumor,232
+621.465,270.66,1111,Keratin-positive tumor,232
+179.595,271.05,1112,Keratin-positive tumor,175
+254.47500000000002,273.19500000000005,1113,Keratin-positive tumor,443
+733.59,273.58500000000004,1115,Keratin-positive tumor,698
+777.855,273.58500000000004,1116,Keratin-positive tumor,742
+430.95000000000005,271.83000000000004,1117,Unidentified,320
+616.59,274.755,1118,Keratin-positive tumor,352
+523.38,271.83000000000004,1119,Keratin-positive tumor,236
+425.88,273.39,1120,Unidentified,76
+746.46,274.56,1121,Keratin-positive tumor,239
+68.64,275.145,1122,Keratin-positive tumor,583
+261.69,273.975,1123,Keratin-positive tumor,329
+454.93500000000006,273.78000000000003,1124,Keratin-positive tumor,249
+14.04,274.95,1125,Keratin-positive tumor,199
+365.235,275.34000000000003,1126,Keratin-positive tumor,675
+383.175,273.78,1127,Keratin-positive tumor,624
+688.935,275.145,1128,Keratin-positive tumor,136
+465.07500000000005,277.095,1129,Keratin-positive tumor,615
+117.39000000000001,276.51,1130,Keratin-positive tumor,349
+695.76,275.925,1131,Keratin-positive tumor,260
+444.99,276.70500000000004,1132,Keratin-positive tumor,434
+33.54,278.265,1133,Keratin-positive tumor,719
+250.185,279.82500000000005,1134,Keratin-positive tumor,823
+294.645,278.655,1135,Macrophages,726
+320.19000000000005,280.02,1136,Keratin-positive tumor,786
+507.39,276.70500000000004,1137,Keratin-positive tumor,338
+437.97,279.24,1138,Tumor,241
+311.805,279.435,1139,Keratin-positive tumor,581
+390.975,278.655,1140,Keratin-positive tumor,700
+56.745000000000005,276.9,1141,Keratin-positive tumor,155
+348.855,279.63,1142,Keratin-positive tumor,674
+781.755,282.16499999999996,1143,Keratin-positive tumor,741
+242.19,278.265,1144,Keratin-positive tumor,186
+454.545,279.82500000000005,1145,Keratin-positive tumor,364
+709.02,279.82500000000005,1146,Keratin-positive tumor,322
+601.77,278.46000000000004,1147,Keratin-positive tumor,357
+607.815,280.995,1148,Keratin-positive tumor,411
+421.005,280.40999999999997,1149,Keratin-positive tumor,368
+86.19,280.41,1150,Keratin-positive tumor,233
+527.475,282.165,1151,Keratin-positive tumor,491
+582.075,282.36,1152,Keratin-positive tumor,668
+96.135,281.97,1153,Keratin-positive tumor,520
+367.185,282.75,1154,Keratin-positive tumor,594
+746.655,281.775,1155,Keratin-positive tumor,397
+405.6,283.91999999999996,1156,Keratin-positive tumor,518
+54.99,282.75,1157,Keratin-positive tumor,373
+128.505,283.53000000000003,1158,Keratin-positive tumor,677
+469.365,284.31,1159,Keratin-positive tumor,689
+519.87,283.33500000000004,1160,Keratin-positive tumor,363
+593.97,285.09000000000003,1161,Keratin-positive tumor,864
+235.755,281.97,1162,Keratin-positive tumor,372
+413.595,282.94500000000005,1163,Keratin-positive tumor,445
+505.635,284.895,1165,Keratin-positive tumor,784
+764.79,282.36,1166,Keratin-positive tumor,469
+542.2950000000001,283.92,1167,Keratin-positive tumor,235
+696.735,286.26,1168,Keratin-positive tumor,870
+444.015,284.70000000000005,1169,Tumor,305
+82.875,285.09000000000003,1170,Keratin-positive tumor,673
+302.83500000000004,286.065,1171,Keratin-positive tumor,359
+554.7750000000001,286.45500000000004,1172,Keratin-positive tumor,465
+63.765,285.48,1173,Keratin-positive tumor,386
+485.55,288.99,1174,Keratin-positive tumor,754
+494.91,286.65,1175,Keratin-positive tumor,367
+715.26,287.04,1176,Keratin-positive tumor,483
+341.055,287.04,1177,Keratin-positive tumor,564
+478.92,284.895,1178,Keratin-positive tumor,144
+297.57,287.235,1179,Keratin-positive tumor,250
+612.495,289.96500000000003,1180,Keratin-positive tumor,1084
+150.54000000000002,286.45500000000004,1181,Keratin-positive tumor,642
+332.67,286.845,1182,Keratin-positive tumor,234
+626.34,289.18500000000006,1183,Keratin-positive tumor,794
+255.84000000000003,289.185,1184,Keratin-positive tumor,561
+569.01,289.77,1185,Keratin-positive tumor,895
+96.72,288.40500000000003,1186,Keratin-positive tumor,116
+244.14000000000001,288.40500000000003,1187,Keratin-positive tumor,280
+734.76,287.43,1188,Keratin-positive tumor,489
+57.72,291.33000000000004,1189,Keratin-positive tumor,584
+346.32000000000005,288.6,1190,Keratin-positive tumor,140
+118.17000000000002,290.55,1191,Keratin-positive tumor,380
+129.285,292.69500000000005,1192,Keratin-positive tumor,663
+501.15,293.66999999999996,1193,Macrophages,519
+763.0350000000001,292.89,1194,Keratin-positive tumor,307
+236.14499999999998,292.89,1195,Keratin-positive tumor,625
+368.355,292.305,1196,Keratin-positive tumor,430
+508.56000000000006,292.11,1197,Keratin-positive tumor,88
+581.6850000000001,292.5,1198,Keratin-positive tumor,421
+176.67000000000002,295.035,1199,Keratin-positive tumor,950
+756.21,292.305,1200,Keratin-positive tumor,335
+768.3,292.305,1201,Keratin-positive tumor,302
+33.54,292.11,1202,Keratin-positive tumor,318
+718.965,294.84000000000003,1203,Keratin-positive tumor,648
+17.355,294.45000000000005,1204,Keratin-positive tumor,678
+194.22000000000003,292.305,1205,Keratin-positive tumor,466
+492.57000000000005,294.255,1206,Keratin-positive tumor,428
+377.13,293.28,1207,Keratin-positive tumor,382
+776.8800000000001,293.865,1208,Keratin-positive tumor,564
+94.38,295.03499999999997,1209,Keratin-positive tumor,663
+516.165,292.11,1210,Keratin-positive tumor,323
+245.7,294.84000000000003,1211,Keratin-positive tumor,269
+460.98,294.45000000000005,1212,Keratin-positive tumor,141
+447.135,298.54499999999996,1213,Keratin-positive tumor,1286
+387.66,293.28,1214,Keratin-positive tumor,290
+110.37,296.4,1215,Keratin-positive tumor,679
+546.1949999999999,294.06,1216,Keratin-positive tumor,134
+150.735,298.74,1217,Keratin-positive tumor,716
+320.97,294.645,1218,Mesenchymal-like,467
+540.735,298.155,1220,Keratin-positive tumor,529
+749.775,298.35,1221,Keratin-positive tumor,919
+401.505,296.79,1222,Keratin-positive tumor,221
+642.9150000000001,298.935,1223,Keratin-positive tumor,642
+525.72,297.96000000000004,1224,Keratin-positive tumor,447
+547.1700000000001,298.74,1225,Keratin-positive tumor,147
+557.3100000000001,296.20500000000004,1226,Keratin-positive tumor,289
+652.8600000000001,299.52,1227,Keratin-positive tumor,567
+784.6800000000001,297.765,1228,Keratin-positive tumor,391
+469.95000000000005,300.105,1229,Keratin-positive tumor,820
+41.145,297.96000000000004,1230,Keratin-positive tumor,275
+101.985,299.32500000000005,1231,Keratin-positive tumor,517
+193.44,299.325,1232,Keratin-positive tumor,307
+392.73,300.3,1233,Keratin-positive tumor,798
+688.155,298.74,1234,Keratin-positive tumor,634
+330.33000000000004,299.32500000000005,1235,Keratin-positive tumor,133
+571.74,302.64,1236,Keratin-positive tumor,567
+30.810000000000002,300.885,1238,Keratin-positive tumor,654
+615.03,302.44500000000005,1239,Keratin-positive tumor,670
+232.63500000000002,302.83500000000004,1240,Keratin-positive tumor,647
+604.695,300.69000000000005,1241,Keratin-positive tumor,320
+137.67000000000002,302.83500000000004,1242,Keratin-positive tumor,900
+370.5,303.03,1243,Keratin-positive tumor,593
+380.25,303.225,1244,Keratin-positive tumor,441
+324.28499999999997,303.615,1245,Keratin-positive tumor,680
+119.73,302.44500000000005,1246,Keratin-positive tumor,747
+187.78500000000003,300.69000000000005,1247,Keratin-positive tumor,342
+359.19000000000005,302.05500000000006,1248,Macrophages,334
+417.885,304.59000000000003,1249,Keratin-positive tumor,832
+246.87,304.59000000000003,1250,Keratin-positive tumor,595
+16.77,305.76,1251,Keratin-positive tumor,813
+458.055,303.03,1252,Tumor,312
+577.7850000000001,303.42,1253,Unidentified,314
+23.009999999999998,302.64,1254,Keratin-positive tumor,148
+75.855,305.76,1255,Keratin-positive tumor,818
+516.165,304.98,1256,Keratin-positive tumor,725
+374.985,306.54,1257,Keratin-positive tumor,196
+429.58500000000004,306.93,1258,Keratin-positive tumor,717
+667.6800000000001,307.71000000000004,1259,Unidentified,791
+678.21,305.37,1260,Unidentified,477
+58.69500000000001,303.81,1261,Keratin-positive tumor,173
+256.23,307.125,1262,Keratin-positive tumor,649
+589.875,304.78499999999997,1263,Keratin-positive tumor,283
+628.4850000000001,306.93,1264,Keratin-positive tumor,402
+170.04000000000002,307.32000000000005,1265,Keratin-positive tumor,614
+270.27,304.785,1266,Keratin-positive tumor,386
+346.905,305.95500000000004,1267,Macrophages,469
+485.355,307.71000000000004,1268,Keratin-positive tumor,568
+656.76,306.735,1270,Keratin-positive tumor,353
+765.375,306.735,1271,Keratin-positive tumor,452
+716.235,306.15,1273,Keratin-positive tumor,320
+463.905,306.345,1274,Keratin-positive tumor,169
+194.61,309.66,1275,Keratin-positive tumor,967
+527.28,310.245,1276,Keratin-positive tumor,656
+46.995000000000005,307.125,1277,Keratin-positive tumor,289
+28.275000000000002,312.0,1278,Keratin-positive tumor,881
+644.28,309.46500000000003,1279,Keratin-positive tumor,506
+93.21000000000001,309.46500000000003,1280,Keratin-positive tumor,326
+59.085,311.025,1281,Keratin-positive tumor,365
+780.195,306.15,1282,Keratin-positive tumor,619
+362.115,310.05,1283,Keratin-positive tumor,230
+448.11,310.635,1284,Keratin-positive tumor,307
+698.49,312.975,1286,Keratin-positive tumor,632
+45.825,313.755,1287,Keratin-positive tumor,537
+161.07,311.61,1288,Keratin-positive tumor,127
+407.355,313.95000000000005,1289,Keratin-positive tumor,880
+495.3,310.83000000000004,1290,Keratin-positive tumor,380
+739.44,315.315,1291,Keratin-positive tumor,680
+347.1,314.925,1292,Keratin-positive tumor,540
+396.63,315.90000000000003,1293,Macrophages,628
+78.39000000000001,314.73,1294,Keratin-positive tumor,437
+238.485,314.145,1295,Unidentified,372
+572.715,312.975,1296,Unidentified,835
+516.945,315.9,1297,Keratin-positive tumor,567
+541.3199999999999,314.145,1298,Keratin-positive tumor,392
+596.115,315.9,1299,Keratin-positive tumor,815
+96.135,314.145,1300,Keratin-positive tumor,267
+149.37,315.70500000000004,1301,Keratin-positive tumor,723
+367.575,313.17,1302,Keratin-positive tumor,324
+767.52,313.17,1303,Keratin-positive tumor,132
+477.165,317.46000000000004,1304,Keratin-positive tumor,866
+556.9200000000001,318.435,1305,Keratin-positive tumor,924
+99.84,318.24,1306,Keratin-positive tumor,621
+452.20500000000004,317.85,1307,Keratin-positive tumor,589
+768.105,317.655,1308,Keratin-positive tumor,225
+781.7550000000001,316.29,1309,Unidentified,268
+361.725,316.68,1310,Keratin-positive tumor,254
+672.5550000000001,319.40999999999997,1312,Keratin-positive tumor,499
+421.395,319.02,1313,Keratin-positive tumor,641
+132.405,318.435,1314,Keratin-positive tumor,414
+376.15500000000003,319.995,1315,Keratin-positive tumor,239
+586.95,319.40999999999997,1316,Keratin-positive tumor,364
+641.1600000000001,318.63,1317,Unidentified,253
+758.94,318.435,1318,Unidentified,290
+523.185,319.21500000000003,1319,Keratin-positive tumor,239
+88.53,320.97,1320,Keratin-positive tumor,595
+352.755,322.14,1321,Keratin-positive tumor,627
+496.86,321.55500000000006,1322,Keratin-positive tumor,480
+715.065,320.775,1323,Keratin-positive tumor,163
+173.94,321.555,1324,Keratin-positive tumor,517
+432.70500000000004,319.995,1325,Keratin-positive tumor,353
+605.865,319.995,1326,Keratin-positive tumor,224
+107.445,320.58000000000004,1327,Keratin-positive tumor,146
+659.2950000000001,321.555,1328,Unidentified,423
+78.19500000000001,321.555,1329,Keratin-positive tumor,337
+503.49,320.58000000000004,1330,Keratin-positive tumor,122
+635.5050000000001,320.385,1331,Keratin-positive tumor,221
+28.275000000000002,325.26,1332,Keratin-positive tumor,1192
+745.485,323.895,1333,Keratin-positive tumor,754
+336.18,322.14,1334,Keratin-positive tumor,515
+630.0450000000001,321.36,1335,Keratin-positive tumor,123
+678.99,322.92,1336,Keratin-positive tumor,404
+761.865,322.14,1337,Keratin-positive tumor,427
+154.635,322.725,1338,Keratin-positive tumor,259
+366.21000000000004,324.87,1340,Keratin-positive tumor,756
+421.20000000000005,324.09000000000003,1341,Macrophages,142
+442.06500000000005,321.94500000000005,1342,Unidentified,122
+235.56,323.895,1343,Macrophages,253
+45.435,322.91999999999996,1344,Keratin-positive tumor,808
+522.405,325.26,1347,Keratin-positive tumor,312
+438.75,324.675,1348,Keratin-positive tumor,188
+706.485,326.43,1349,Keratin-positive tumor,510
+230.49,325.65,1350,Keratin-positive tumor,144
+150.15,324.87,1351,Tumor,158
+144.10500000000002,326.04,1352,Mesenchymal-like,435
+595.335,327.015,1353,Keratin-positive tumor,432
+130.065,327.21000000000004,1354,Keratin-positive tumor,446
+501.93000000000006,327.99,1355,Keratin-positive tumor,500
+633.36,326.235,1356,Keratin-positive tumor,154
+475.8,330.33000000000004,1357,Keratin-positive tumor,806
+137.67000000000002,327.405,1358,Keratin-positive tumor,318
+784.095,326.82000000000005,1359,Keratin-positive tumor,262
+39.0,328.38,1360,Keratin-positive tumor,357
+243.16500000000002,327.21000000000004,1361,Macrophages,305
+179.59500000000003,328.96500000000003,1362,Keratin-positive tumor,791
+220.35000000000002,327.21000000000004,1363,Keratin-positive tumor,247
+644.6700000000001,327.6,1364,Macrophages,304
+699.27,327.795,1365,Keratin-positive tumor,215
+720.33,328.185,1366,Keratin-positive tumor,623
+418.08000000000004,328.57500000000005,1367,DC / Mono,336
+348.855,328.96500000000003,1368,Endothelial,360
+358.21500000000003,326.82000000000005,1369,Mesenchymal-like,115
+433.29,330.33000000000004,1370,Keratin-positive tumor,569
+405.015,328.575,1371,Macrophages,269
+618.54,328.57500000000005,1372,Keratin-positive tumor,242
+638.2350000000001,328.96500000000003,1373,Keratin-positive tumor,227
+680.355,329.15999999999997,1374,Keratin-positive tumor,194
+693.8100000000001,329.94,1375,Unidentified,346
+113.685,330.525,1377,Keratin-positive tumor,435
+370.305,330.525,1378,Keratin-positive tumor,148
+765.1800000000001,328.57500000000005,1379,Keratin-positive tumor,268
+280.995,330.33000000000004,1380,Keratin-positive tumor,404
+630.6300000000001,332.475,1381,Keratin-positive tumor,521
+359.385,332.865,1382,Mesenchymal-like,414
+669.63,331.11,1384,Keratin-positive tumor,244
+522.7950000000001,330.33000000000004,1385,Keratin-positive tumor,204
+684.06,332.475,1386,Keratin-positive tumor,483
+730.0799999999999,332.67,1387,Keratin-positive tumor,551
+43.68000000000001,332.475,1388,Keratin-positive tumor,206
+222.69,331.89,1389,Keratin-positive tumor,191
+49.725,333.645,1390,Keratin-positive tumor,206
+216.645,332.865,1391,Unidentified,127
+441.87,332.67,1392,Keratin-positive tumor,324
+381.42,331.11,1393,Keratin-positive tumor,456
+231.66000000000003,334.815,1394,Keratin-positive tumor,699
+714.8700000000001,335.595,1395,Keratin-positive tumor,551
+120.315,333.84000000000003,1396,Keratin-positive tumor,277
+617.76,333.645,1397,Keratin-positive tumor,293
+640.1850000000001,335.01,1398,Keratin-positive tumor,362
+395.265,334.62,1399,Keratin-positive tumor,408
+448.11,337.935,1400,Keratin-positive tumor,890
+286.65,334.425,1401,Keratin-positive tumor,132
+649.155,334.03499999999997,1402,Keratin-positive tumor,357
+764.205,337.935,1403,Keratin-positive tumor,483
+405.795,335.595,1404,Macrophages,231
+424.90500000000003,334.62,1405,Mesenchymal-like,153
+278.46000000000004,337.155,1406,Keratin-positive tumor,478
+349.245,338.325,1407,Keratin-positive tumor,686
+370.11,336.375,1408,Keratin-positive tumor,247
+515.775,337.155,1409,Keratin-positive tumor,518
+525.915,336.57000000000005,1410,Keratin-positive tumor,368
+480.285,336.765,1411,Keratin-positive tumor,363
+203.58,337.35,1412,Keratin-positive tumor,559
+565.89,336.96000000000004,1413,Keratin-positive tumor,281
+334.815,341.25,1414,Keratin-positive tumor,1029
+152.88,338.52,1415,Keratin-positive tumor,383
+542.2950000000001,338.13,1416,Keratin-positive tumor,312
+118.36500000000001,338.32500000000005,1418,Keratin-positive tumor,124
+495.885,337.74,1419,Keratin-positive tumor,228
+557.505,339.3,1420,Keratin-positive tumor,479
+29.64,341.055,1421,Keratin-positive tumor,992
+136.5,341.64,1422,Keratin-positive tumor,779
+570.1800000000001,340.47,1423,Keratin-positive tumor,679
+112.32000000000001,340.47,1424,Keratin-positive tumor,252
+588.315,340.86,1425,Keratin-positive tumor,758
+145.07999999999998,338.71500000000003,1426,Keratin-positive tumor,439
+650.52,341.83500000000004,1427,Keratin-positive tumor,366
+523.575,341.055,1428,Keratin-positive tumor,288
+270.27,341.64,1429,Keratin-positive tumor,506
+759.33,340.47,1430,Keratin-positive tumor,372
+127.14,341.25,1431,Keratin-positive tumor,369
+255.06,341.83500000000004,1432,Keratin-positive tumor,323
+104.52000000000001,343.98,1433,Keratin-positive tumor,798
+116.415,341.055,1434,Macrophages,94
+181.35000000000002,342.225,1435,Keratin-positive tumor,180
+434.265,344.76,1436,Keratin-positive tumor,1276
+680.355,343.005,1437,Keratin-positive tumor,705
+783.9,342.81000000000006,1438,Keratin-positive tumor,373
+286.45500000000004,341.64,1439,Keratin-positive tumor,355
+393.70500000000004,342.615,1440,Keratin-positive tumor,584
+189.735,342.225,1441,Keratin-positive tumor,394
+368.355,344.76,1442,Keratin-positive tumor,846
+641.355,345.345,1443,Keratin-positive tumor,636
+465.66,342.42,1445,Keratin-positive tumor,250
+499.20000000000005,344.565,1448,Keratin-positive tumor,624
+614.25,340.86,1449,Keratin-positive tumor,325
+547.365,343.395,1450,Keratin-positive tumor,271
+159.12,344.76,1451,Keratin-positive tumor,588
+717.99,347.1,1453,Keratin-positive tumor,756
+203.97000000000003,346.71000000000004,1454,Keratin-positive tumor,780
+381.81000000000006,346.32000000000005,1455,Keratin-positive tumor,666
+411.06000000000006,346.905,1456,Keratin-positive tumor,705
+421.20000000000005,344.76,1457,Mesenchymal-like,119
+520.065,346.71000000000004,1458,Keratin-positive tumor,151
+278.07000000000005,346.515,1460,Keratin-positive tumor,367
+260.13,349.05,1461,Keratin-positive tumor,669
+141.96,348.27,1463,Keratin-positive tumor,301
+706.875,349.635,1465,Keratin-positive tumor,660
+669.6300000000001,348.65999999999997,1466,Keratin-positive tumor,446
+761.28,350.025,1467,Keratin-positive tumor,655
+16.965,348.855,1468,Keratin-positive tumor,457
+218.985,349.635,1469,Keratin-positive tumor,451
+581.2950000000001,349.635,1470,Keratin-positive tumor,125
+36.66,350.41499999999996,1471,Unidentified,154
+287.43,353.925,1472,Keratin-positive tumor,958
+654.615,351.0,1473,Keratin-positive tumor,476
+676.6500000000001,352.17,1474,Macrophages,331
+770.0550000000001,349.83000000000004,1475,Keratin-positive tumor,153
+444.6,353.145,1476,Keratin-positive tumor,588
+476.97,352.365,1477,Mesenchymal-like,597
+695.3700000000001,350.61,1478,Keratin-positive tumor,243
+27.105000000000004,351.19500000000005,1479,Keratin-positive tumor,244
+188.175,350.415,1480,Keratin-positive tumor,318
+247.26,353.925,1481,Keratin-positive tumor,918
+529.0350000000001,352.365,1482,Keratin-positive tumor,683
+236.145,351.39,1483,Keratin-positive tumor,312
+271.44,353.145,1484,Keratin-positive tumor,849
+53.43000000000001,352.56000000000006,1485,Keratin-positive tumor,656
+73.515,351.78,1486,Keratin-positive tumor,478
+774.345,350.805,1488,Keratin-positive tumor,179
+683.475,353.34000000000003,1489,Unidentified,375
+736.125,354.12,1490,Tumor,524
+303.42,352.17,1491,Keratin-positive tumor,356
+94.38,352.95000000000005,1493,Keratin-positive tumor,231
+151.125,356.07000000000005,1494,Keratin-positive tumor,538
+175.305,354.9,1495,Keratin-positive tumor,311
+208.26,355.485,1496,Keratin-positive tumor,401
+423.93,354.9,1497,Unidentified,112
+553.4100000000001,356.07,1498,Keratin-positive tumor,578
+356.655,356.265,1499,Keratin-positive tumor,328
+449.67,356.265,1500,Keratin-positive tumor,203
+698.2950000000001,357.63,1501,Keratin-positive tumor,911
+16.38,357.435,1502,Keratin-positive tumor,572
+230.685,355.875,1503,Keratin-positive tumor,278
+416.90999999999997,357.045,1504,Macrophages,415
+585.78,356.265,1505,Keratin-positive tumor,256
+669.6300000000001,357.82500000000005,1506,Unidentified,547
+69.225,356.46000000000004,1507,Keratin-positive tumor,190
+624.975,357.825,1508,Keratin-positive tumor,440
+775.3199999999999,358.995,1509,Keratin-positive tumor,455
+187.2,358.21500000000003,1510,Keratin-positive tumor,384
+238.29000000000002,357.24,1511,Keratin-positive tumor,245
+300.69,357.43500000000006,1512,Keratin-positive tumor,448
+336.96000000000004,355.28999999999996,1513,Keratin-positive tumor,473
+594.5550000000001,360.16499999999996,1514,Keratin-positive tumor,985
+756.6,357.43500000000006,1515,Unidentified,134
+763.23,359.77500000000003,1516,Keratin-positive tumor,416
+782.73,358.995,1517,Keratin-positive tumor,371
+493.35,360.16499999999996,1518,Keratin-positive tumor,709
+446.355,358.40999999999997,1519,Keratin-positive tumor,46
+396.82500000000005,361.33500000000004,1520,Keratin-positive tumor,925
+458.83500000000004,359.385,1521,Keratin-positive tumor,308
+640.965,358.605,1522,Unidentified,181
+96.525,362.505,1523,Keratin-positive tumor,537
+322.725,360.945,1525,Macrophages,526
+433.68,361.33500000000004,1526,Keratin-positive tumor,309
+440.70000000000005,361.53000000000003,1527,Keratin-positive tumor,398
+634.725,360.945,1528,Keratin-positive tumor,492
+273.0,362.70000000000005,1529,Keratin-positive tumor,585
+510.315,363.09000000000003,1530,Keratin-positive tumor,432
+68.83500000000001,362.505,1531,Keratin-positive tumor,363
+465.65999999999997,366.40500000000003,1532,Keratin-positive tumor,741
+580.71,363.675,1533,Keratin-positive tumor,677
+713.31,364.65,1534,Keratin-positive tumor,981
+88.14000000000001,363.675,1535,Keratin-positive tumor,517
+528.06,366.6,1536,Keratin-positive tumor,1305
+336.18,364.06500000000005,1537,Mesenchymal-like,168
+475.02,365.43,1538,Keratin-positive tumor,622
+360.94500000000005,362.505,1539,Keratin-positive tumor,190
+383.37,363.48,1540,Keratin-positive tumor,365
+484.96500000000003,366.015,1541,Keratin-positive tumor,813
+681.33,365.03999999999996,1542,Keratin-positive tumor,721
+692.25,365.03999999999996,1543,Unidentified,494
+752.7,366.21000000000004,1544,Keratin-positive tumor,1078
+243.16500000000002,365.43,1545,Keratin-positive tumor,498
+615.225,364.845,1546,Keratin-positive tumor,330
+621.27,364.845,1547,Keratin-positive tumor,165
+141.57,368.94000000000005,1548,Keratin-positive tumor,777
+669.4350000000001,368.355,1549,Keratin-positive tumor,641
+770.4449999999999,367.77,1550,Keratin-positive tumor,859
+168.48000000000002,366.015,1551,Mesenchymal-like,103
+639.21,365.82000000000005,1552,Keratin-positive tumor,284
+561.6,367.57500000000005,1553,Keratin-positive tumor,621
+106.665,367.185,1554,Keratin-positive tumor,735
+165.555,368.55,1555,Macrophages,217
+409.5,368.15999999999997,1556,Keratin-positive tumor,764
+554.58,366.21000000000004,1557,Keratin-positive tumor,150
+627.9,368.16,1558,Keratin-positive tumor,583
+15.990000000000002,367.96500000000003,1559,Keratin-positive tumor,542
+184.47000000000003,370.89,1560,Keratin-positive tumor,766
+66.30000000000001,368.94,1561,Keratin-positive tumor,714
+176.865,369.525,1562,Keratin-positive tumor,433
+254.67000000000002,370.5,1563,Keratin-positive tumor,742
+501.93,370.69500000000005,1564,Keratin-positive tumor,912
+203.97,370.11,1565,Keratin-positive tumor,777
+736.71,368.355,1567,Keratin-positive tumor,544
+300.495,370.305,1568,Keratin-positive tumor,601
+455.52,371.475,1569,Keratin-positive tumor,957
+362.115,371.08500000000004,1570,Keratin-positive tumor,627
+600.405,371.865,1571,Keratin-positive tumor,881
+311.22,371.865,1572,Keratin-positive tumor,727
+453.375,367.96500000000003,1573,Keratin-positive tumor,139
+514.02,370.305,1574,Keratin-positive tumor,536
+698.88,371.475,1575,Unidentified,441
+40.56,370.30500000000006,1576,Keratin-positive tumor,186
+377.13,371.865,1578,Keratin-positive tumor,607
+92.625,371.475,1579,Keratin-positive tumor,332
+385.32000000000005,370.69500000000005,1580,Keratin-positive tumor,189
+706.29,372.255,1581,Keratin-positive tumor,486
+758.5500000000001,372.84000000000003,1582,Keratin-positive tumor,623
+239.265,370.11,1583,Unidentified,199
+634.53,369.72,1584,Keratin-positive tumor,168
+279.63,375.18,1585,Keratin-positive tumor,874
+779.8050000000001,373.23,1586,Keratin-positive tumor,488
+532.74,374.595,1587,Keratin-positive tumor,308
+324.48,374.595,1588,Keratin-positive tumor,417
+568.425,375.375,1589,Keratin-positive tumor,293
+287.235,375.765,1590,Keratin-positive tumor,78
+428.415,376.35,1591,Keratin-positive tumor,725
+108.03,377.32500000000005,1592,Keratin-positive tumor,563
+195.97500000000002,374.985,1593,Keratin-positive tumor,128
+222.10500000000002,374.20500000000004,1594,Keratin-positive tumor,226
+636.8700000000001,377.13,1595,Keratin-positive tumor,1040
+15.015,376.74,1596,Keratin-positive tumor,345
+217.23000000000002,378.3,1597,Keratin-positive tumor,664
+235.56,377.52,1598,Keratin-positive tumor,744
+398.19000000000005,377.71500000000003,1599,Keratin-positive tumor,679
+549.315,375.96000000000004,1600,Keratin-positive tumor,305
+786.0450000000001,376.155,1601,Unidentified,91
+98.47500000000001,380.25,1602,Keratin-positive tumor,782
+351.0,376.35,1603,Keratin-positive tumor,249
+409.69500000000005,377.90999999999997,1604,Keratin-positive tumor,482
+685.23,377.52,1605,Keratin-positive tumor,233
+74.49000000000001,379.47,1606,Keratin-positive tumor,767
+356.655,377.13,1607,Keratin-positive tumor,204
+483.40500000000003,378.69000000000005,1608,Unidentified,188
+557.115,379.665,1609,Keratin-positive tumor,427
+580.125,381.03000000000003,1610,Keratin-positive tumor,1002
+50.31,380.64,1611,Keratin-positive tumor,707
+224.055,379.86,1612,Keratin-positive tumor,114
+250.77,378.885,1613,Keratin-positive tumor,563
+367.96500000000003,379.08000000000004,1614,Keratin-positive tumor,464
+469.95000000000005,379.47,1615,Keratin-positive tumor,289
+518.7,379.47,1616,Keratin-positive tumor,348
+625.365,381.615,1617,Keratin-positive tumor,426
+650.9100000000001,381.615,1618,Keratin-positive tumor,542
+678.405,381.42,1619,Keratin-positive tumor,634
+37.44,380.055,1620,Keratin-positive tumor,288
+618.345,382.785,1621,Keratin-positive tumor,554
+733.0050000000001,383.175,1622,Keratin-positive tumor,686
+769.665,384.15000000000003,1623,Keratin-positive tumor,878
+85.02000000000001,381.81000000000006,1624,Keratin-positive tumor,177
+353.34000000000003,381.615,1625,Keratin-positive tumor,148
+409.695,384.53999999999996,1626,Keratin-positive tumor,389
+658.32,383.95500000000004,1627,Keratin-positive tumor,235
+722.865,383.76,1628,Keratin-positive tumor,425
+28.08,383.95500000000004,1629,Keratin-positive tumor,506
+550.875,386.295,1630,Keratin-positive tumor,893
+302.055,385.71000000000004,1631,Keratin-positive tumor,1002
+184.47000000000003,386.1,1632,Keratin-positive tumor,756
+442.845,382.395,1633,Keratin-positive tumor,384
+522.0150000000001,384.93,1634,Tumor,251
+631.02,385.515,1635,Keratin-positive tumor,294
+472.29,387.46500000000003,1636,Keratin-positive tumor,781
+208.845,384.15,1637,Keratin-positive tumor,242
+540.9300000000001,386.1,1638,Keratin-positive tumor,273
+37.05,386.295,1639,Keratin-positive tumor,280
+430.17,386.49,1640,Keratin-positive tumor,501
+717.99,386.49,1641,Keratin-positive tumor,341
+454.545,386.88,1642,Keratin-positive tumor,156
+670.4100000000001,383.565,1643,Unidentified,465
+223.275,391.365,1644,Keratin-positive tumor,948
+250.57500000000002,389.805,1645,Keratin-positive tumor,550
+329.94000000000005,387.65999999999997,1646,Keratin-positive tumor,143
+373.23,391.17,1647,Keratin-positive tumor,886
+600.405,389.025,1648,Mesenchymal-like,161
+611.715,390.975,1649,Keratin-positive tumor,526
+682.695,390.58500000000004,1650,Keratin-positive tumor,814
+92.235,391.56,1651,Keratin-positive tumor,586
+577.2,388.245,1652,Keratin-positive tumor,426
+311.415,393.315,1653,Keratin-positive tumor,661
+751.53,392.535,1654,Keratin-positive tumor,862
+493.93500000000006,393.31500000000005,1655,Keratin-positive tumor,568
+77.22,391.365,1656,Keratin-positive tumor,346
+734.3700000000001,394.095,1657,Keratin-positive tumor,898
+115.83000000000001,393.51,1658,Macrophages,425
+649.155,396.045,1659,Keratin-positive tumor,901
+333.255,395.655,1660,Keratin-positive tumor,701
+389.61,395.07,1661,Keratin-positive tumor,706
+397.8,393.31500000000005,1662,Keratin-positive tumor,361
+528.8399999999999,394.485,1663,Macrophages,518
+359.385,392.145,1664,Keratin-positive tumor,135
+718.575,395.85,1665,Keratin-positive tumor,749
+255.06,394.29,1666,Keratin-positive tumor,696
+432.12,396.435,1667,Keratin-positive tumor,720
+589.485,397.995,1668,Keratin-positive tumor,642
+502.71000000000004,397.02,1669,Keratin-positive tumor,563
+779.0250000000001,394.485,1670,Keratin-positive tumor,142
+359.385,396.63,1671,Keratin-positive tumor,144
+538.98,395.85,1672,Keratin-positive tumor,352
+424.125,394.29,1673,Keratin-positive tumor,251
+441.87,396.63,1674,Keratin-positive tumor,511
+484.77,395.65500000000003,1675,Unidentified,222
+101.205,396.63,1676,Keratin-positive tumor,404
+278.07000000000005,396.43500000000006,1677,Macrophages,597
+543.4649999999999,396.435,1678,Keratin-positive tumor,202
+695.565,396.24,1679,Keratin-positive tumor,151
+201.04500000000002,400.33500000000004,1680,Keratin-positive tumor,757
+68.64,398.385,1681,Keratin-positive tumor,99
+478.725,400.53,1682,Keratin-positive tumor,722
+603.72,401.895,1683,Keratin-positive tumor,1133
+15.015,399.75,1684,Keratin-positive tumor,393
+190.71,400.92,1685,Keratin-positive tumor,744
+750.5550000000001,403.45500000000004,1686,Unidentified,966
+122.265,400.53000000000003,1687,Unidentified,183
+52.455,403.845,1688,Keratin-positive tumor,1046
+211.38,403.065,1689,Keratin-positive tumor,613
+136.305,400.725,1690,Keratin-positive tumor,260
+554.385,400.14,1692,Keratin-positive tumor,501
+658.905,401.31000000000006,1693,Keratin-positive tumor,345
+531.96,402.87,1694,Keratin-positive tumor,563
+624.0,403.845,1695,Keratin-positive tumor,663
+95.16,404.82,1696,Keratin-positive tumor,758
+375.57,401.31000000000006,1697,Keratin-positive tumor,188
+497.05500000000006,402.87,1699,Keratin-positive tumor,372
+544.635,403.065,1700,Keratin-positive tumor,666
+348.27,401.70000000000005,1701,Keratin-positive tumor,319
+231.85500000000002,404.43000000000006,1702,Keratin-positive tumor,532
+669.4350000000001,403.845,1703,Keratin-positive tumor,459
+293.28,404.625,1704,Keratin-positive tumor,135
+468.39,403.45500000000004,1705,Macrophages,378
+412.23,405.6,1706,Keratin-positive tumor,669
+714.8700000000001,405.21000000000004,1707,Keratin-positive tumor,598
+299.90999999999997,404.82000000000005,1708,Keratin-positive tumor,357
+761.085,404.235,1710,Unidentified,172
+785.265,405.21000000000004,1711,Keratin-positive tumor,144
+269.49,404.82000000000005,1712,Keratin-positive tumor,377
+638.04,405.795,1713,Keratin-positive tumor,669
+651.885,406.77,1714,Keratin-positive tumor,574
+728.325,403.845,1715,Keratin-positive tumor,237
+391.365,405.40500000000003,1716,Keratin-positive tumor,103
+559.26,405.99,1717,Unidentified,185
+102.96000000000001,408.525,1718,Keratin-positive tumor,497
+587.3399999999999,407.15999999999997,1719,Keratin-positive tumor,89
+222.3,408.72,1720,Keratin-positive tumor,698
+781.95,406.57500000000005,1722,Keratin-positive tumor,216
+287.625,408.525,1723,Keratin-positive tumor,470
+351.78,408.135,1724,Keratin-positive tumor,357
+371.08500000000004,406.57500000000005,1725,Keratin-positive tumor,413
+460.20000000000005,409.5,1726,Keratin-positive tumor,556
+326.235,410.865,1728,Keratin-positive tumor,654
+77.805,409.5,1729,Keratin-positive tumor,439
+664.365,411.645,1730,Keratin-positive tumor,773
+729.105,409.89,1731,Keratin-positive tumor,213
+13.65,409.30500000000006,1732,Keratin-positive tumor,184
+446.745,407.55,1733,Keratin-positive tumor,290
+489.06000000000006,408.33000000000004,1734,Keratin-positive tumor,161
+493.93500000000006,408.915,1735,Keratin-positive tumor,171
+593.19,409.5,1736,Keratin-positive tumor,256
+529.0350000000001,413.985,1737,Keratin-positive tumor,887
+374.20500000000004,412.035,1738,Keratin-positive tumor,433
+469.56000000000006,410.67,1739,Keratin-positive tumor,288
+583.2450000000001,409.305,1740,Keratin-positive tumor,136
+338.71500000000003,412.23,1741,Keratin-positive tumor,751
+453.375,411.255,1742,Keratin-positive tumor,351
+590.0699999999999,411.45000000000005,1743,Keratin-positive tumor,107
+350.41499999999996,411.84000000000003,1744,Keratin-positive tumor,235
+390.0,411.45000000000005,1745,Keratin-positive tumor,312
+549.12,413.78999999999996,1746,Keratin-positive tumor,769
+619.71,413.985,1747,Keratin-positive tumor,741
+263.64,410.08500000000004,1748,Keratin-positive tumor,335
+269.1,414.57000000000005,1749,Keratin-positive tumor,637
+301.47,411.45000000000005,1750,Keratin-positive tumor,228
+514.4100000000001,411.645,1751,Keratin-positive tumor,785
+397.605,412.425,1752,Keratin-positive tumor,272
+772.0050000000001,414.96000000000004,1754,Keratin-positive tumor,959
+245.31,412.62,1755,Macrophages,278
+114.855,413.985,1756,Keratin-positive tumor,481
+477.16499999999996,416.32500000000005,1757,Keratin-positive tumor,793
+640.38,413.985,1758,Keratin-positive tumor,584
+654.225,416.13,1759,Keratin-positive tumor,902
+782.925,413.4,1760,Keratin-positive tumor,346
+229.515,415.545,1761,Keratin-positive tumor,539
+581.685,414.375,1762,Keratin-positive tumor,613
+239.655,415.93500000000006,1763,Keratin-positive tumor,597
+296.79,413.985,1764,Keratin-positive tumor,191
+365.82,416.13,1765,Keratin-positive tumor,437
+685.6200000000001,415.545,1766,Unidentified,481
+563.55,416.13,1767,Keratin-positive tumor,394
+490.23,415.545,1769,Keratin-positive tumor,263
+521.625,415.74,1770,Keratin-positive tumor,171
+82.875,415.545,1771,Keratin-positive tumor,262
+42.120000000000005,420.81,1772,Keratin-positive tumor,1531
+288.6,416.32500000000005,1773,Keratin-positive tumor,263
+300.69000000000005,417.105,1774,Keratin-positive tumor,174
+444.21000000000004,416.90999999999997,1775,Keratin-positive tumor,384
+496.27500000000003,415.935,1776,Keratin-positive tumor,113
+15.21,417.3,1777,Keratin-positive tumor,323
+97.11000000000001,416.52,1778,Keratin-positive tumor,264
+466.05,420.225,1779,Keratin-positive tumor,848
+557.31,417.495,1780,Keratin-positive tumor,290
+211.96500000000003,418.665,1781,Keratin-positive tumor,436
+757.575,420.225,1782,Keratin-positive tumor,706
+263.445,418.275,1783,Keratin-positive tumor,160
+453.57000000000005,421.395,1784,Keratin-positive tumor,700
+151.71,419.44500000000005,1785,Keratin-positive tumor,314
+373.035,423.345,1786,Keratin-positive tumor,914
+59.475,422.76,1787,Keratin-positive tumor,989
+287.625,422.37,1788,Keratin-positive tumor,283
+499.59000000000003,421.005,1789,Keratin-positive tumor,381
+295.425,421.785,1790,Keratin-positive tumor,305
+396.43500000000006,422.37,1791,Keratin-positive tumor,756
+571.155,421.20000000000005,1792,Keratin-positive tumor,265
+641.94,423.345,1793,Keratin-positive tumor,603
+659.49,425.88,1794,Keratin-positive tumor,1070
+705.9000000000001,423.93000000000006,1795,Keratin-positive tumor,856
+98.86500000000001,422.95500000000004,1796,Keratin-positive tumor,394
+131.235,422.37,1797,Keratin-positive tumor,469
+164.19,423.15000000000003,1798,Macrophages,539
+317.655,421.98,1799,Keratin-positive tumor,259
+489.45000000000005,426.07500000000005,1800,Keratin-positive tumor,1225
+339.885,422.76,1802,Keratin-positive tumor,377
+88.33500000000001,424.125,1803,Keratin-positive tumor,650
+155.805,423.345,1804,Keratin-positive tumor,194
+72.93,424.71000000000004,1805,Keratin-positive tumor,647
+219.375,423.15,1806,Unidentified,201
+333.45000000000005,422.95500000000004,1807,Keratin-positive tumor,180
+563.745,425.88,1808,Keratin-positive tumor,502
+108.81,423.345,1809,Keratin-positive tumor,673
+264.42,425.685,1810,Keratin-positive tumor,368
+327.6,425.29499999999996,1811,Keratin-positive tumor,580
+359.385,424.71000000000004,1812,Keratin-positive tumor,723
+351.78,424.905,1813,Neutrophils,219
+573.69,424.905,1814,Keratin-positive tumor,173
+303.03,427.245,1815,Keratin-positive tumor,772
+538.59,427.05,1816,Keratin-positive tumor,143
+171.79500000000002,425.295,1817,Macrophages,132
+272.22,428.415,1818,Keratin-positive tumor,698
+20.865000000000002,428.61,1819,Keratin-positive tumor,528
+784.29,427.44,1820,Keratin-positive tumor,235
+398.58000000000004,428.415,1821,Keratin-positive tumor,160
+609.7650000000001,429.58500000000004,1822,Keratin-positive tumor,674
+141.375,428.80500000000006,1823,Keratin-positive tumor,406
+435.63,427.44,1824,Keratin-positive tumor,338
+405.21000000000004,427.635,1825,Keratin-positive tumor,271
+321.16499999999996,430.365,1826,Keratin-positive tumor,506
+478.92,431.73,1827,Keratin-positive tumor,877
+528.255,429.975,1828,Keratin-positive tumor,614
+13.844999999999999,431.34000000000003,1829,Keratin-positive tumor,370
+621.465,429.58500000000004,1830,Keratin-positive tumor,510
+290.355,431.14500000000004,1831,Macrophages,442
+342.42,432.90000000000003,1832,Keratin-positive tumor,753
+173.745,430.95000000000005,1833,Macrophages,337
+576.03,432.51,1834,Keratin-positive tumor,937
+108.81,434.46000000000004,1835,Keratin-positive tumor,373
+41.535,433.875,1837,Unidentified,471
+459.615,433.68,1838,Keratin-positive tumor,330
+555.5550000000001,433.485,1839,Keratin-positive tumor,158
+71.565,433.28999999999996,1840,Keratin-positive tumor,362
+307.125,436.995,1841,Keratin-positive tumor,827
+435.825,435.63,1842,Keratin-positive tumor,518
+626.73,434.85,1843,Keratin-positive tumor,446
+113.49000000000001,434.265,1844,Mesenchymal-like,169
+600.015,435.435,1845,Keratin-positive tumor,494
+56.550000000000004,436.02,1846,Keratin-positive tumor,532
+81.9,437.58000000000004,1847,Keratin-positive tumor,868
+317.265,436.995,1849,Keratin-positive tumor,399
+589.29,436.995,1850,Keratin-positive tumor,416
+492.375,437.775,1851,Unidentified,483
+768.69,436.8,1853,Keratin-positive tumor,384
+365.04,439.725,1854,Keratin-positive tumor,621
+612.885,439.14,1855,Keratin-positive tumor,490
+655.7850000000001,440.31000000000006,1856,Keratin-positive tumor,1076
+238.485,438.75,1857,Keratin-positive tumor,611
+385.125,439.33500000000004,1858,Unidentified,263
+444.40500000000003,439.92,1859,Keratin-positive tumor,516
+103.35,437.97,1860,Keratin-positive tumor,311
+331.305,441.09000000000003,1861,Keratin-positive tumor,826
+43.29,439.725,1862,Keratin-positive tumor,406
+138.06,439.92,1863,Keratin-positive tumor,528
+154.44,440.895,1864,Keratin-positive tumor,563
+262.665,437.97,1865,Keratin-positive tumor,199
+421.98,440.31000000000006,1866,Keratin-positive tumor,151
+509.73,438.75,1867,Keratin-positive tumor,193
+18.525,440.70000000000005,1868,Unidentified,284
+534.105,439.725,1869,Keratin-positive tumor,363
+163.21500000000003,440.895,1870,Keratin-positive tumor,343
+349.245,440.31000000000006,1871,Keratin-positive tumor,135
+357.045,441.48,1872,Keratin-positive tumor,452
+450.06000000000006,440.31000000000006,1873,Keratin-positive tumor,138
+427.44000000000005,439.92,1874,Keratin-positive tumor,226
+470.53499999999997,441.09000000000003,1875,Macrophages,198
+195.585,441.48,1876,Macrophages,186
+577.005,443.04,1878,Keratin-positive tumor,375
+171.60000000000002,445.185,1879,Keratin-positive tumor,776
+585.0,443.235,1880,Keratin-positive tumor,294
+722.865,444.6,1881,Keratin-positive tumor,916
+740.8050000000001,444.99,1882,Keratin-positive tumor,889
+187.78500000000003,443.43,1883,Keratin-positive tumor,165
+262.66499999999996,443.625,1884,Unidentified,205
+567.255,442.845,1885,Macrophages,136
+624.3900000000001,444.015,1886,Keratin-positive tumor,118
+55.185,444.015,1887,Keratin-positive tumor,471
+460.005,447.135,1888,Keratin-positive tumor,1016
+595.725,443.625,1889,Keratin-positive tumor,652
+203.19,443.625,1890,Macrophages,366
+572.13,443.82000000000005,1891,Macrophages,141
+669.63,444.99,1892,Keratin-positive tumor,583
+295.815,446.94,1893,Keratin-positive tumor,665
+437.385,444.405,1894,Keratin-positive tumor,318
+607.425,444.01500000000004,1895,Keratin-positive tumor,375
+768.885,445.77,1896,Keratin-positive tumor,477
+228.15,447.915,1897,Keratin-positive tumor,965
+509.53499999999997,445.96500000000003,1898,Keratin-positive tumor,672
+615.615,445.77000000000004,1899,Keratin-positive tumor,240
+304.785,445.96500000000003,1901,Unidentified,192
+214.5,446.745,1902,Keratin-positive tumor,458
+267.735,447.72,1903,Keratin-positive tumor,648
+533.325,447.915,1904,Keratin-positive tumor,719
+82.485,448.11,1905,Keratin-positive tumor,517
+588.12,447.33000000000004,1906,Keratin-positive tumor,139
+353.34000000000003,448.695,1907,Macrophages,368
+409.5,449.67,1908,Keratin-positive tumor,925
+663.0,447.915,1909,Keratin-positive tumor,275
+323.7,450.06000000000006,1910,Keratin-positive tumor,719
+400.14,447.72,1911,Keratin-positive tumor,193
+421.59000000000003,449.28,1912,Keratin-positive tumor,535
+291.72,453.375,1913,Keratin-positive tumor,395
+360.16499999999996,449.67,1914,Keratin-positive tumor,148
+647.595,451.23,1915,Keratin-positive tumor,489
+36.27,450.45000000000005,1916,Keratin-positive tumor,575
+283.53,450.06000000000006,1917,Keratin-positive tumor,306
+435.82500000000005,450.45000000000005,1918,Keratin-positive tumor,246
+380.25,449.67,1919,Keratin-positive tumor,278
+482.43000000000006,451.035,1920,Keratin-positive tumor,389
+552.24,451.23,1921,Keratin-positive tumor,412
+729.4950000000001,451.23,1922,Keratin-positive tumor,191
+776.1,453.18,1923,Keratin-positive tumor,903
+312.0,451.035,1924,Keratin-positive tumor,320
+371.08500000000004,450.45000000000005,1925,Keratin-positive tumor,115
+364.06500000000005,453.18,1926,Keratin-positive tumor,561
+514.215,453.375,1927,Keratin-positive tumor,622
+566.865,453.57000000000005,1928,Keratin-positive tumor,502
+744.315,454.545,1929,Keratin-positive tumor,532
+147.03,452.79,1930,Keratin-positive tumor,366
+444.795,455.52,1931,Keratin-positive tumor,1282
+71.565,452.01,1932,Keratin-positive tumor,212
+210.60000000000002,456.69,1934,Keratin-positive tumor,725
+374.20500000000004,452.985,1935,Keratin-positive tumor,323
+560.04,452.4,1936,Keratin-positive tumor,307
+281.58000000000004,453.96000000000004,1937,Keratin-positive tumor,230
+396.24,455.13,1938,Keratin-positive tumor,602
+474.82500000000005,454.35,1939,Macrophages,314
+671.7750000000001,454.35,1941,Unidentified,267
+539.175,456.3,1942,Keratin-positive tumor,537
+574.47,454.545,1943,Keratin-positive tumor,301
+85.995,457.86,1944,Keratin-positive tumor,715
+111.93,455.71500000000003,1945,Macrophages,799
+176.475,455.71500000000003,1946,Macrophages,368
+593.5799999999999,456.69,1948,Keratin-positive tumor,455
+70.39500000000001,456.30000000000007,1949,Keratin-positive tumor,176
+318.43500000000006,458.83500000000004,1950,Keratin-positive tumor,933
+385.515,457.66499999999996,1951,Keratin-positive tumor,646
+21.060000000000002,456.3,1952,Keratin-positive tumor,468
+466.44000000000005,459.615,1953,Keratin-positive tumor,1041
+711.5550000000001,454.155,1954,Macrophages,423
+429.58500000000004,457.665,1955,Keratin-positive tumor,474
+556.335,457.665,1956,Keratin-positive tumor,287
+584.61,459.81,1957,DC / Mono,764
+300.885,456.495,1958,Keratin-positive tumor,163
+305.76,459.81,1959,Keratin-positive tumor,652
+770.835,458.44500000000005,1960,Keratin-positive tumor,316
+144.885,459.225,1961,Keratin-positive tumor,177
+346.125,461.37,1963,Keratin-positive tumor,635
+286.26,461.76,1964,Keratin-positive tumor,464
+756.6,458.44500000000005,1965,Unidentified,527
+359.19,462.345,1966,Keratin-positive tumor,790
+495.105,460.98,1967,Keratin-positive tumor,94
+504.855,462.735,1968,Keratin-positive tumor,504
+43.095,465.27,1969,Keratin-positive tumor,1072
+125.97,463.51500000000004,1970,Keratin-positive tumor,604
+574.665,462.735,1971,Keratin-positive tumor,427
+116.415,463.90500000000003,1972,Macrophages,175
+109.98,464.88,1973,Macrophages,433
+542.49,465.07500000000005,1974,Keratin-positive tumor,440
+727.74,465.07500000000005,1975,Keratin-positive tumor,457
+22.23,467.02500000000003,1976,Keratin-positive tumor,1263
+556.725,464.685,1977,Keratin-positive tumor,242
+597.09,464.88,1978,Keratin-positive tumor,282
+370.305,465.65999999999997,1979,Keratin-positive tumor,358
+521.04,467.22,1980,Unidentified,195
+682.8900000000001,466.83000000000004,1981,Unidentified,473
+249.015,468.78000000000003,1982,Keratin-positive tumor,643
+483.21000000000004,467.22,1983,Keratin-positive tumor,231
+57.33,470.34000000000003,1984,Keratin-positive tumor,735
+74.685,470.73,1985,Keratin-positive tumor,742
+696.9300000000001,469.95000000000005,1986,Keratin-positive tumor,552
+527.085,469.755,1987,Keratin-positive tumor,418
+578.37,468.975,1988,Keratin-positive tumor,539
+733.0050000000001,470.73,1989,Keratin-positive tumor,666
+503.1,471.70500000000004,1990,Keratin-positive tumor,559
+196.56,469.17,1991,Keratin-positive tumor,265
+420.615,469.95000000000005,1992,Keratin-positive tumor,194
+133.38,469.95000000000005,1993,Other immune,226
+165.945,471.12,1994,CD4-T,363
+531.7650000000001,470.535,1995,Keratin-positive tumor,149
+704.34,472.095,1996,Keratin-positive tumor,365
+287.82000000000005,471.70500000000004,1997,Keratin-positive tumor,349
+601.3800000000001,472.095,1998,Keratin-positive tumor,470
+643.6949999999999,475.02,1999,Keratin-positive tumor,981
+682.3050000000001,474.045,2000,Unidentified,413
+781.755,473.85,2001,Keratin-positive tumor,684
+243.36,471.9,2002,Unidentified,148
+321.94500000000005,474.63,2003,Keratin-positive tumor,942
+543.465,475.21500000000003,2004,Keratin-positive tumor,1000
+567.2550000000001,471.51,2005,Keratin-positive tumor,261
+433.485,474.63,2006,Keratin-positive tumor,507
+712.1400000000001,473.07000000000005,2007,Keratin-positive tumor,395
+216.45,473.265,2008,Keratin-positive tumor,276
+335.985,472.68000000000006,2009,Keratin-positive tumor,145
+482.625,473.265,2010,Keratin-positive tumor,91
+135.72000000000003,474.24,2011,Macrophages,198
+199.68,475.21500000000003,2012,Keratin-positive tumor,766
+610.155,473.85,2014,Keratin-positive tumor,335
+367.57500000000005,474.82500000000005,2015,Keratin-positive tumor,347
+408.72,475.995,2016,Keratin-positive tumor,538
+531.1800000000001,475.02000000000004,2017,Keratin-positive tumor,118
+424.32000000000005,473.85,2018,Keratin-positive tumor,293
+656.37,474.24,2019,Macrophages,480
+738.6600000000001,476.97,2020,Keratin-positive tumor,793
+416.90999999999997,477.555,2021,Keratin-positive tumor,515
+496.86,476.385,2022,Keratin-positive tumor,226
+475.21500000000003,478.14,2023,Keratin-positive tumor,737
+557.895,475.41,2024,Keratin-positive tumor,255
+437.385,477.94500000000005,2025,Keratin-positive tumor,348
+583.05,477.555,2026,Keratin-positive tumor,455
+627.315,479.31000000000006,2029,Keratin-positive tumor,768
+751.335,480.28499999999997,2030,Keratin-positive tumor,1010
+165.165,477.94500000000005,2031,Mesenchymal-like,360
+459.42,476.385,2032,Keratin-positive tumor,335
+575.0550000000001,476.97,2033,Keratin-positive tumor,302
+109.2,477.555,2034,CD3-T,327
+145.07999999999998,477.16499999999996,2035,Macrophages,433
+593.19,476.58000000000004,2036,Macrophages,516
+39.195,478.33500000000004,2037,Keratin-positive tumor,250
+487.695,480.675,2038,Keratin-positive tumor,745
+502.125,478.33500000000004,2039,Keratin-positive tumor,172
+309.65999999999997,480.67500000000007,2040,Keratin-positive tumor,725
+384.93,481.06500000000005,2042,Keratin-positive tumor,551
+603.5250000000001,482.04,2043,Keratin-positive tumor,832
+298.74,481.845,2044,Keratin-positive tumor,595
+448.89,482.235,2045,Keratin-positive tumor,629
+43.485,479.115,2048,Keratin-positive tumor,274
+426.27,483.21000000000004,2049,Keratin-positive tumor,717
+681.5250000000001,482.04,2050,Unidentified,457
+18.915,482.625,2051,Mesenchymal-like,635
+702.3900000000001,482.625,2053,Keratin-positive tumor,484
+55.575,485.16,2054,Keratin-positive tumor,744
+182.91000000000003,484.77,2055,Mesenchymal-like,644
+459.615,484.18500000000006,2056,Keratin-positive tumor,482
+507.78,484.57500000000005,2057,Keratin-positive tumor,795
+565.3050000000001,482.625,2058,Keratin-positive tumor,239
+167.895,485.745,2059,Mesenchymal-like,766
+282.55500000000006,483.795,2060,Keratin-positive tumor,479
+326.04,485.16,2061,Keratin-positive tumor,795
+783.315,485.16,2062,Keratin-positive tumor,442
+366.6,482.43,2063,Keratin-positive tumor,181
+377.325,486.915,2064,Keratin-positive tumor,798
+556.14,487.11,2065,Keratin-positive tumor,821
+471.70500000000004,486.525,2066,Keratin-positive tumor,516
+775.5150000000001,484.57500000000005,2067,Keratin-positive tumor,318
+633.9449999999999,486.915,2068,Keratin-positive tumor,709
+262.47,486.915,2069,Keratin-positive tumor,475
+124.8,488.28,2070,Mesenchymal-like,660
+288.99,485.355,2071,Unidentified,189
+613.2750000000001,485.94,2072,Keratin-positive tumor,201
+707.85,486.72,2073,Keratin-positive tumor,305
+768.885,485.355,2074,Macrophages,147
+362.895,488.67,2075,Keratin-positive tumor,512
+440.31000000000006,489.06,2077,Keratin-positive tumor,515
+695.76,491.20500000000004,2078,Keratin-positive tumor,575
+100.62,490.035,2079,Keratin-positive tumor,768
+534.69,491.20500000000004,2080,Keratin-positive tumor,608
+14.625,491.595,2081,Keratin-positive tumor,396
+609.7650000000001,491.01,2082,Keratin-positive tumor,548
+684.255,491.01,2083,Unidentified,480
+303.615,492.375,2084,Keratin-positive tumor,774
+423.53999999999996,492.765,2085,Keratin-positive tumor,771
+32.955,490.81500000000005,2086,Keratin-positive tumor,207
+766.74,491.20500000000004,2087,Unidentified,201
+133.185,489.45000000000005,2088,Endothelial,313
+773.565,492.375,2089,Keratin-positive tumor,449
+80.925,492.375,2090,Mesenchymal-like,532
+512.655,492.765,2091,Keratin-positive tumor,520
+584.8050000000001,493.74,2092,Keratin-positive tumor,620
+741.195,489.06000000000006,2093,Keratin-positive tumor,284
+450.255,492.18000000000006,2094,Macrophages,364
+700.245,493.35,2095,Keratin-positive tumor,333
+781.1700000000001,491.79,2096,Keratin-positive tumor,191
+324.87,496.27500000000003,2097,Keratin-positive tumor,970
+488.67,492.96000000000004,2098,Keratin-positive tumor,404
+708.0450000000001,495.885,2099,Keratin-positive tumor,512
+284.70000000000005,496.08000000000004,2100,Keratin-positive tumor,786
+338.52,496.47,2101,Keratin-positive tumor,834
+564.135,495.105,2102,Keratin-positive tumor,142
+636.2850000000001,497.05500000000006,2103,Keratin-positive tumor,697
+311.805,496.86,2104,Keratin-positive tumor,641
+529.23,498.225,2105,Keratin-positive tumor,510
+572.325,495.105,2106,Unidentified,264
+627.12,495.69000000000005,2107,Keratin-positive tumor,239
+45.629999999999995,500.175,2108,Keratin-positive tumor,1246
+497.83500000000004,494.13,2109,Keratin-positive tumor,156
+552.63,497.83500000000004,2110,Keratin-positive tumor,725
+256.62,497.83500000000004,2111,Keratin-positive tumor,506
+416.32500000000005,496.27500000000003,2112,Keratin-positive tumor,370
+504.855,496.665,2113,Keratin-positive tumor,204
+755.04,496.08000000000004,2114,Keratin-positive tumor,126
+98.86500000000001,499.20000000000005,2115,Keratin-positive tumor,466
+202.8,498.03,2116,Macrophages,116
+473.65500000000003,498.03000000000003,2117,Keratin-positive tumor,451
+113.685,498.42,2118,Other immune,456
+167.89499999999998,498.42,2119,Macrophages,286
+240.24,499.20000000000005,2120,Keratin-positive tumor,378
+715.455,502.125,2121,Keratin-positive tumor,998
+451.81500000000005,500.37,2122,Macrophages,297
+270.855,497.25,2123,Keratin-positive tumor,350
+478.92,497.445,2124,Mesenchymal-like,235
+487.11,499.20000000000005,2125,Keratin-positive tumor,373
+663.0,499.395,2126,Keratin-positive tumor,348
+774.5400000000001,502.515,2127,Keratin-positive tumor,833
+395.65500000000003,500.17500000000007,2128,Keratin-positive tumor,423
+500.175,498.81000000000006,2129,Keratin-positive tumor,381
+644.6700000000001,499.005,2130,Keratin-positive tumor,215
+367.18500000000006,501.735,2131,Keratin-positive tumor,142
+465.075,502.32000000000005,2132,Keratin-positive tumor,592
+195.97500000000002,500.76,2133,Keratin-positive tumor,364
+587.73,502.71000000000004,2134,Keratin-positive tumor,553
+247.455,502.515,2135,Keratin-positive tumor,392
+407.355,501.54,2136,Keratin-positive tumor,250
+543.075,504.46500000000003,2137,Keratin-positive tumor,965
+701.415,502.90500000000003,2138,Keratin-positive tumor,571
+756.0150000000001,501.735,2139,Keratin-positive tumor,250
+565.695,503.295,2140,Keratin-positive tumor,535
+600.99,502.905,2142,Keratin-positive tumor,271
+218.01,504.66,2143,Macrophages,481
+361.92,504.855,2144,Keratin-positive tumor,545
+434.265,501.54,2145,Keratin-positive tumor,607
+645.06,505.05,2146,Unidentified,409
+384.93,506.61,2147,Keratin-positive tumor,633
+625.365,504.27000000000004,2148,Tumor,67
+239.85000000000002,507.0,2149,Keratin-positive tumor,597
+347.1,506.22,2150,Keratin-positive tumor,442
+510.51,504.855,2151,Keratin-positive tumor,331
+606.84,504.46500000000003,2152,Keratin-positive tumor,254
+732.03,506.415,2153,Keratin-positive tumor,643
+488.28000000000003,507.39000000000004,2154,Mesenchymal-like,429
+635.895,508.17,2155,Keratin-positive tumor,327
+558.2850000000001,505.44000000000005,2156,Keratin-positive tumor,80
+571.935,507.78,2157,Keratin-positive tumor,350
+600.21,508.365,2158,Keratin-positive tumor,302
+289.96500000000003,507.78000000000003,2159,Keratin-positive tumor,229
+517.1400000000001,509.535,2160,Keratin-positive tumor,490
+558.2850000000001,508.365,2161,Keratin-positive tumor,71
+592.605,508.755,2162,Keratin-positive tumor,391
+783.51,509.53499999999997,2163,Keratin-positive tumor,372
+353.34000000000003,510.51,2164,Keratin-positive tumor,518
+395.65500000000003,510.51,2165,Keratin-positive tumor,850
+498.81,510.90000000000003,2166,Keratin-positive tumor,421
+509.14500000000004,511.875,2167,Unidentified,190
+623.415,507.78000000000003,2168,Unidentified,364
+641.7450000000001,511.485,2169,Unidentified,222
+35.1,510.315,2170,Keratin-positive tumor,484
+471.12,509.73,2171,Keratin-positive tumor,580
+582.465,511.875,2173,Keratin-positive tumor,361
+648.1800000000001,513.4350000000001,2174,Other immune,507
+322.33500000000004,514.8000000000001,2175,Keratin-positive tumor,988
+669.0450000000001,511.68,2176,Unidentified,435
+242.385,513.24,2177,Keratin-positive tumor,420
+57.135000000000005,514.02,2178,Keratin-positive tumor,858
+541.5150000000001,515.19,2179,Keratin-positive tumor,699
+151.90500000000003,515.19,2180,Macrophages,333
+291.72,517.14,2181,Keratin-positive tumor,662
+660.6600000000001,515.5799999999999,2182,Keratin-positive tumor,526
+732.225,515.19,2183,Keratin-positive tumor,345
+16.575,515.97,2184,Mesenchymal-like,557
+631.605,517.53,2185,Keratin-positive tumor,903
+756.99,512.655,2186,Keratin-positive tumor,262
+143.715,517.725,2187,Keratin-positive tumor,635
+592.995,515.385,2188,Keratin-positive tumor,184
+426.65999999999997,518.115,2189,Keratin-positive tumor,690
+90.48,515.19,2190,Macrophages,166
+525.135,517.335,2192,Keratin-positive tumor,649
+267.15,517.1400000000001,2194,Keratin-positive tumor,270
+490.425,519.48,2195,Keratin-positive tumor,1087
+194.805,519.87,2196,Mesenchymal-like,651
+467.22,519.0899999999999,2197,Keratin-positive tumor,498
+579.345,519.09,2198,Keratin-positive tumor,512
+505.05,521.04,2200,Keratin-positive tumor,828
+641.94,520.26,2201,Keratin-positive tumor,429
+348.855,519.87,2202,Macrophages,356
+395.46000000000004,521.04,2203,Keratin-positive tumor,317
+710.7750000000001,519.2850000000001,2204,Keratin-positive tumor,395
+93.795,519.09,2205,Unidentified,207
+459.03000000000003,519.87,2206,Keratin-positive tumor,304
+478.725,522.99,2207,Keratin-positive tumor,884
+358.02,519.09,2208,Macrophages,258
+451.425,520.26,2209,Macrophages,369
+384.53999999999996,521.625,2210,Keratin-positive tumor,530
+593.97,524.16,2211,Keratin-positive tumor,824
+603.72,523.77,2212,Keratin-positive tumor,568
+691.47,523.575,2214,Keratin-positive tumor,858
+70.395,522.21,2215,Keratin-positive tumor,502
+648.96,522.0150000000001,2217,Keratin-positive tumor,247
+285.48,524.355,2218,Keratin-positive tumor,751
+400.14,522.21,2220,Keratin-positive tumor,368
+543.465,524.55,2221,Keratin-positive tumor,488
+561.7950000000001,520.4549999999999,2222,Keratin-positive tumor,241
+47.58,523.575,2223,Keratin-positive tumor,468
+413.595,524.1600000000001,2224,Keratin-positive tumor,546
+610.155,522.7950000000001,2225,Keratin-positive tumor,217
+749.385,523.575,2227,Keratin-positive tumor,140
+754.6500000000001,523.38,2228,Keratin-positive tumor,196
+531.57,527.6700000000001,2230,Keratin-positive tumor,1339
+377.32500000000005,527.4749999999999,2231,Keratin-positive tumor,846
+356.85,525.5250000000001,2232,Macrophages,271
+517.335,527.085,2233,Keratin-positive tumor,627
+656.37,526.3050000000001,2234,Keratin-positive tumor,654
+430.17,525.33,2235,Keratin-positive tumor,232
+772.2,529.6200000000001,2236,Unidentified,1015
+576.225,524.745,2237,Keratin-positive tumor,485
+30.225,527.085,2238,Keratin-positive tumor,815
+468.39,530.01,2240,Keratin-positive tumor,739
+551.2650000000001,529.425,2241,Keratin-positive tumor,814
+645.2550000000001,531.1800000000001,2243,Keratin-positive tumor,844
+121.28999999999999,527.6700000000001,2244,Keratin-positive tumor,346
+436.41,527.475,2245,Keratin-positive tumor,294
+457.86,532.5450000000001,2246,Keratin-positive tumor,644
+708.0450000000001,530.4000000000001,2248,Keratin-positive tumor,804
+231.66000000000003,532.935,2249,Mesenchymal-like,809
+752.115,534.885,2250,Unidentified,412
+785.85,529.62,2251,Unidentified,91
+299.90999999999997,533.52,2252,Keratin-positive tumor,568
+323.505,533.9100000000001,2253,Keratin-positive tumor,977
+411.84000000000003,533.715,2254,Keratin-positive tumor,598
+212.16000000000003,531.96,2255,Keratin-positive tumor,330
+335.4,531.57,2256,Keratin-positive tumor,145
+630.435,530.79,2257,Keratin-positive tumor,168
+446.745,532.155,2258,Keratin-positive tumor,260
+783.12,532.74,2260,Unidentified,323
+310.83000000000004,535.2750000000001,2261,Keratin-positive tumor,717
+475.605,533.52,2262,Keratin-positive tumor,370
+727.9350000000001,532.35,2264,Keratin-positive tumor,143
+304.98,530.4000000000001,2265,Keratin-positive tumor,284
+505.44000000000005,534.495,2266,Keratin-positive tumor,778
+693.03,536.4449999999999,2267,Keratin-positive tumor,1034
+123.24000000000001,533.7149999999999,2268,Keratin-positive tumor,289
+345.735,534.105,2269,Keratin-positive tumor,401
+399.16499999999996,536.0550000000001,2270,Keratin-positive tumor,982
+430.17,532.74,2271,Keratin-positive tumor,231
+607.815,534.495,2272,Keratin-positive tumor,572
+372.84000000000003,535.275,2273,Keratin-positive tumor,470
+635.895,534.885,2274,Keratin-positive tumor,474
+658.71,534.105,2275,Keratin-positive tumor,332
+732.4200000000001,532.935,2276,Keratin-positive tumor,165
+482.625,533.715,2277,Keratin-positive tumor,282
+569.595,537.615,2278,Keratin-positive tumor,699
+138.06,536.445,2279,Keratin-positive tumor,561
+560.235,533.715,2280,Keratin-positive tumor,123
+515.385,537.615,2281,Keratin-positive tumor,553
+95.355,537.615,2282,Keratin-positive tumor,405
+559.26,538.98,2284,Keratin-positive tumor,759
+706.485,539.565,2285,Keratin-positive tumor,650
+419.83500000000004,539.9549999999999,2286,Keratin-positive tumor,903
+488.865,541.71,2287,Keratin-positive tumor,1089
+586.95,537.615,2288,Keratin-positive tumor,280
+34.32,540.735,2289,Keratin-positive tumor,763
+644.865,542.685,2290,Keratin-positive tumor,850
+288.6,541.905,2291,Keratin-positive tumor,567
+576.81,539.9549999999999,2292,Keratin-positive tumor,238
+228.15,540.9300000000001,2293,Unidentified,100
+302.64,540.9300000000001,2294,Keratin-positive tumor,155
+547.95,543.4649999999999,2297,Keratin-positive tumor,880
+60.84,542.8800000000001,2298,CD8-T,452
+222.495,541.71,2299,Mesenchymal-like,250
+353.34000000000003,542.49,2300,Keratin-positive tumor,310
+775.125,543.27,2301,Keratin-positive tumor,291
+339.105,546.78,2302,Keratin-positive tumor,1067
+137.28,546.1949999999999,2303,Keratin-positive tumor,718
+145.66500000000002,542.49,2304,Macrophages,352
+378.885,544.44,2305,Keratin-positive tumor,310
+96.915,547.755,2307,Keratin-positive tumor,650
+410.08500000000004,547.56,2308,Keratin-positive tumor,919
+467.22,548.5350000000001,2309,Keratin-positive tumor,1060
+624.0,546.585,2310,Keratin-positive tumor,773
+637.26,546.0,2311,Unidentified,219
+47.19,547.95,2312,Keratin-positive tumor,901
+348.65999999999997,545.415,2313,Keratin-positive tumor,199
+770.445,546.975,2314,Keratin-positive tumor,497
+695.37,549.51,2315,Keratin-positive tumor,661
+391.755,545.8050000000001,2316,Keratin-positive tumor,269
+209.82,548.145,2317,Mesenchymal-like,317
+532.74,547.1700000000001,2318,Keratin-positive tumor,211
+215.28,548.73,2319,Mesenchymal-like,683
+399.36,550.6800000000001,2320,Keratin-positive tumor,821
+511.875,549.315,2321,Keratin-positive tumor,508
+565.5,551.85,2322,Keratin-positive tumor,892
+17.745,552.24,2323,Keratin-positive tumor,1020
+480.87,547.95,2324,Keratin-positive tumor,224
+601.9649999999999,550.6800000000001,2325,Keratin-positive tumor,645
+70.59,553.8,2326,Keratin-positive tumor,868
+556.9200000000001,549.9000000000001,2327,Unidentified,158
+322.92,550.485,2329,Keratin-positive tumor,253
+308.1,551.2650000000001,2330,Keratin-positive tumor,313
+371.67,552.0450000000001,2331,Keratin-positive tumor,429
+380.055,552.825,2332,Keratin-positive tumor,463
+272.415,550.875,2333,Keratin-positive tumor,259
+613.0799999999999,552.4350000000001,2334,Keratin-positive tumor,437
+779.22,552.435,2335,Unidentified,94
+287.82,551.2650000000001,2336,Keratin-positive tumor,200
+91.45500000000001,552.825,2337,Keratin-positive tumor,220
+434.07,554.58,2338,Keratin-positive tumor,778
+141.18,554.58,2339,Keratin-positive tumor,299
+753.675,555.9449999999999,2340,Keratin-positive tumor,678
+296.595,555.5550000000001,2342,Keratin-positive tumor,606
+506.805,556.53,2343,Keratin-positive tumor,579
+240.04500000000002,555.36,2344,Mesenchymal-like,364
+362.115,556.335,2345,Keratin-positive tumor,644
+79.95,555.165,2346,Keratin-positive tumor,269
+270.46500000000003,556.14,2347,Keratin-positive tumor,163
+285.48,555.5550000000001,2348,Keratin-positive tumor,251
+385.32000000000005,556.14,2349,Macrophages,170
+617.565,555.36,2350,Keratin-positive tumor,207
+626.3399999999999,558.09,2351,Keratin-positive tumor,506
+691.665,558.48,2352,Keratin-positive tumor,546
+154.05,556.335,2353,Keratin-positive tumor,190
+494.91,554.58,2354,Keratin-positive tumor,186
+556.335,558.2850000000001,2355,Keratin-positive tumor,676
+51.870000000000005,558.675,2356,Keratin-positive tumor,967
+644.475,561.015,2357,Keratin-positive tumor,786
+95.16,556.725,2358,Keratin-positive tumor,243
+277.68,559.26,2359,Keratin-positive tumor,664
+336.96000000000004,560.82,2360,Keratin-positive tumor,1040
+446.15999999999997,559.65,2361,Keratin-positive tumor,801
+155.805,559.065,2362,Keratin-positive tumor,152
+544.44,558.8700000000001,2363,Keratin-positive tumor,438
+603.135,559.065,2364,Keratin-positive tumor,495
+288.79499999999996,558.675,2365,Keratin-positive tumor,111
+319.21500000000003,558.2850000000001,2366,Keratin-positive tumor,237
+389.805,558.87,2367,Macrophages,128
+397.02,559.26,2368,Keratin-positive tumor,235
+573.69,561.21,2369,Keratin-positive tumor,785
+592.605,558.675,2370,Keratin-positive tumor,279
+265.59000000000003,559.6500000000001,2371,Keratin-positive tumor,323
+521.625,559.4549999999999,2372,Keratin-positive tumor,263
+620.49,560.8199999999999,2373,Keratin-positive tumor,371
+634.9200000000001,561.405,2374,Keratin-positive tumor,564
+375.375,561.21,2376,Keratin-positive tumor,160
+481.845,563.1600000000001,2377,Keratin-positive tumor,812
+497.64,561.405,2378,Keratin-positive tumor,411
+411.255,564.915,2380,Keratin-positive tumor,922
+28.080000000000002,565.11,2381,Keratin-positive tumor,893
+270.855,562.575,2382,Keratin-positive tumor,134
+293.08500000000004,562.77,2383,Keratin-positive tumor,338
+538.98,562.575,2384,Macrophages,218
+455.90999999999997,566.085,2385,Keratin-positive tumor,699
+469.17,566.475,2386,Keratin-positive tumor,836
+533.52,563.745,2387,Unidentified,237
+610.5450000000001,563.1600000000001,2388,Keratin-positive tumor,391
+489.84000000000003,563.55,2389,Macrophages,151
+753.87,564.5250000000001,2391,Keratin-positive tumor,116
+602.94,566.28,2392,Keratin-positive tumor,273
+427.635,568.62,2393,Keratin-positive tumor,921
+545.61,566.085,2394,Keratin-positive tumor,118
+561.99,566.085,2395,Keratin-positive tumor,214
+615.4200000000001,565.6949999999999,2396,Unidentified,42
+18.330000000000002,570.375,2397,Keratin-positive tumor,1023
+638.4300000000001,568.0350000000001,2398,Keratin-positive tumor,74
+394.68,568.425,2399,Keratin-positive tumor,564
+555.36,570.375,2400,Keratin-positive tumor,884
+648.375,571.155,2401,Keratin-positive tumor,688
+778.245,567.84,2402,Keratin-positive tumor,407
+331.5,569.205,2403,Keratin-positive tumor,311
+376.545,570.7650000000001,2404,Keratin-positive tumor,1116
+749.97,567.255,2407,Keratin-positive tumor,337
+321.94500000000005,573.105,2408,Macrophages,1028
+489.645,572.52,2409,Keratin-positive tumor,740
+447.33000000000004,574.665,2410,Keratin-positive tumor,1285
+612.105,569.01,2411,Keratin-positive tumor,200
+35.49,569.01,2412,Keratin-positive tumor,203
+312.975,570.375,2413,Macrophages,290
+618.15,568.425,2414,Keratin-positive tumor,361
+304.98,570.96,2415,Keratin-positive tumor,438
+579.735,569.4000000000001,2416,Keratin-positive tumor,176
+40.56,571.35,2417,Keratin-positive tumor,272
+73.71000000000001,570.57,2418,CD4-T,297
+283.33500000000004,570.7650000000001,2419,Keratin-positive tumor,175
+684.255,573.495,2420,Keratin-positive tumor,547
+734.3700000000001,574.08,2421,Keratin-positive tumor,542
+354.12,575.0550000000001,2422,Keratin-positive tumor,877
+589.485,574.2750000000001,2423,Keratin-positive tumor,215
+59.67,575.835,2424,Keratin-positive tumor,595
+476.775,573.105,2425,Mono / Neu,218
+49.72500000000001,571.74,2426,Keratin-positive tumor,112
+642.72,574.47,2427,Keratin-positive tumor,430
+31.785000000000004,574.08,2428,Keratin-positive tumor,272
+74.295,576.615,2429,CD4-T,253
+664.1700000000001,573.495,2430,Keratin-positive tumor,117
+386.49,577.0050000000001,2431,Keratin-positive tumor,616
+51.285,574.2750000000001,2432,Keratin-positive tumor,163
+666.705,575.445,2435,Keratin-positive tumor,332
+564.72,574.2750000000001,2436,Keratin-positive tumor,164
+522.405,576.4200000000001,2437,Keratin-positive tumor,212
+85.995,580.5150000000001,2438,Keratin-positive tumor,806
+302.055,576.4200000000001,2439,Keratin-positive tumor,121
+309.07500000000005,578.76,2440,Keratin-positive tumor,558
+99.84,577.005,2441,Mesenchymal-like,95
+286.065,577.59,2442,Keratin-positive tumor,480
+774.9300000000001,578.565,2443,Keratin-positive tumor,371
+330.915,577.98,2444,Keratin-positive tumor,395
+45.24,578.565,2445,Keratin-positive tumor,328
+79.56,578.9549999999999,2446,Keratin-positive tumor,213
+234.585,578.955,2447,Unidentified,209
+276.315,577.5899999999999,2448,Unidentified,134
+429.0,580.3199999999999,2449,Keratin-positive tumor,606
+567.84,578.565,2450,Keratin-positive tumor,357
+585.39,578.76,2451,Keratin-positive tumor,272
+94.38,577.005,2452,Mesenchymal-like,296
+20.865000000000002,582.6600000000001,2453,Keratin-positive tumor,926
+492.375,580.905,2455,Mono / Neu,183
+67.275,579.15,2456,Keratin-positive tumor,515
+413.79,582.6600000000001,2457,Keratin-positive tumor,558
+54.21,584.0250000000001,2458,Keratin-positive tumor,586
+454.35,584.0250000000001,2459,Keratin-positive tumor,965
+576.615,581.1,2460,Keratin-positive tumor,329
+421.395,582.855,2461,Keratin-positive tumor,233
+300.69,582.075,2462,Keratin-positive tumor,259
+481.45500000000004,586.95,2463,Keratin-positive tumor,1525
+277.095,582.855,2465,Unidentified,185
+557.31,582.27,2467,Keratin-positive tumor,339
+44.46,584.8050000000001,2468,Keratin-positive tumor,414
+340.275,583.245,2470,Keratin-positive tumor,496
+722.865,582.66,2471,Keratin-positive tumor,243
+145.665,586.365,2472,Other immune,722
+467.415,586.365,2473,Keratin-positive tumor,755
+538.98,584.8050000000001,2474,Keratin-positive tumor,295
+583.245,586.755,2475,Keratin-positive tumor,491
+95.16,584.22,2476,Keratin-positive tumor,319
+246.87,585.0,2477,Macrophages,361
+103.545,584.22,2478,Endothelial,405
+566.475,585.78,2479,Macrophages,510
+352.17,584.61,2480,Keratin-positive tumor,464
+358.605,585.0,2481,Keratin-positive tumor,137
+521.2350000000001,584.8050000000001,2482,Keratin-positive tumor,227
+734.76,584.61,2483,Keratin-positive tumor,237
+309.855,587.34,2484,Keratin-positive tumor,382
+529.62,585.78,2485,Keratin-positive tumor,145
+575.4449999999999,588.315,2486,Macrophages,253
+135.135,585.3900000000001,2487,Keratin-positive tumor,396
+773.955,589.6800000000001,2488,Keratin-positive tumor,951
+698.88,586.95,2489,Keratin-positive tumor,288
+299.90999999999997,591.825,2490,Keratin-positive tumor,975
+29.25,591.435,2491,Keratin-positive tumor,909
+326.03999999999996,586.365,2492,Keratin-positive tumor,476
+534.885,588.9000000000001,2493,Keratin-positive tumor,349
+286.845,591.435,2494,Keratin-positive tumor,761
+428.025,589.6800000000001,2495,Keratin-positive tumor,357
+335.4,587.5350000000001,2496,Keratin-positive tumor,256
+417.885,589.875,2497,Macrophages,176
+682.5,590.07,2498,Keratin-positive tumor,311
+758.745,589.29,2499,Keratin-positive tumor,280
+739.05,590.85,2500,Keratin-positive tumor,399
+103.74000000000001,591.825,2501,Keratin-positive tumor,228
+656.9549999999999,589.875,2502,Keratin-positive tumor,181
+68.64,593.385,2503,Keratin-positive tumor,976
+120.315,591.825,2504,Keratin-positive tumor,406
+518.5050000000001,592.995,2505,Keratin-positive tumor,689
+693.615,593.5799999999999,2506,Keratin-positive tumor,449
+352.56000000000006,594.75,2507,CD4-T,822
+125.385,594.36,2508,Keratin-positive tumor,556
+541.32,592.2149999999999,2509,Keratin-positive tumor,217
+735.345,595.53,2510,Keratin-positive tumor,663
+784.485,593.7750000000001,2511,Keratin-positive tumor,263
+610.155,596.31,2512,Unidentified,365
+700.44,595.14,2513,Keratin-positive tumor,167
+110.37,595.725,2514,Unidentified,515
+496.86,597.2850000000001,2515,Keratin-positive tumor,681
+567.06,597.2850000000001,2516,Keratin-positive tumor,692
+470.53499999999997,598.845,2517,Keratin-positive tumor,981
+507.78000000000003,594.945,2518,Keratin-positive tumor,499
+449.475,597.48,2520,Keratin-positive tumor,804
+538.98,597.48,2521,Keratin-positive tumor,323
+550.095,596.115,2522,Keratin-positive tumor,297
+48.36,596.7,2524,Keratin-positive tumor,422
+641.355,597.48,2525,Unidentified,469
+704.3399999999999,597.48,2526,Keratin-positive tumor,481
+660.075,594.945,2527,Keratin-positive tumor,307
+774.735,598.065,2528,Unidentified,190
+530.595,598.6500000000001,2529,Keratin-positive tumor,295
+285.28499999999997,600.0150000000001,2530,Keratin-positive tumor,353
+717.21,601.77,2531,Keratin-positive tumor,985
+583.44,599.8199999999999,2532,Keratin-positive tumor,460
+101.78999999999999,603.33,2533,Keratin-positive tumor,970
+353.145,601.77,2534,Keratin-positive tumor,258
+24.57,603.5250000000001,2535,Keratin-positive tumor,1214
+83.46000000000001,599.4300000000001,2536,Keratin-positive tumor,376
+436.21500000000003,600.405,2537,Keratin-positive tumor,418
+783.7049999999999,604.5,2538,Keratin-positive tumor,456
+90.09,603.915,2539,Keratin-positive tumor,699
+664.755,602.55,2540,Keratin-positive tumor,399
+309.855,605.6700000000001,2541,Keratin-positive tumor,811
+521.04,601.9649999999999,2542,Keratin-positive tumor,233
+533.52,602.7450000000001,2543,Keratin-positive tumor,187
+555.165,603.915,2544,Keratin-positive tumor,871
+587.73,602.94,2545,Keratin-positive tumor,315
+623.22,604.3050000000001,2546,Keratin-positive tumor,751
+357.63,601.77,2547,Keratin-positive tumor,146
+361.92,601.77,2548,Keratin-positive tumor,180
+574.2750000000001,602.1600000000001,2549,Keratin-positive tumor,257
+599.04,598.4549999999999,2550,Unidentified,483
+779.22,604.89,2551,Keratin-positive tumor,411
+372.645,606.06,2552,Keratin-positive tumor,830
+151.71,604.695,2553,Keratin-positive tumor,395
+505.635,604.695,2554,Keratin-positive tumor,304
+77.805,607.23,2555,Keratin-positive tumor,861
+280.8,608.2049999999999,2556,Keratin-positive tumor,744
+480.675,607.23,2557,Keratin-positive tumor,646
+570.1800000000001,605.085,2558,Keratin-positive tumor,155
+658.125,608.4,2560,Keratin-positive tumor,670
+63.96000000000001,608.4,2561,Keratin-positive tumor,915
+439.14,607.6200000000001,2562,Keratin-positive tumor,458
+772.59,607.23,2563,Keratin-positive tumor,548
+338.32500000000005,609.375,2564,Keratin-positive tumor,586
+580.71,608.79,2566,Keratin-positive tumor,614
+761.28,609.1800000000001,2567,Keratin-positive tumor,732
+598.065,610.74,2568,Keratin-positive tumor,794
+686.595,610.74,2570,Keratin-positive tumor,789
+361.33500000000004,610.35,2571,Keratin-positive tumor,438
+469.755,613.08,2572,Keratin-positive tumor,1084
+638.04,609.375,2573,Keratin-positive tumor,284
+13.844999999999999,609.7650000000001,2574,Keratin-positive tumor,232
+299.13,610.74,2575,Keratin-positive tumor,690
+318.82500000000005,609.375,2576,Keratin-positive tumor,309
+722.085,610.155,2577,Keratin-positive tumor,112
+47.58,611.1300000000001,2578,Keratin-positive tumor,474
+249.79500000000002,612.3,2579,Keratin-positive tumor,628
+125.385,611.9100000000001,2580,Keratin-positive tumor,465
+144.495,611.325,2581,Keratin-positive tumor,404
+154.83,614.25,2582,Keratin-positive tumor,757
+106.665,615.225,2584,Keratin-positive tumor,751
+116.61000000000001,615.225,2585,Keratin-positive tumor,676
+523.575,613.6650000000001,2587,Tumor,395
+384.53999999999996,612.69,2588,Keratin-positive tumor,124
+564.525,613.47,2589,Keratin-positive tumor,429
+783.9,616.395,2590,Keratin-positive tumor,391
+329.55,616.005,2591,Keratin-positive tumor,715
+713.5050000000001,615.81,2592,Keratin-positive tumor,738
+24.18,615.615,2593,Keratin-positive tumor,436
+94.575,617.955,2594,Keratin-positive tumor,893
+612.495,615.225,2595,Keratin-positive tumor,357
+72.93,617.76,2596,Keratin-positive tumor,767
+508.365,618.345,2597,Keratin-positive tumor,955
+671.19,615.225,2598,Keratin-positive tumor,281
+749.19,616.2,2599,Macrophages,330
+773.76,618.54,2600,Keratin-positive tumor,923
+304.98,618.15,2601,Keratin-positive tumor,172
+594.165,617.3700000000001,2602,Keratin-positive tumor,407
+264.42,618.345,2603,Macrophages,552
+352.365,619.32,2604,Keratin-positive tumor,762
+628.485,616.59,2605,Keratin-positive tumor,193
+13.260000000000002,617.565,2606,Keratin-positive tumor,149
+145.47,618.345,2607,Keratin-positive tumor,281
+320.775,619.125,2608,Keratin-positive tumor,570
+366.015,618.54,2609,Keratin-positive tumor,421
+390.58500000000004,618.1500000000001,2610,Keratin-positive tumor,505
+545.61,617.955,2611,Keratin-positive tumor,393
+636.48,618.1500000000001,2612,Keratin-positive tumor,459
+689.9100000000001,618.7350000000001,2613,Keratin-positive tumor,239
+682.11,618.15,2614,Keratin-positive tumor,282
+745.29,618.345,2615,Macrophages,399
+424.515,618.345,2616,Keratin-positive tumor,167
+726.57,620.88,2617,Keratin-positive tumor,858
+758.1600000000001,620.88,2618,Keratin-positive tumor,788
+47.775000000000006,621.27,2619,Keratin-positive tumor,684
+475.995,620.1,2621,Mesenchymal-like,408
+669.63,620.88,2622,Keratin-positive tumor,238
+122.265,622.83,2624,Keratin-positive tumor,379
+127.92,621.27,2625,CD8-T,256
+570.7650000000001,622.44,2626,Keratin-positive tumor,617
+37.635,622.05,2627,Keratin-positive tumor,534
+455.91,626.34,2628,Keratin-positive tumor,1051
+404.04,622.44,2629,Keratin-positive tumor,475
+438.94500000000005,625.1700000000001,2630,Keratin-positive tumor,351
+617.3700000000001,623.22,2631,Keratin-positive tumor,437
+245.895,622.635,2632,Unidentified,116
+84.045,626.34,2633,Keratin-positive tumor,909
+101.4,624.1949999999999,2634,Keratin-positive tumor,321
+713.895,626.145,2635,Keratin-positive tumor,868
+783.7049999999999,626.925,2636,Keratin-positive tumor,419
+156.0,624.975,2637,Keratin-positive tumor,510
+287.625,627.315,2638,Keratin-positive tumor,910
+445.77000000000004,623.415,2639,Keratin-positive tumor,228
+17.745,626.34,2640,Keratin-positive tumor,742
+174.91500000000002,624.78,2641,Keratin-positive tumor,285
+500.37,627.7049999999999,2643,Keratin-positive tumor,932
+70.395,628.095,2644,Keratin-positive tumor,878
+553.215,626.34,2645,Keratin-positive tumor,529
+662.22,628.6800000000001,2646,Keratin-positive tumor,1011
+263.64,626.73,2647,Macrophages,267
+93.6,627.9000000000001,2648,Keratin-positive tumor,158
+206.895,629.85,2650,Macrophages,525
+414.18,627.12,2651,Keratin-positive tumor,141
+532.5450000000001,629.655,2652,Keratin-positive tumor,768
+197.73000000000002,628.485,2653,Macrophages,525
+354.31500000000005,627.9000000000001,2654,Unidentified,218
+445.96500000000003,629.655,2655,Keratin-positive tumor,219
+511.095,628.875,2656,Other immune,174
+268.515,629.85,2657,Macrophages,278
+298.54499999999996,631.605,2658,Keratin-positive tumor,515
+307.32000000000005,629.46,2659,Keratin-positive tumor,292
+429.0,632.58,2660,Keratin-positive tumor,1026
+44.265,633.36,2661,Keratin-positive tumor,942
+520.845,631.4100000000001,2662,Keratin-positive tumor,710
+13.455000000000002,632.97,2663,Keratin-positive tumor,214
+169.84500000000003,631.605,2664,Keratin-positive tumor,420
+568.425,631.995,2665,Keratin-positive tumor,329
+101.78999999999999,632.19,2666,Unidentified,345
+137.28,634.335,2667,Macrophages,693
+160.875,635.895,2668,Keratin-positive tumor,1102
+277.095,635.31,2669,Keratin-positive tumor,873
+214.695,631.995,2670,Endothelial,393
+394.095,633.5550000000001,2671,Keratin-positive tumor,395
+720.915,633.165,2672,Keratin-positive tumor,318
+370.5,633.75,2673,Keratin-positive tumor,303
+607.815,633.5550000000001,2674,Keratin-positive tumor,434
+618.1500000000001,634.9200000000001,2675,Keratin-positive tumor,546
+759.135,634.335,2676,Keratin-positive tumor,284
+29.64,632.7750000000001,2677,Keratin-positive tumor,722
+782.73,634.1400000000001,2679,Keratin-positive tumor,97
+374.985,636.09,2680,Keratin-positive tumor,575
+292.305,634.9200000000001,2681,Keratin-positive tumor,202
+550.485,636.0899999999999,2682,Keratin-positive tumor,662
+636.48,637.6500000000001,2683,Keratin-positive tumor,1016
+87.94500000000001,636.285,2684,Keratin-positive tumor,601
+496.08000000000004,635.505,2685,Keratin-positive tumor,440
+766.155,637.65,2686,Keratin-positive tumor,667
+701.8050000000001,638.625,2688,Keratin-positive tumor,1056
+80.535,636.48,2689,Keratin-positive tumor,70
+65.91,639.0150000000001,2691,Keratin-positive tumor,938
+775.125,638.4300000000001,2692,Keratin-positive tumor,484
+448.5,638.4300000000001,2693,Keratin-positive tumor,418
+460.59000000000003,637.455,2694,Keratin-positive tumor,408
+454.15500000000003,639.015,2695,Keratin-positive tumor,225
+581.49,637.845,2696,Keratin-positive tumor,156
+683.475,638.4300000000001,2697,Keratin-positive tumor,372
+729.69,639.7950000000001,2698,Keratin-positive tumor,566
+533.52,639.99,2699,Macrophages,392
+193.05,639.7950000000001,2700,Keratin-positive tumor,574
+516.945,638.82,2701,Keratin-positive tumor,296
+720.33,637.845,2702,Keratin-positive tumor,82
+214.305,641.745,2703,Mesenchymal-like,682
+561.6,639.7950000000001,2704,Keratin-positive tumor,361
+609.375,641.1600000000001,2705,Keratin-positive tumor,645
+661.635,640.77,2706,Keratin-positive tumor,614
+287.625,639.7950000000001,2707,Keratin-positive tumor,288
+301.47,642.5250000000001,2708,Keratin-positive tumor,564
+358.40999999999997,640.965,2709,Keratin-positive tumor,137
+522.99,642.72,2710,Keratin-positive tumor,896
+647.595,642.33,2711,Keratin-positive tumor,264
+740.8050000000001,639.405,2712,Keratin-positive tumor,412
+14.625,644.6700000000001,2713,Keratin-positive tumor,404
+395.46000000000004,646.0350000000001,2715,Keratin-positive tumor,895
+496.47,645.45,2716,Keratin-positive tumor,447
+721.8900000000001,645.84,2717,Keratin-positive tumor,1051
+292.69500000000005,643.695,2718,Keratin-positive tumor,416
+118.56,644.28,2719,Keratin-positive tumor,530
+571.74,643.695,2720,Keratin-positive tumor,525
+460.005,644.475,2722,Keratin-positive tumor,174
+385.515,645.06,2723,Keratin-positive tumor,333
+81.705,647.4,2724,Keratin-positive tumor,866
+537.615,646.035,2725,Keratin-positive tumor,519
+201.24,647.595,2726,Keratin-positive tumor,662
+442.845,646.4250000000001,2727,Keratin-positive tumor,444
+450.84000000000003,646.23,2728,Unidentified,160
+351.39,645.84,2729,Keratin-positive tumor,384
+372.64500000000004,646.62,2730,Keratin-positive tumor,450
+641.355,649.74,2731,Keratin-positive tumor,761
+71.37,647.985,2732,Keratin-positive tumor,526
+92.82,649.155,2733,Keratin-positive tumor,752
+415.74,649.935,2734,Keratin-positive tumor,1099
+694.98,649.5450000000001,2735,Keratin-positive tumor,862
+339.3,650.715,2736,Keratin-positive tumor,892
+768.69,648.5699999999999,2737,Keratin-positive tumor,410
+304.395,648.7650000000001,2738,Keratin-positive tumor,299
+672.75,648.765,2739,Keratin-positive tumor,362
+281.385,648.5699999999999,2740,Unidentified,382
+48.165000000000006,652.2750000000001,2741,Keratin-positive tumor,966
+664.95,651.105,2742,Keratin-positive tumor,615
+123.82500000000002,651.4950000000001,2743,Keratin-positive tumor,583
+401.115,649.9350000000001,2744,Keratin-positive tumor,412
+601.575,649.74,2745,Keratin-positive tumor,312
+555.75,650.52,2746,Keratin-positive tumor,300
+528.84,651.3,2747,Keratin-positive tumor,172
+730.2750000000001,650.13,2748,Keratin-positive tumor,129
+323.115,651.105,2749,Keratin-positive tumor,300
+593.385,652.47,2750,Keratin-positive tumor,483
+569.985,652.665,2751,Unidentified,378
+55.77,652.2750000000001,2752,Unidentified,122
+469.95000000000005,654.8100000000001,2753,Keratin-positive tumor,920
+379.86,653.6400000000001,2754,Keratin-positive tumor,625
+507.78000000000003,653.445,2755,Keratin-positive tumor,418
+132.6,654.03,2757,Keratin-positive tumor,466
+534.885,655.59,2758,Keratin-positive tumor,780
+782.5350000000001,652.86,2759,Macrophages,221
+628.875,655.7850000000001,2760,Unidentified,478
+769.665,655.785,2761,Keratin-positive tumor,610
+310.05,654.615,2762,Macrophages,291
+701.8050000000001,657.345,2763,Keratin-positive tumor,749
+326.625,654.225,2764,Keratin-positive tumor,212
+23.205000000000002,656.175,2765,Keratin-positive tumor,405
+80.535,656.1750000000001,2766,Keratin-positive tumor,122
+599.625,656.76,2767,Keratin-positive tumor,356
+344.95500000000004,658.905,2768,Keratin-positive tumor,674
+616.59,656.565,2769,Keratin-positive tumor,161
+195.195,658.71,2770,Keratin-positive tumor,729
+399.75,658.32,2771,Keratin-positive tumor,298
+414.18,659.2950000000001,2772,Keratin-positive tumor,671
+442.26,659.1,2773,Keratin-positive tumor,471
+522.7950000000001,658.515,2774,Keratin-positive tumor,388
+502.905,660.855,2775,Keratin-positive tumor,707
+456.3,660.27,2776,Keratin-positive tumor,626
+13.65,660.6600000000001,2777,Keratin-positive tumor,331
+18.915,659.1,2778,Keratin-positive tumor,146
+220.54500000000002,660.465,2779,Mesenchymal-like,374
+322.14,660.27,2780,Keratin-positive tumor,423
+448.89,659.1,2781,Keratin-positive tumor,130
+613.665,658.905,2782,Keratin-positive tumor,184
+69.225,662.61,2783,Keratin-positive tumor,1139
+175.305,659.1,2784,DC,220
+570.1800000000001,660.855,2785,Tumor,365
+734.175,661.635,2786,Keratin-positive tumor,622
+587.73,662.415,2787,Keratin-positive tumor,748
+134.16000000000003,662.4150000000001,2788,Keratin-positive tumor,493
+299.91,663.1949999999999,2789,Keratin-positive tumor,585
+371.67,664.1700000000001,2790,Keratin-positive tumor,898
+87.36000000000001,664.7550000000001,2791,Keratin-positive tumor,792
+329.94000000000005,664.365,2792,Keratin-positive tumor,685
+775.125,660.855,2793,Tumor,154
+604.11,663.0,2794,Keratin-positive tumor,423
+104.52000000000001,661.635,2795,Tumor,120
+545.0250000000001,663.1949999999999,2796,Keratin-positive tumor,226
+659.685,663.3900000000001,2797,Keratin-positive tumor,392
+174.91500000000002,664.755,2798,Macrophages,136
+555.75,663.3900000000001,2799,Keratin-positive tumor,398
+520.065,663.78,2800,Keratin-positive tumor,219
+695.955,665.5350000000001,2801,Keratin-positive tumor,743
+573.885,664.755,2802,Unidentified,354
+491.40000000000003,668.2650000000001,2803,Keratin-positive tumor,877
+612.885,667.095,2804,Keratin-positive tumor,729
+50.7,668.85,2805,Macrophages,1105
+139.62,664.5600000000001,2806,Keratin-positive tumor,114
+101.205,667.29,2807,Keratin-positive tumor,436
+109.2,667.485,2808,Mesenchymal-like,359
+177.645,666.705,2809,Macrophages,134
+316.68,667.6800000000001,2810,Keratin-positive tumor,953
+530.01,666.705,2811,Keratin-positive tumor,288
+561.0150000000001,667.6800000000001,2812,Keratin-positive tumor,653
+775.5150000000001,666.315,2813,Keratin-positive tumor,273
+141.765,670.995,2814,Keratin-positive tumor,1224
+412.03499999999997,666.7049999999999,2816,Keratin-positive tumor,247
+358.605,666.51,2817,Keratin-positive tumor,288
+727.74,667.6800000000001,2818,Keratin-positive tumor,243
+18.720000000000002,670.605,2819,Keratin-positive tumor,943
+418.275,670.215,2820,Keratin-positive tumor,462
+631.02,670.605,2821,Unidentified,551
+737.8800000000001,670.605,2822,Keratin-positive tumor,501
+224.055,667.6800000000001,2823,Endothelial,247
+512.85,671.58,2824,Keratin-positive tumor,912
+393.9,670.02,2825,Macrophages,361
+469.56,669.825,2826,Keratin-positive tumor,509
+543.6600000000001,669.825,2827,Keratin-positive tumor,423
+269.29499999999996,669.24,2828,Keratin-positive tumor,317
+502.51500000000004,672.75,2829,Keratin-positive tumor,619
+669.435,674.895,2830,Keratin-positive tumor,932
+112.905,671.385,2831,Tumor,219
+587.5350000000001,671.97,2832,Keratin-positive tumor,368
+777.6600000000001,673.1400000000001,2833,Keratin-positive tumor,513
+409.89,673.1400000000001,2834,Keratin-positive tumor,552
+76.245,675.09,2835,Keratin-positive tumor,903
+526.5,670.605,2836,Keratin-positive tumor,264
+124.215,672.36,2837,Endothelial,820
+94.185,675.87,2838,Keratin-positive tumor,970
+225.615,677.625,2839,Mesenchymal-like,584
+376.155,676.26,2840,Keratin-positive tumor,946
+397.21500000000003,672.75,2841,Keratin-positive tumor,159
+599.4300000000001,674.7,2842,Keratin-positive tumor,670
+660.855,674.505,2843,Keratin-positive tumor,459
+784.485,671.385,2844,Keratin-positive tumor,258
+647.79,674.5050000000001,2845,Keratin-positive tumor,257
+12.870000000000001,677.4300000000001,2846,Keratin-positive tumor,151
+105.69,676.845,2847,Keratin-positive tumor,435
+214.5,677.04,2848,Mesenchymal-like,420
+487.305,674.31,2849,Unidentified,349
+746.655,677.235,2851,Keratin-positive tumor,543
+612.105,677.8199999999999,2852,Keratin-positive tumor,593
+642.135,677.04,2853,Keratin-positive tumor,340
+729.4950000000001,678.405,2854,Keratin-positive tumor,792
+310.245,677.625,2855,Keratin-positive tumor,342
+361.92,678.405,2856,Keratin-positive tumor,156
+531.7650000000001,677.82,2857,Keratin-positive tumor,373
+437.58000000000004,678.99,2858,Keratin-positive tumor,426
+521.625,680.55,2859,Keratin-positive tumor,628
+70.005,679.575,2860,Keratin-positive tumor,197
+342.81000000000006,679.575,2861,Keratin-positive tumor,377
+469.56,681.33,2862,Keratin-positive tumor,844
+683.475,681.135,2863,Keratin-positive tumor,587
+21.060000000000002,682.11,2864,Keratin-positive tumor,536
+119.73000000000002,680.745,2865,Keratin-positive tumor,431
+539.76,681.135,2866,Keratin-positive tumor,495
+15.015,680.1600000000001,2868,Keratin-positive tumor,123
+300.69000000000005,679.77,2869,Keratin-positive tumor,311
+73.515,681.135,2870,Keratin-positive tumor,216
+392.73,682.11,2871,Keratin-positive tumor,924
+571.935,684.45,2872,Keratin-positive tumor,851
+99.84,680.94,2873,Keratin-positive tumor,76
+503.49,683.28,2874,Keratin-positive tumor,602
+765.1800000000001,682.5,2875,Macrophages,404
+774.345,681.72,2876,Macrophages,268
+348.075,684.06,2877,Keratin-positive tumor,281
+640.185,685.425,2880,Keratin-positive tumor,817
+704.5350000000001,683.865,2881,Keratin-positive tumor,166
+527.6700000000001,684.0600000000001,2882,Keratin-positive tumor,160
+605.475,687.5699999999999,2883,Keratin-positive tumor,998
+673.53,685.815,2884,Keratin-positive tumor,776
+778.245,683.28,2885,Unidentified,178
+444.795,684.45,2886,Keratin-positive tumor,136
+47.385000000000005,685.0350000000001,2887,Keratin-positive tumor,241
+127.53,684.645,2888,Keratin-positive tumor,319
+303.81,685.815,2889,Keratin-positive tumor,390
+753.675,684.2550000000001,2890,Keratin-positive tumor,260
+296.20500000000004,685.62,2891,Keratin-positive tumor,183
+412.23,686.985,2892,Keratin-positive tumor,231
+532.935,685.62,2893,Keratin-positive tumor,210
+620.88,687.375,2894,Keratin-positive tumor,792
+100.23,687.96,2895,Keratin-positive tumor,664
+15.405000000000001,689.13,2897,Keratin-positive tumor,509
+331.11,688.5450000000001,2898,Keratin-positive tumor,468
+417.69,685.23,2899,Keratin-positive tumor,353
+140.01,686.4000000000001,2900,Macrophages,307
+437.19,690.105,2901,Keratin-positive tumor,614
+730.2750000000001,689.1300000000001,2902,Macrophages,391
+445.18500000000006,689.715,2904,Keratin-positive tumor,138
+565.5,690.495,2905,Keratin-positive tumor,438
+662.22,691.47,2907,Keratin-positive tumor,158
+46.410000000000004,693.225,2908,Keratin-positive tumor,704
+665.3399999999999,690.885,2909,Keratin-positive tumor,105
+377.71500000000003,691.8600000000001,2910,Keratin-positive tumor,363
+486.525,693.03,2911,Keratin-positive tumor,703
+80.34,694.0050000000001,2912,Keratin-positive tumor,871
+184.275,691.665,2913,Unidentified,112
+464.88,691.665,2914,Macrophages,281
+713.895,691.665,2915,Keratin-positive tumor,168
+760.1100000000001,693.4200000000001,2916,Macrophages,428
+611.325,693.615,2917,Keratin-positive tumor,393
+707.0699999999999,693.81,2918,Keratin-positive tumor,469
+407.15999999999997,693.4200000000001,2919,Keratin-positive tumor,334
+643.11,696.7350000000001,2920,Keratin-positive tumor,1063
+674.3100000000001,695.76,2921,Keratin-positive tumor,750
+97.305,695.1750000000001,2922,Keratin-positive tumor,599
+176.47500000000002,696.15,2923,Keratin-positive tumor,719
+287.43,694.395,2925,Keratin-positive tumor,267
+685.23,694.59,2926,Keratin-positive tumor,309
+383.565,696.54,2927,Keratin-positive tumor,485
+184.86,696.345,2928,Unidentified,68
+617.565,694.7850000000001,2929,Keratin-positive tumor,145
+366.015,696.345,2930,Keratin-positive tumor,453
+626.5350000000001,698.2950000000001,2931,Keratin-positive tumor,775
+515.97,699.27,2932,Keratin-positive tumor,998
+146.64000000000001,699.075,2933,Keratin-positive tumor,955
+715.455,698.8800000000001,2934,Keratin-positive tumor,675
+21.450000000000003,698.8800000000001,2935,Keratin-positive tumor,613
+294.06,698.6850000000001,2936,Macrophages,399
+616.7850000000001,699.855,2937,Keratin-positive tumor,222
+13.260000000000002,699.6600000000001,2938,Keratin-positive tumor,177
+419.25,700.05,2940,Keratin-positive tumor,725
+454.93500000000006,700.83,2941,Keratin-positive tumor,789
+463.90500000000003,700.44,2942,Keratin-positive tumor,436
+336.375,699.075,2944,Keratin-positive tumor,636
+130.65,702.78,2945,Macrophages,730
+440.31,699.27,2946,Keratin-positive tumor,348
+542.49,700.83,2947,Keratin-positive tumor,159
+63.375,703.5600000000001,2948,Keratin-positive tumor,819
+598.6500000000001,705.315,2949,Keratin-positive tumor,969
+222.69,700.05,2950,Tumor,166
+301.665,704.145,2951,Macrophages,679
+399.555,701.0250000000001,2952,Keratin-positive tumor,264
+739.83,704.925,2953,Keratin-positive tumor,951
+750.36,703.1700000000001,2954,Keratin-positive tumor,637
+83.265,705.51,2956,Keratin-positive tumor,1066
+536.0550000000001,705.51,2957,Keratin-positive tumor,722
+679.185,704.145,2958,Keratin-positive tumor,737
+705.9000000000001,703.365,2959,Keratin-positive tumor,426
+312.58500000000004,706.875,2960,Keratin-positive tumor,841
+93.405,703.1700000000001,2961,Keratin-positive tumor,235
+394.485,703.95,2963,Keratin-positive tumor,160
+609.375,704.145,2964,Keratin-positive tumor,375
+325.065,706.29,2965,Keratin-positive tumor,771
+15.015,706.6800000000001,2966,Keratin-positive tumor,299
+390.19500000000005,702.195,2967,Keratin-positive tumor,228
+593.58,707.2650000000001,2968,Keratin-positive tumor,198
+343.98,707.0699999999999,2969,Keratin-positive tumor,732
+52.455,706.29,2970,Keratin-positive tumor,422
+292.5,706.6800000000001,2971,Macrophages,360
+380.83500000000004,707.85,2972,Keratin-positive tumor,848
+524.16,706.6800000000001,2973,Keratin-positive tumor,697
+645.84,708.435,2974,Keratin-positive tumor,736
+688.935,709.02,2976,Keratin-positive tumor,996
+718.575,707.07,2977,Keratin-positive tumor,308
+493.35,708.4350000000001,2978,Keratin-positive tumor,775
+28.275,706.875,2979,Keratin-positive tumor,304
+34.71,709.605,2980,Keratin-positive tumor,723
+509.34000000000003,707.655,2981,Keratin-positive tumor,344
+569.4000000000001,709.215,2982,Keratin-positive tumor,509
+418.86,708.0450000000001,2983,Keratin-positive tumor,294
+71.565,709.605,2984,Keratin-positive tumor,420
+60.64500000000001,709.605,2985,Keratin-positive tumor,263
+610.935,710.19,2986,Keratin-positive tumor,204
+410.865,709.8,2987,Macrophages,414
+98.47500000000001,710.385,2988,Keratin-positive tumor,552
+138.45,709.4100000000001,2989,Keratin-positive tumor,321
+712.14,711.75,2990,Keratin-positive tumor,745
+46.995000000000005,712.14,2991,Keratin-positive tumor,828
+460.59000000000003,710.97,2992,Keratin-positive tumor,530
+558.675,711.165,2993,Keratin-positive tumor,370
+12.675,711.5550000000001,2994,Keratin-positive tumor,135
+431.73,711.165,2995,Keratin-positive tumor,264
+617.565,713.115,2996,Keratin-positive tumor,829
+542.685,712.335,2997,Keratin-positive tumor,299
+318.24,714.48,2998,Keratin-positive tumor,606
+388.05,714.2850000000001,2999,Keratin-positive tumor,764
+731.445,713.31,3000,Keratin-positive tumor,506
+484.57500000000005,714.285,3001,Keratin-positive tumor,361
+64.35,713.5050000000001,3003,Keratin-positive tumor,207
+109.2,715.4549999999999,3004,Keratin-positive tumor,901
+470.925,715.6500000000001,3006,Keratin-positive tumor,761
+585.3900000000001,716.82,3007,Keratin-positive tumor,1054
+327.795,717.0150000000001,3008,Keratin-positive tumor,577
+416.90999999999997,714.675,3010,Keratin-positive tumor,203
+452.79,716.625,3011,Keratin-positive tumor,986
+339.69000000000005,717.7950000000001,3012,Keratin-positive tumor,1204
+721.89,714.09,3013,Keratin-positive tumor,275
+746.2650000000001,713.7,3014,Keratin-positive tumor,184
+514.995,715.6500000000001,3015,Keratin-positive tumor,521
+423.735,715.6500000000001,3016,Keratin-positive tumor,375
+642.3299999999999,719.55,3017,Keratin-positive tumor,1149
+493.93500000000006,716.625,3018,Keratin-positive tumor,427
+141.96,718.575,3019,Keratin-positive tumor,505
+352.56000000000006,716.625,3020,Keratin-positive tumor,385
+373.23,720.135,3021,Keratin-positive tumor,1023
+507.78000000000003,717.405,3022,Keratin-positive tumor,1004
+67.08,720.135,3023,Keratin-positive tumor,903
+15.795000000000002,718.3800000000001,3024,Keratin-positive tumor,493
+440.115,719.55,3025,Keratin-positive tumor,682
+551.655,719.55,3026,Keratin-positive tumor,519
+725.985,722.6700000000001,3027,Keratin-positive tumor,499
+716.235,722.6700000000001,3028,Keratin-positive tumor,657
+135.72,723.645,3029,Keratin-positive tumor,833
+408.33000000000004,722.475,3031,Keratin-positive tumor,523
+186.81,722.28,3032,CD3-T,258
+316.68000000000006,724.815,3033,Keratin-positive tumor,945
+424.905,724.23,3035,Keratin-positive tumor,659
+577.2,723.06,3036,Keratin-positive tumor,409
+566.475,724.6200000000001,3037,Keratin-positive tumor,606
+28.080000000000002,724.815,3038,Keratin-positive tumor,750
+353.53499999999997,726.1800000000001,3039,Keratin-positive tumor,661
+611.715,724.4250000000001,3040,Keratin-positive tumor,463
+703.1700000000001,726.375,3041,Keratin-positive tumor,932
+732.4200000000001,722.6700000000001,3042,Keratin-positive tumor,172
+50.114999999999995,726.57,3043,Keratin-positive tumor,1103
+544.05,724.0350000000001,3044,Keratin-positive tumor,163
+233.41500000000002,727.5450000000001,3046,Macrophages,736
+109.39500000000001,727.74,3047,Keratin-positive tumor,966
+302.055,725.01,3048,Keratin-positive tumor,301
+532.35,727.35,3050,Keratin-positive tumor,625
+14.625,727.35,3051,Keratin-positive tumor,253
+402.28499999999997,726.375,3052,Keratin-positive tumor,152
+620.88,724.23,3053,Keratin-positive tumor,392
+329.55,730.0799999999999,3054,Keratin-positive tumor,775
+658.905,727.155,3055,Keratin-positive tumor,234
+119.92500000000001,726.1800000000001,3056,Keratin-positive tumor,184
+343.20000000000005,729.885,3057,Keratin-positive tumor,536
+481.45500000000004,728.715,3058,Keratin-positive tumor,537
+501.54,730.665,3059,Keratin-positive tumor,973
+512.265,730.0799999999999,3060,Keratin-positive tumor,511
+599.8199999999999,728.9100000000001,3061,Keratin-positive tumor,448
+384.54,727.155,3062,Unidentified,253
+92.625,729.885,3063,Keratin-positive tumor,457
+368.94000000000005,732.615,3064,Keratin-positive tumor,629
+442.65000000000003,733.0050000000001,3065,Keratin-positive tumor,771
+220.935,731.445,3066,Keratin-positive tumor,551
+62.01,730.08,3067,Keratin-positive tumor,344
+428.415,731.835,3068,Endothelial,474
+733.0050000000001,729.105,3069,Keratin-positive tumor,501
+451.035,731.25,3070,Keratin-positive tumor,274
+32.565,733.7850000000001,3071,Keratin-positive tumor,1046
+123.82500000000002,732.615,3072,Keratin-positive tumor,588
+212.55,732.4200000000001,3073,Keratin-positive tumor,504
+155.61,735.1500000000001,3074,Keratin-positive tumor,927
+436.605,732.03,3075,Keratin-positive tumor,279
+526.11,733.2,3076,Keratin-positive tumor,581
+358.41,735.345,3077,Keratin-positive tumor,816
+720.3299999999999,734.76,3078,Keratin-positive tumor,806
+13.455000000000002,733.2,3079,Keratin-positive tumor,112
+631.4100000000001,733.2,3080,Keratin-positive tumor,398
+322.53000000000003,733.98,3081,Keratin-positive tumor,235
+380.64,732.4200000000001,3082,Keratin-positive tumor,166
+315.9,735.1500000000001,3083,Keratin-positive tumor,382
+374.79,734.565,3084,Keratin-positive tumor,281
+399.55500000000006,733.395,3085,Keratin-positive tumor,355
+137.28,735.735,3086,Keratin-positive tumor,560
+553.02,735.9300000000001,3087,Keratin-positive tumor,670
+603.5250000000001,737.2950000000001,3088,Keratin-positive tumor,722
+390.39,735.345,3089,Keratin-positive tumor,439
+85.215,738.465,3090,Keratin-positive tumor,1148
+544.83,733.59,3091,Keratin-positive tumor,250
+612.495,736.905,3092,Keratin-positive tumor,495
+165.16500000000002,736.905,3093,Keratin-positive tumor,429
+454.15500000000003,737.2950000000001,3094,Keratin-positive tumor,507
+483.795,738.27,3095,Keratin-positive tumor,692
+658.71,736.125,3096,Keratin-positive tumor,398
+279.24,736.515,3097,Macrophages,372
+110.17500000000001,737.49,3099,Keratin-positive tumor,417
+308.1,736.3199999999999,3100,Keratin-positive tumor,369
+17.745,739.635,3101,Keratin-positive tumor,666
+324.675,739.44,3102,Keratin-positive tumor,545
+465.65999999999997,740.415,3103,Keratin-positive tumor,434
+144.10500000000002,739.05,3104,Keratin-positive tumor,344
+532.155,740.22,3105,Keratin-positive tumor,432
+377.52,739.8299999999999,3106,Keratin-positive tumor,76
+709.02,739.83,3107,Keratin-positive tumor,272
+115.05000000000001,739.44,3108,Keratin-positive tumor,121
+472.29,742.365,3109,Keratin-positive tumor,427
+35.685,741.0,3111,Keratin-positive tumor,159
+211.575,743.925,3112,Keratin-positive tumor,767
+65.91,741.78,3115,Macrophages,455
+314.145,742.5600000000001,3117,Keratin-positive tumor,261
+477.94500000000005,741.78,3118,Keratin-positive tumor,203
+149.175,744.51,3119,Keratin-positive tumor,489
+371.67,742.5600000000001,3120,Keratin-positive tumor,145
+351.975,743.145,3121,Keratin-positive tumor,321
+644.865,742.7550000000001,3122,Keratin-positive tumor,346
+539.37,745.29,3124,Keratin-positive tumor,682
+369.91499999999996,744.12,3125,Keratin-positive tumor,135
+461.175,747.6300000000001,3126,Keratin-positive tumor,711
+139.425,745.6800000000001,3127,Keratin-positive tumor,419
+177.45,744.315,3128,CD8-T,295
+226.59,746.2650000000001,3129,Keratin-positive tumor,617
+284.505,743.925,3130,Macrophages,169
+307.125,746.655,3131,Keratin-positive tumor,515
+629.655,745.095,3132,Keratin-positive tumor,515
+26.520000000000003,746.655,3133,Keratin-positive tumor,1017
+603.915,746.46,3134,Macrophages,323
+670.605,747.435,3135,Keratin-positive tumor,799
+357.435,748.605,3136,Keratin-positive tumor,813
+377.13,748.4100000000001,3137,Keratin-positive tumor,569
+452.20500000000004,748.215,3138,Keratin-positive tumor,612
+345.735,746.46,3139,Keratin-positive tumor,333
+506.02500000000003,747.24,3140,Keratin-positive tumor,220
+678.21,747.24,3141,Keratin-positive tumor,104
+681.915,747.435,3142,Keratin-positive tumor,190
+549.7049999999999,746.07,3143,Macrophages,246
+85.02000000000001,748.215,3144,Keratin-positive tumor,284
+326.235,751.53,3145,Keratin-positive tumor,1001
+646.0350000000001,751.725,3146,Keratin-positive tumor,842
+182.91000000000003,751.53,3147,Keratin-positive tumor,751
+477.165,752.115,3148,Keratin-positive tumor,731
+60.84,753.09,3149,Keratin-positive tumor,928
+383.95500000000004,749.5799999999999,3150,Unidentified,362
+51.675,747.825,3151,CD8-T,221
+369.33000000000004,748.8,3152,Keratin-positive tumor,89
+45.825,751.7250000000001,3153,CD8-T,609
+529.62,750.5550000000001,3155,Keratin-positive tumor,503
+36.855000000000004,752.31,3156,Keratin-positive tumor,516
+193.83,753.48,3157,Keratin-positive tumor,804
+605.865,754.065,3158,Macrophages,579
+635.7,749.97,3159,Keratin-positive tumor,175
+655.98,752.115,3160,Keratin-positive tumor,106
+213.525,751.9200000000001,3161,Keratin-positive tumor,597
+517.9200000000001,756.0150000000001,3162,Keratin-positive tumor,940
+154.635,753.8700000000001,3164,Keratin-positive tumor,451
+418.665,754.6500000000001,3165,Keratin-positive tumor,552
+82.095,752.115,3166,Keratin-positive tumor,263
+138.06,755.4300000000001,3167,Keratin-positive tumor,727
+448.11,755.235,3168,Keratin-positive tumor,782
+630.63,754.065,3169,Keratin-positive tumor,300
+369.915,753.2850000000001,3170,Keratin-positive tumor,228
+69.81,756.99,3171,Keratin-positive tumor,731
+702.0,754.6500000000001,3172,Keratin-positive tumor,333
+260.71500000000003,755.04,3173,CD8-T,387
+543.465,755.625,3174,Keratin-positive tumor,442
+696.1500000000001,753.87,3175,Keratin-positive tumor,156
+91.26,757.575,3176,Keratin-positive tumor,976
+493.93500000000006,757.575,3177,Keratin-positive tumor,829
+147.615,755.235,3178,Keratin-positive tumor,301
+352.365,756.0150000000001,3179,Keratin-positive tumor,262
+481.45500000000004,756.7950000000001,3180,Keratin-positive tumor,410
+637.65,755.82,3181,Keratin-positive tumor,167
+672.165,759.135,3182,Keratin-positive tumor,841
+79.755,758.1600000000001,3183,Keratin-positive tumor,344
+527.28,761.28,3184,Keratin-positive tumor,836
+624.975,760.6949999999999,3185,Keratin-positive tumor,960
+107.44500000000001,759.135,3186,Keratin-positive tumor,598
+169.455,760.3050000000001,3187,Keratin-positive tumor,728
+18.135,757.77,3188,Keratin-positive tumor,454
+469.17,761.085,3190,Keratin-positive tumor,613
+159.9,757.965,3192,Keratin-positive tumor,156
+127.33500000000001,758.94,3193,Keratin-positive tumor,233
+312.58500000000004,763.815,3194,Keratin-positive tumor,1140
+695.565,759.72,3195,Keratin-positive tumor,208
+510.70500000000004,760.695,3197,Keratin-positive tumor,320
+35.295,760.3050000000001,3198,Keratin-positive tumor,229
+651.3000000000001,760.11,3199,Keratin-positive tumor,192
+120.70500000000001,760.695,3200,Keratin-positive tumor,269
+503.49,761.475,3201,Macrophages,366
+44.07,760.89,3202,Keratin-positive tumor,220
+51.285,762.2550000000001,3203,Keratin-positive tumor,921
+191.29500000000002,765.1800000000001,3204,Keratin-positive tumor,936
+641.55,762.645,3205,Keratin-positive tumor,728
+683.085,761.475,3206,Keratin-positive tumor,394
+151.905,764.7900000000001,3207,Keratin-positive tumor,1045
+162.24,761.6700000000001,3208,Keratin-positive tumor,272
+264.03000000000003,762.84,3209,CD8-T,528
+98.28,763.6200000000001,3210,Keratin-positive tumor,416
+378.69000000000005,764.205,3211,Keratin-positive tumor,176
+477.16499999999996,766.35,3212,Keratin-positive tumor,755
+126.75,767.52,3213,Keratin-positive tumor,820
+285.28499999999997,766.155,3214,Unidentified,238
+507.58500000000004,765.96,3215,Macrophages,183
+279.045,768.885,3216,Macrophages,713
+544.2450000000001,765.96,3217,Mesenchymal-like,291
+606.45,765.96,3218,Keratin-positive tumor,296
+358.02,768.885,3219,Keratin-positive tumor,841
+456.105,768.495,3220,Keratin-positive tumor,615
+664.365,766.935,3221,Unidentified,152
+205.335,770.25,3222,Keratin-positive tumor,1089
+302.83500000000004,770.835,3223,Keratin-positive tumor,826
+678.99,768.4950000000001,3224,Keratin-positive tumor,161
+632.58,769.86,3225,Keratin-positive tumor,629
+239.85000000000002,768.4950000000001,3226,Keratin-positive tumor,338
+616.395,769.47,3227,Keratin-positive tumor,533
+183.885,771.4200000000001,3228,Keratin-positive tumor,654
+335.01,771.8100000000001,3229,Keratin-positive tumor,728
+465.27,772.98,3230,Keratin-positive tumor,778
+317.85,770.835,3231,Keratin-positive tumor,148
+426.07500000000005,768.495,3232,Keratin-positive tumor,231
+624.975,770.4449999999999,3233,Keratin-positive tumor,142
+375.765,769.2750000000001,3234,Keratin-positive tumor,272
+429.19500000000005,769.86,3235,Keratin-positive tumor,85
+504.66,770.6400000000001,3236,Macrophages,117
+485.16,772.59,3237,Keratin-positive tumor,594
+494.52,771.4200000000001,3238,Mesenchymal-like,587
+673.53,769.665,3239,Keratin-positive tumor,158
+645.45,771.81,3240,Keratin-positive tumor,346
+511.485,774.345,3241,Keratin-positive tumor,788
+605.6700000000001,773.37,3243,Endothelial,147
+190.90500000000003,775.5150000000001,3245,Keratin-positive tumor,202
+434.46000000000004,771.225,3246,Keratin-positive tumor,771
+372.06,776.88,3247,Keratin-positive tumor,699
+445.57500000000005,775.125,3248,Keratin-positive tumor,573
+654.4200000000001,775.71,3249,Keratin-positive tumor,241
+116.22,777.855,3250,Keratin-positive tumor,625
+135.32999999999998,778.44,3251,Keratin-positive tumor,932
+224.835,778.44,3252,Keratin-positive tumor,709
+174.525,776.1,3253,Macrophages,277
+475.40999999999997,779.8050000000001,3255,Keratin-positive tumor,780
+615.4200000000001,777.855,3256,Keratin-positive tumor,336
+125.385,778.635,3257,Keratin-positive tumor,368
+456.495,778.2450000000001,3258,Keratin-positive tumor,439
+531.5699999999999,778.635,3259,Keratin-positive tumor,371
+59.86500000000001,779.61,3260,Macrophages,394
+552.63,779.8050000000001,3261,Keratin-positive tumor,289
+638.625,779.8050000000001,3262,Unidentified,227
+321.945,780.1949999999999,3263,Keratin-positive tumor,264
+355.29,781.56,3264,Keratin-positive tumor,579
+655.7850000000001,780.1949999999999,3265,Unidentified,198
+193.44,780.195,3267,Keratin-positive tumor,121
+176.28,782.34,3268,Keratin-positive tumor,357
+436.40999999999997,782.145,3269,Keratin-positive tumor,692
+182.715,781.1700000000001,3270,Macrophages,213
+144.3,781.95,3271,Macrophages,134
+598.845,781.5600000000001,3272,Macrophages,231
+97.11,783.12,3273,Keratin-positive tumor,726
+296.01,782.925,3274,Keratin-positive tumor,569
+446.355,782.5350000000001,3275,Macrophages,166
+203.58,783.12,3276,Keratin-positive tumor,491
+453.57000000000005,783.7049999999999,3277,Keratin-positive tumor,280
+51.285000000000004,783.7049999999999,3278,Keratin-positive tumor,352
+413.78999999999996,783.51,3279,Keratin-positive tumor,260
+611.325,783.9,3280,Keratin-positive tumor,359
+366.015,784.095,3281,Keratin-positive tumor,366
+185.835,784.485,3282,Keratin-positive tumor,194
+500.76,784.485,3283,Keratin-positive tumor,277
+161.85000000000002,783.7049999999999,3284,Keratin-positive tumor,334
+559.845,784.6800000000001,3285,Keratin-positive tumor,241
+316.29,784.485,3286,Macrophages,358
+590.0699999999999,785.265,3287,Keratin-positive tumor,198
+331.69500000000005,785.85,3288,Keratin-positive tumor,130
+376.93500000000006,785.655,3289,Unidentified,135
