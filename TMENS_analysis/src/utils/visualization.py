@@ -204,6 +204,66 @@ def plot_cells_positions(data, cell_types, segment_image=False, segmentation_typ
         plt.savefig(path_fig,format="svg")
     return plt
 
+def plot_cells_markers_tmens(patient_id,cell_types,path_data, data_markers_path,cell_type, marker,segment_image=False,
+                             segmentation_type="hard", counting_type="gaussian",h=800,w=800,granularity=20,radius=25,
+                             pca_obj=None,AA_obj=None, to_plot=None,path_fig=None):
+    '''
+    plots cells positions in MIBI image of TNBC overlayed with TMENs colors + saves it in a .svg image
+    @param patient_id:{integer} id of the image patient (number here)
+    @param cell_types: {list} of str, cell type labels in the dataset
+    @param path_data: {string} path of data of patient (cells positions and cell types in an image)
+    @param data_markers_path:{string} path to csv file containing markers expressions for each cells in all images
+    @param cell_type:{string} cell type we choose to analyze
+    @param marker:{string} marker expressed in a cell type
+    @param segment_image: {boolean}, if True, color image from results of AA, if False, plot only cells (Default=False)
+    @param segmentation_type:{str} ssegment pixels of images and color them as TMENs proportions (default='hard')
+    @param counting_type:{str} counting type of cells within the sites:'abs' for absolute, 'log' fro log normalization and 'gaussian' for gaussian density (Default='abs')
+    @param h:{int} height of image in pixels (Default=800)
+    @param w:{int} width of image in pixels (Default=800)
+    @param radius: {int} radius of sites generated in images in micrometer (Default=100)
+    @param granularity: {int} granularity of colors (Default=25)
+    @param pca_obj: {PCA obj} object of PCA on sites generated in the images (Default=None)
+    @param AA_obj: {AA object} object of Archetype Analysis
+    @param to_plot:{str} plot all images or not (Default='all')
+    
+    @return: plot
+    
+    '''    
+    data = pd.read_csv(path_data+"/patient{}_cell_positions.csv".format(patient_id))
+   # data = data.loc[data["cell_type"] == cell_type]
+    groups = data.groupby('cell_type')
+    df_markers = pd.read_csv(data_markers_path)
+    plt.figure(figsize=(8, 8))
+    if segment_image is True:
+        if pca_obj is None or AA_obj is None:
+                raise ValueError("To segment the image pca and archetypes objects are needed")
+        color_vector =  np.array([[255, 0, 223],[255,0,0],[70,203,236],[0,0,0]])#np.array([[255, 0, 0], [0, 153, 51], [0, 0, 255], [255, 255, 0]])
+        if segmentation_type == 'hard': #color pixel by 1 of the colors defining TMENs (discrete)
+                color_fun = partial(alfa2color, color_vector)
+
+        else: #color image by continuous spectrum of colors, depending on granularity 
+            color_fun = partial(color_mapper, color_vector.T)
+
+        z = get_segmentation_matrix(data, cell_types, pca_obj, AA_obj, color_fun, counting_type=counting_type, radius=radius, granularity=granularity, h=h, w=w)
+        data = data.loc[data["cell_type"] == cell_type]
+        df_markers = df_markers.loc[df_markers["SampleID"] == patient_id]
+        df_markers.rename(columns = {"cellLabelInImage":"label"},inplace=True)
+        data_CM = pd.merge(data,df_markers,on = "label",how = "left")
+        plt.imshow(z, origin='lower')
+        cm = plt.cm.get_cmap("YlGn")#('RdYlBu')
+        plt.scatter(data_CM['x'], data_CM['y'], marker="o", s=14, c=data_CM[marker],cmap=cm)
+
+    plt.legend(bbox_to_anchor=(1.0, 1), loc='upper left')
+    plt.colorbar()
+    plt.xlim(0, w)
+    plt.ylim(0, h)
+    if path_fig!=None:
+        plt.savefig(path_fig,format="svg")
+    
+    
+    return plt
+
+
 def plot_all_tumors_cell_positions(patient_ids, cell_types, segment_image=False, segmentation_type='hard', radius=100,
                                    granularity=25, pca_obj=None, AA_obj=None, to_plot='all',
                                    root_path='./data/cell_positions_data'):
