@@ -1,0 +1,134 @@
+---
+title: "phenotypes of tregs and TMENs"
+author: "Anissa El Marrahi"
+date: "18/04/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r libs}
+gc()
+rm(list=ls())
+library(tidyverse)
+library(plotly)
+library(reticulate)
+library(ade4)
+library(reticulate)
+library(htmltools)
+library('Ternary')
+dirName <- dirname(rstudioapi::getSourceEditorContext()$path )
+setwd(dirName)#setwd(dir = "/scratch/anissa.el/ImmuneStates/")
+
+```
+
+## Tregs cells phenotypes
+
+```{r constants}
+
+NBCELLTYPES = 17
+CELLTYPES <- c('CD8-T', 'Other immune', 'DC / Mono', 'CD3-T', 'B', 'NK', 'Keratin-positive tumor', 'Tumor','CD4-T', 'Mesenchymal-like', 'Macrophages', 'Endothelial', 'Tregs', 'Unidentified', 'DC', 'Mono / Neu','Neutrophils')
+
+```
+
+```{r data, echo=TRUE}
+MarkersCellsTMENS <- readRDS("./markers_cells_tmens.rds")
+selectedMarkers <- readRDS("./selected_markers_cells.rds")
+```
+
+
+```{r plot2, echo=FALSE}
+library(geometry)
+
+plot_3D_ternary_cell_markers <- function (cellType, marker){
+  MarkersCellsTMENS.ct <- MarkersCellsTMENS%>%
+  filter(cell_type == cellType)%>%
+  pivot_wider(id_cols = c("site_id","patient_id","arch1","arch2","arch3","arch4"),
+             names_from = "marker",
+             values_from = "value")
+  X <- rbind(c(1, 0, 0),
+             c(0, 1, 0),
+             c(0, 0, 1),
+             c(0, 0, 0))
+  rownames(X) <- c("TLS", "inflammatory","cancer","fibrotic")
+  
+  Coords.3D <- bary2cart(X,as.matrix(MarkersCellsTMENS.ct [,c("arch1","arch2","arch3","arch4")]))
+  markerCells <- MarkersCellsTMENS.ct[[marker]] #pull (MarkersCellsTMENS.ct,marker )
+  distr <- quantile(markerCells,probs = c(0,0.1,0.5,0.8,0.99))
+  if(distr[5] > min(markerCells)){
+    markerCells[markerCells>distr[5]] <- distr[5]
+  }
+  print(distr)
+  # simplex <- cbind(seq(0:1,0.001),seq(0:1,0.001),seq(0:1,0.001))
+  fig1 <- plot_ly(x = Coords.3D[,1],
+           y = Coords.3D[,2],
+           z = Coords.3D[,3],
+           type="scatter3d",
+           color = ~markerCells,
+           alpha = 0.5,
+           mode="markers",
+           name= "cells",
+           marker = list(size= 3),
+           showlegend=TRUE)%>%
+    colorbar(title = paste(marker, "in",cellType))%>%
+    add_trace(x = X[,1],
+              y = X[,2],
+              z = X[,3],
+              type = "scatter3d",mode = "markers+text",
+              marker = list(size = 8),
+              color = "red",
+              text = ~rownames(X),#c("arch. 1", "arch. 2","arch. 3","arch. 4"),#c("arch. 2", "arch. 1","arch. 3","arch. 4"),
+              textposition = c('top right','top right','bottom left','bottom left'),
+              textfont = list(color = '#000000', size = 16),
+              name = "archetypes",
+              inherit=FALSE,
+              showlegend = TRUE)%>%
+    layout(scene = list(xaxis = list(title = "x"), 
+                                       yaxis = list(title = "y"), 
+                                       zaxis = list(title = "z") ))
+  #fig1
+  return(fig1)
+}
+#plot_3D_ternary_cell_markers("CD4-T","PD1")
+
+```
+
+
+### 3D ternary plots 
+
+```{r CD4Tplots,results = 'asis'}
+#### CD4-T
+#,results = 'asis'
+#CellTypes.toPlot <- unique(selectedMarkers[["cell_type"]])
+library('IRdisplay')
+
+Markers.toPlot <-selectedMarkers%>%filter(cell_type == "Tregs")%>%pull(marker)
+# PlotsList <- list()
+# PlotsList <- lapply(Markers.toPlot, function(marker1){
+#   fig <- plot_3D_ternary_cell_markers("CD4-T", marker1)
+#   print(htmltools::tagList(fig))
+#   #cat(as.character(htmltools::tagList(fig)))#,browse=TRUE
+#   #htmlwidgets::saveWidget(fig,"fig1.html")
+#   #htmltools::html_print(fig)
+# })
+
+plot_3D_ternary_cell_markers("Tregs", Markers.toPlot[1])
+
+
+```
+
+
+```{r m2}
+plot_3D_ternary_cell_markers("Tregs", Markers.toPlot[2])
+```
+
+
+```{r m3}
+plot_3D_ternary_cell_markers("Tregs", Markers.toPlot[3])
+```
+
+
+
