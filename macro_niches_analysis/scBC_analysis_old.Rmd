@@ -1,0 +1,1473 @@
+---
+title: "Single Cell of Breast Cancer samples analysis"
+author: "Anissa El Marrahi"
+date: "5/11/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+The main question we will tackle is : Do we observe the same pattern in the cell types (population level) as in the microscopic level ? 
+And the related questions would be : Is the building block theory consistent with what we see in the macroscopic level ? Can we infer the microscopic architecture with only the cell types proportions of a given tumor without other prior info ? 
+
+To answer those questions, we will use a dataset from the article of [Wagner et al., Cells (2019)](10.1016/j.cell.2019.03.005). In this article, scientists provide a single cell atlas from Breast cancer samples, but also some healthy tissues near the tumor. Using mass cytometry and clustering methods, they identified the types of around 26 millions of cells using 73 different markers-from markers of live cells to more specific ones such as immune checkpoints. This huge dataset allows a better identification of the landscape of tumors in breast cancer. We are going to proceed as before with a PCA trying to find the PCs that catch the most the variance of the dataset and maybe find structure in the TME of BC.
+
+Prior to everything, we are going to select the cell types identified in this paper to keep the most relevant ones. We don't need to be very specific but most of the selected cell types should correspond to the ones labeled in [Keren et al., Cell (2018)](https://www.cell.com/cell/pdf/S0092-8674(18)31100-0.pdf) paper.
+
+Finally, we will confront our results to the building blocks analysis.
+
+```{r libs, echo =TRUE}
+
+rm(list=ls())
+library(tidyverse)
+library(ade4)
+library(factoextra)
+library(readxl)
+library(reshape2)
+library(plotly)
+library(igraph)
+library(viridis)
+
+```
+
+First, we remove the older objects and set the new working directory
+
+```{r env, echo = TRUE}
+
+dirName <- dirname(rstudioapi::getSourceEditorContext()$path )
+setwd(dirName)#setwd("/scratch/anissa.el/ImmuneStates/wagner_analysis")
+source ("./scripts/R/Wagner_Keren_functions.r") # Some useful functions for Keren and Wagner Data processing
+```
+
+
+
+## Pre-processing of the data
+
+
+```{r metadata, echo=TRUE}
+MetaData <- read_excel("./data/mmc2.xlsx",col_names=TRUE,skip=1)%>%dplyr::rename(Patient=`Patient ID`)
+MetaData<- MetaData%>%mutate(Status = ifelse(`ER Status by IHC`=='P' & `PR Status by IHC`=='P'& `HER2 Status by IHC`=='N',"ER+PR+",
+                                             ifelse(`ER Status by IHC`=='P' & `PR Status by IHC`=='N'& `HER2 Status by IHC`=='N',"ER+",
+                                                    ifelse(`ER Status by IHC`=='N' & `PR Status by IHC`=='P'& `HER2 Status by IHC`=='N',"PR+",
+                                                           ifelse(`ER Status by IHC`=='N' & `PR Status by IHC`=='N'& `HER2 Status by IHC`=='P',"HER2+",
+                                                                ifelse(`ER Status by IHC`=='N' & `PR Status by IHC`=='N'& `HER2 Status by IHC`=='N',"TN",
+                                                                       ifelse(`ER Status by IHC`=='N' & `PR Status by IHC`=='P'& `HER2 Status by IHC`=='P',"PR+HER2+",
+                                                                              ifelse(`ER Status by IHC`=='P' & `PR Status by IHC`=='P'& `HER2 Status by IHC`=='P',"HER2+","Unknown")))  )))))
+
+#Check the tumors for which patients received a Neoadjuvant treatment ==> this may interfere with the proportions of T cells in the sample:
+NeoAdjuvant <- MetaData%>%filter(`Neoadjuvant Therapy Received` =="yes")
+```
+
+This is the composition of BC samples : 54 luminal A, 71 luminal B, six luminal B-HER2+, one HER2+, and six TN tumors (144 in total).
+
+```{r data, echo=TRUE}
+# FIrst, we remove the old objects stored in the R environment
+
+CellsProp <-read_excel("./data/mmc5.xlsx",col_names=TRUE,skip=2)
+
+#colnames(CellsProp)
+CellsPropBC <- CellsProp%>%filter(`LiveCells [%]`>50)#CellsProp%>%filter(Tissue=="Tumor")%>%filter(`LiveCells [%]`>50)
+
+#CellsPropBC <- left_join(CellsPropBC,MetaData,by="Patient")%>%filter(`Neoadjuvant Therapy Received` !="yes")
+CellsPropBC <- CellsPropBC%>%mutate(LiveCells_tot= `EndothelialCells [%]`+`EpithelialCells [%]`+`Fibroblasts [%]`+`ImmuneCells [%]`+`Other [%]`)
+CellsPropBC <- CellsPropBC%>%mutate(EndothelialCells=((`EndothelialCells [%]`/LiveCells_tot))*100)%>%
+  mutate(EpithelialCells=((`EpithelialCells [%]`/LiveCells_tot))*100)%>%
+  mutate(Fibroblasts=((`Fibroblasts [%]`/LiveCells_tot))*100)%>%
+  mutate(ImmuneCells=((`ImmuneCells [%]`/LiveCells_tot))*100)%>%
+  mutate(Other=((`Other [%]`/LiveCells_tot))*100)
+
+#Correction to ImmuneCells percentage
+CellsPropBC <- CellsPropBC%>%
+  mutate(TCells= (`TCells [%]`/100)*ImmuneCells)%>%
+  mutate(NK= (`NaturalKillerCells [%]`/100)*ImmuneCells)%>%
+  mutate(Granulocytes = (`Granulocytes [%]`/100)*ImmuneCells)%>%
+  mutate(BCells= (`BCells [%]`/100)*ImmuneCells)%>%
+  mutate(PlasmaCells= (`PlasmaCells [%]`/100)*ImmuneCells)%>%
+  mutate(DC= (`plasmacytoidDendriticCells [%]`/100)*ImmuneCells)%>%
+  mutate(MyeloidCells= (`MyeloidCells [%]`/100)*ImmuneCells)%>%
+  mutate(Basophils= (`Basophils [%]`/100)*ImmuneCells)
+## Let's check for the proportion of T cells across the tumor samples
+ggplot(data= CellsPropBC)+
+  geom_boxplot(mapping=aes(y=TCells))+
+  labs(title="Boxplot of proportions of T cells across 144 tumor samples (in %)")+
+  ylab("percentage")
+## Correcyion of T cells percentage
+CellsPropBC <- CellsPropBC%>%mutate(sumTcells = `TCells CD4+ [%]`+`TCells CD8+ [%]`)%>%
+  mutate(OtherTcells = ((100 - sumTcells)/100)*TCells)%>%
+  mutate(`CD4-T` = (`TCells CD4+ [%]`/100)*TCells)%>%
+  mutate(`CD8-T` = (`TCells CD8+ [%]`/100)*TCells)
+
+## Correction to myeloid cells percentage
+CellsPropBC <- CellsPropBC %>% mutate(Monocytes = (M06 + M15)*MyeloidCells)%>%
+  mutate (Macrophages = (M01 + M02 + M03 + M04 + M08 + M09 + M11 + M13 + M14 + M16 + M17)*MyeloidCells)%>%
+  mutate(OtherMyeloid = (M05 + M07 + M10 + M12 + M18 + M19)*MyeloidCells)%>%
+  mutate(OtherImmune = OtherMyeloid+ OtherTcells+Basophils+Granulocytes+Monocytes)
+  #mutate(CD4TCells = (T02+T03+T04+T08+T09+T13+T17+T18+T20)*50)%>%
+  #mutate(Tregs = T01*50)%>%
+  #mutate(CD8Tcells = (T05 + T06 + T07 + T10 + T11 + T12 + T14 + T15 + T16 + T19)*50)
+CellsPropBC2 <- CellsPropBC%>%filter(Tissue=="Tumor")%>%dplyr::select(`Sample ID`,EndothelialCells,EpithelialCells,Fibroblasts,Other,NK,BCells,PlasmaCells,DC,`CD4-T`,`CD8-T`,Macrophages,OtherImmune)%>%column_to_rownames(var="Sample ID")
+
+#Select metadata from BC patients
+MetaData<- MetaData%>%mutate(Patient=rownames(CellsPropBC2))
+StatusTumor <- MetaData%>%dplyr::select(Patient,Status)
+AgeResection <-MetaData%>%dplyr::select(Patient,`Age at Surgery`)
+
+AllCellsProps <-  CellsPropBC%>%dplyr::select(`Sample ID`,EndothelialCells,EpithelialCells,Fibroblasts,Other,NK,BCells,PlasmaCells,DC,`CD4-T`,`CD8-T`,Macrophages,OtherImmune)%>%column_to_rownames(var="Sample ID")
+
+
+
+```
+
+```{r leukoAdipo,ehco=TRUE}
+ggplot(data=CellsPropBC, aes(x=Other,y=OtherImmune))+
+  geom_point()
+correlationLeukoAdipo <- cor(CellsPropBC$OtherImmune,CellsPropBC$Other,method="pearson")
+```
+
+
+After having excluded the tumors which received a neoadjuvant therapy (which targets dividing cells), we still have the same boxplot which confirms the sayings in the article. This still does not explain why we have an outlier in our distribution. It can be imputed either to the clustering method, either to pure hazard, either a sample which has a big tertiary lymphoid structure.
+
+
+
+Let's see the amount of Other Cells in this dataset. Other Cells is a cell type given for a cell that hasn't been identified as nor immune, nor as epithelial, nor as fibroblast nor endothelial :
+
+```{r OtherCells, echo=TRUE}
+p1 <- ggplot(data = CellsPropBC2)+
+              geom_boxplot(mapping=aes(y=Other))+
+              labs(title="Boxplot of proportions of other cells across 144 tumor samples (in %)")+
+              ylab("percentage")
+p1
+p2 <- ggplot(data= CellsPropBC2)+
+            geom_boxplot(mapping=aes(y=Macrophages))+
+            labs(title="Boxplot of proportions of MF cells across 144 tumor samples (in %)")+
+             ylab("percentage")
+p2
+```
+
+We can find some outliers in the boxplot. Indeed, there are tumors where we can find up to 80 % of cells that nor cancer cells nor immune cells. Those can be adipocytes in the breast tissue, but we can't really say that we are looking at the tumor micro environment in this case. Maybe those tissues samples from patients are on the edge of the TME. The best solution is to get rid of those outliers by putting a threshold : tumors with more than 50 % of the cell composition of Other cells will be removed from our analysis.
+
+```{r dataProc, echo=TRUE}
+#CellsPropBC2<- CellsPropBC2%>%filter(Other<=50)
+CellsPropBC2.types <- as_tibble(CellsPropBC2,rownames=NA)%>%pivot_longer(cols=colnames(CellsPropBC2),
+                                                  names_to="cell_type",
+                                                  values_to="proportion")
+ggplot(CellsPropBC2.types,aes(x=cell_type,y=proportion,fill=cell_type))+
+  geom_boxplot()+
+  theme(axis.text.x=element_text(angle=45,hjust=0.8,vjust=0.5),
+        legend.title = element_blank())+
+  xlab(" ") + ylab("raw proportion")
+#(2/pi *sqrt(asin(CellsPropBC2/100)))
+#library(Rtsne)
+
+cells.means <- apply(CellsPropBC2,MARGIN=2, function(x) mean(x))
+
+CellsPropBC2.types2 <- as_tibble(CellsPropBC2/cells.means,rownames=NA)%>%pivot_longer(cols=colnames(CellsPropBC2),
+                                                  names_to="cell_type",
+                                                  values_to="proportion")
+ggplot(CellsPropBC2.types2,aes(x=cell_type,y=proportion,fill=cell_type))+
+  geom_boxplot()+
+  theme(axis.text.x=element_text(angle=45,hjust=0.8,vjust=0.5),
+        legend.title = element_blank())+
+  xlab(" ") + ylab("proportion per mean of cell type")
+
+scBCPCA.scaleMean <- dudi.pca(CellsPropBC2/cells.means,scale=FALSE,center=TRUE,scannf=FALSE,nf=3)
+fviz_pca_biplot(scBCPCA.scaleMean,invisible = "ind",repel=TRUE)
+fviz_pca_biplot(scBCPCA.scaleMean,axes=c(1,3),invisible = "ind",repel=TRUE)
+fviz_eig(scBCPCA.scaleMean)
+fig11 <- plot_ly(x = scBCPCA.scaleMean$li$Axis1, 
+                y = scBCPCA.scaleMean$li$Axis2,
+                z = scBCPCA.scaleMean$li$Axis3,
+                #color =~CellsPropBC2$`CD8-T`,
+                type = "scatter3d", mode = "markers",
+                marker = list(symbol = "triangle",size = 4),
+                mode = "text")
+
+fig11 <- fig11 %>% layout(scene = list(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"), zaxis = list(title = "PC3") ),
+                        title = "PCA on cell proportions space of BC tumors")
+fig11
+
+
+
+```
+
+
+
+```{r logRatios,echo=TRUE}
+
+#install.packages("zCompositions")
+#install.packages("compositions")
+library(zCompositions)
+library(compositions)
+#multLN(CellsPropBC2)
+
+CellsPropBC.corrected <- CellsPropBC2 +1
+geom.means <- apply(CellsPropBC.corrected,MARGIN=1,function(x) exp(mean(log(x))))
+
+PropsBC.CLR2 <- clr(CellsPropBC.corrected)#log(CellsPropBC.corrected/geom.means)#t(apply(CellsPropBC.corrected,MARGIN=1,function(x) log(x/geom.means)))
+#colnames(PropsBC.CLR) <- colnames(CellsPropBC2)
+PropsBC.CLR <- log(CellsPropBC.corrected/geom.means)
+
+plot(x = PropsBC.CLR$Fibroblasts,
+     y = PropsBC.CLR$EndothelialCells)
+plot(x = PropsBC.CLR$BCells,
+     y = PropsBC.CLR$`CD4-T`)
+PropsBC.CLR.types <- as_tibble(PropsBC.CLR,rownames=NA)%>%
+                                pivot_longer(cols = colnames(PropsBC.CLR),
+                                             names_to = "cell_type",
+                                             values_to = "proportion")
+
+ggplot(PropsBC.CLR.types,aes(x = cell_type,
+                             y = proportion,
+                             fill = cell_type))+
+  geom_boxplot()+
+  theme(axis.text.x=element_text(angle=45,hjust=0.8,vjust=0.5),
+        legend.title=element_blank())+
+  xlab("")+ylab("CLR (Centered Log ratio)")
+
+#PropsBC.CLR2.types <- as_tibble(PropsBC.CLR2,rownames=NA)%>%pivot_longer(cols=colnames(PropsBC.CLR2),
+#                                                  names_to="cell_type",
+#                                                  values_to="proportion")
+#ggplot(PropsBC.CLR2.types,aes(x=cell_type,y=proportion,fill=cell_type))+
+#  geom_boxplot()
+
+#heatmap(cov(PropsBC.CLR),colV=NA,Rowv = NA)
+
+#rowSums(PropsBC.CLR)
+scBCPCA.CLR <- dudi.pca(PropsBC.CLR2,scale=FALSE,center=TRUE,scannf=FALSE,nf=3)
+fviz_pca_biplot(scBCPCA.CLR,label="var",col.ind = "indianred2",repel=TRUE)
+fviz_pca_biplot(scBCPCA.CLR,axes=c(1,3),label="var",col.ind = "indianred2",repel=TRUE)
+fviz_pca_biplot(scBCPCA.CLR,axes=c(2,3),label="var",col.ind = "indianred2",repel=TRUE)
+fviz_eig(scBCPCA.CLR)
+fig12 <- plot_ly(x = scBCPCA.CLR$li$Axis1, 
+                y = scBCPCA.CLR$li$Axis2,
+                z = scBCPCA.CLR$li$Axis3,
+                #color =~CellsPropBC2$`CD8-T`,
+                type = "scatter3d", mode = "markers",
+                marker = list(symbol = "triangle",size = 4),
+                mode = "text")
+              
+
+fig12 <- fig12 %>% layout(scene = list(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"), zaxis = list(title = "PC3") ),
+                        title = "PCA on cell proportions space of BC tumors")
+fig12
+
+heatmap(cor(PropsBC.CLR),Rowv = NA,Colv = NA,scale="none")
+
+varExp3PC.clr <- sum( scBCPCA.CLR$eig[1:3]/sum( scBCPCA.CLR$eig))*100
+
+```
+
+
+
+
+```{r dataProc, echo=TRUE}
+#CellsPropBC2<- CellsPropBC2%>%filter(Other<=50)
+CellsPropBC2log.types <- as_tibble(log2(CellsPropBC2+1),rownames=NA)%>%pivot_longer(cols=colnames(CellsPropBC2),
+                                                  names_to="cell_type",
+                                                  values_to="proportion")
+ggplot(CellsPropBC2log.types,aes(x=cell_type,y=proportion,fill=cell_type))+
+  geom_boxplot()+
+  theme(axis.text.x=element_text(angle=45,hjust=0.8,vjust=0.5),
+        legend.title=element_blank())+
+  xlab("")+ylab("log(proportion)")
+#(2/pi *sqrt(asin(CellsPropBC2/100)))
+#library(Rtsne)
+cells.means <- apply(CellsPropBC2,MARGIN=2, function(x) mean(x))
+
+scBCPCA.log <- dudi.pca(log2(CellsPropBC2+1),scale=FALSE,center=TRUE,scannf=FALSE,nf=3)
+fviz_pca_biplot(scBCPCA.log,invisible = "ind",repel=TRUE)
+fviz_pca_biplot(scBCPCA.log,axes=c(1,3),invisible = "ind",repel=TRUE)
+fviz_eig(scBCPCA.log)
+fig12 <- plot_ly(x = scBCPCA.log$li$Axis1, 
+                y = scBCPCA.log$li$Axis2,
+                z = scBCPCA.log$li$Axis3,
+                #color =~CellsPropBC2$`CD8-T`,
+                type = "scatter3d", mode = "markers",
+                marker = list(symbol = "triangle",size = 4),
+                mode = "text")
+
+fig12 <- fig12 %>% layout(scene = list(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"), zaxis = list(title = "PC3") ),
+                        title = "PCA on cell proportions space of BC tumors")
+fig12
+
+
+```
+
+
+## PCA on the space of cells proportions
+
+Let's reduce the dimension of our dataset with an unscaled PCA on the cell types proportion space. 
+
+We are also going to project the building blocks in this space to see if the plane encompasses some points. Each point will be represented a a building block : the proportions of the pure building block. For example, the BB3 will be exclusively composed of cancer cells, so we would have 100 % epithelial cells.  will add a supplementary point representing a fictive sample containing 100% of Other cells (adipocyte,etc..) which is of course not a tumor, in order to have an idea of how the data is shaped.
+
+```{r pca1, echo=TRUE}
+
+#CellsPropBC2.types <- as_tibble(CellsPropBC2,rownames=NA)%>%pivot_longer(cols=colnames(CellsPropBC2),
+#                                                  names_to="cell_type",
+#                                                  values_to="proportion")
+#ggplot(CellsPropBC2.types,aes(x=cell_type,y=proportion,fill=cell_type))+
+#  geom_boxplot()
+
+
+scBCPCA <- dudi.pca(df = CellsPropBC2,scale=FALSE, center=TRUE, scannf= FALSE, nf = 4)
+fviz_eig(scBCPCA)
+fviz_pca_biplot(scBCPCA,col.var = 'indianred2',col.ind = 'steelblue2',invisible = 'ind', repel = TRUE)
+fviz_pca_biplot(scBCPCA,axes=c(1,4),col.var = 'indianred2',col.ind = 'steelblue2',invisible = 'ind', repel = TRUE)
+EpithelialCells <- CellsPropBC2$EpithelialCells
+fig1 <- plot_ly(x = scBCPCA$li$Axis1, 
+                y = scBCPCA$li$Axis2,
+                z = scBCPCA$li$Axis3,
+                color =~CellsPropBC2$Other,
+                showlegend=TRUE,
+                type = "scatter3d", mode = "markers",
+                marker = list(symbol = "triangle",size = 4),
+                mode = "text",
+                name= "tumor")
+
+#"EndothelialCells", "EpithelialCells","Fibroblasts","Other","NKCells","BCells","PlasmaCells","DCs","CD4TCells","CD8TCells","Monocytes","Macrophages","OtherImmune"     
+
+#bb1x <-(scale(t(as.matrix(c(0,0,0,0,0,85,0,0,15,0,0,0))),center=scBCPCA$cent,scale=FALSE)%*%scBCPCA$c1$CS1)
+#bb1y <-(scale(t(as.matrix(c(0,0,0,0,0,85,0,0,15,0,0,0))),center=scBCPCA$cent,scale=FALSE)%*%scBCPCA$c1$CS2)
+#bb1z <-(scale(t(as.matrix(c(0,0,0,0,0,85,0,0,15,0,0,0))),center=scBCPCA$cent,scale=FALSE)%*%scBCPCA$c1$CS3)
+  
+#bb2x <-scale(t(as.matrix(c(0,0,0,0,5,0,0,5,30,50,10,0))),center=scBCPCA$cent,scale=FALSE)%*%(scBCPCA$c1$CS1)
+#bb2y <-scale(t(as.matrix(c(0,0,0,0,5,0,0,5,30,50,10,0))),center=scBCPCA$cent,scale=FALSE)%*%(scBCPCA$c1$CS2)
+#bb2z <-scale(t(as.matrix(c(0,0,0,0,5,0,0,5,30,50,10,0))),center=scBCPCA$cent,scale=FALSE)%*%(scBCPCA$c1$CS3)
+
+#bb3x <-scale(t(as.matrix(c(0,100,0,0,0,0,0,0,0,0,0,0))),center=scBCPCA$cent,scale=FALSE)%*%(scBCPCA$c1$CS1)
+#bb3y <-scale(t(as.matrix(c(0,100,0,0,0,0,0,0,0,0,0,0))),center=scBCPCA$cent,scale=FALSE)%*%(scBCPCA$c1$CS2)
+#bb3z <-scale(t(as.matrix(c(0,100,0,0,0,0,0,0,0,0,0,0))),center=scBCPCA$cent,scale=FALSE)%*%(scBCPCA$c1$CS3)
+
+#bb4x <-scale(t(as.matrix(c(0,0,0,100,0,0,0,0,0,0,0,0))),center=scBCPCA$cent,scale=FALSE)%*%(scBCPCA$c1$CS1)
+#bb4y <-scale(t(as.matrix(c(0,0,0,100,0,0,0,0,0,0,0,0))),center=scBCPCA$cent,scale=FALSE)%*%(scBCPCA$c1$CS2)
+#bb4z <-scale(t(as.matrix(c(0,0,0,100,0,0,0,0,0,0,0,0))),center=scBCPCA$cent,scale=FALSE)%*%(scBCPCA$c1$CS3)
+
+#building_blocks <-as.data.frame(cbind(c(bb1x,bb2x,bb3x),c(bb1y,bb2y,bb3y),c(bb1z,bb2z,bb3z)))
+#BBs <- matrix(c(bb1x,bb2x,bb3x,bb4x,bb1y,bb2y,bb3y,bb4y,bb1z,bb2z,bb3z,bb4z),nrow=3, ncol=4,byrow=TRUE)
+#colnames(BBs) <- c("BB1","BB2","BB3","Other")
+#rownames(BBs) <- c("x","y","z")
+#building_blocks$bb <- c("BB1","BB2","BB3")
+#bestcol <- rgb(0, 0, 255, max = 255, alpha = 125, names = "blue20")
+
+#fig1 <- fig1 %>% add_trace(x=BBs[1,],
+#                      y=BBs[2,],
+#                      z=BBs[3,],
+#                      type="scatter3d",mode="markers+text",
+#                      text =~c("BB1","BB2","BB3","Other"),
+#                      showlegend=TRUE,
+#                      name="Building blocks",
+#                      textposition="top center",
+#                      textfont = list(size = 12),
+#                      marker=list(color="red",symbol="star-diamond",size=10),
+#                      inherit = FALSE)
+#fig1 <- fig1 %>%add_mesh(x=~BBs[1,1:3],y=~BBs[2,1:3],z=~BBs[3,1:3],
+#                         name = "BB plane",
+#                        facecolor= bestcol,
+#                         opacity=0.3,
+#                         inherit=FALSE,
+#                         showlegend=FALSE)
+
+fig1 <- fig1 %>% layout(scene = list(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"), zaxis = list(title = "PC3") ),
+                        title = "PCA on cell proportions space of BC tumors")
+fig1
+
+```
+
+
+The PCA explains most of the variance of the dataset (More than 80 %). The first PC explains around 60 % of the variability (first eigenvector). We can see with the biplot 3 major axes : Other cells that are not cancer cells nor immune cells nor fibroblasts. We can see here that Fibroblasts are not as abundant as we saw in the PCA we did after using EPIC on TCGA data (bulk RNAseq). This consolidates the fact that deconvolution method of EPIC induced a lot of biases because of the reference signature genes matrix used (made from melanoma dataset). The axis with the majority of epithelial cells is represented as the corner of less immune infiltrated tumors ==> parallel with the building block 3 of only cancer cells that are positive to KI67 and other keratin markers (panKeratin markers).
+
+**Why do Other cells contribute a lot to the variance of this dataset ?** First, we did an unscaled PCA so, the most abundant cell types might hide the effect of less abundant ones. **Why do some sample are composed of more than 50 % of other cells ? ** Probably because of the way we collect samples of breast tumors. Usually, clinicians don't take only the tumor,most of the time the sample is surrounded by healthy tissue and a mix of Fibroblasts and adipocytes. The samples are not always the most perfect ones and It is more probable that we might have some samples that have been cut in a place on the edge of the tumor, so It would be normal that we have a lot of adipocytes, way more than cancer/immune cells. 
+
+
+
+```{r pca2,echo=TRUE}
+fig2 <- plot_ly(x = scBCPCA$li$Axis1, 
+                y = scBCPCA$li$Axis2,
+                z = scBCPCA$li$Axis3,
+                color =~CellsPropBC2$`CD8-T`,
+                type = "scatter3d", mode = "markers",
+                marker = list(symbol = "triangle",size = 4),
+                mode = "text")
+
+fig2 <- fig2 %>% layout(scene = list(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"), zaxis = list(title = "PC3") ),
+                        title = "PCA on cell proportions space of BC tumors")
+fig2
+```
+
+Let's see the evolution of proportion of B cells in the PC space (3 PCs) :
+
+```{r pca3,eval=FALSE,echo=TRUE}
+fig3 <- plot_ly(x = scBCPCA$li$Axis1, 
+                y = scBCPCA$li$Axis2,
+                z = scBCPCA$li$Axis3,
+                color =~CellsPropBC2$BCells,
+                type = "scatter3d", mode = "markers",
+                marker = list(symbol = "triangle",size = 4),
+                mode = "text")
+
+fig3 <- fig3 %>% layout(scene = list(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"), zaxis = list(title = "PC3") ),
+                        title = "PCA on cell proportions space of BC tumors")
+fig3
+```
+
+We can see few tumors with a big amount of B cells. The major part of this PC space is driven by the (very high) variation of EPithelial and 'Other' cells. So the macroscopic architecture of tumors (in terms of cells abundance) cannot be explained only by those 3 building blocks, because the more upscale our observations, the more we are confronted to diversity of a given tissue. We can maybe try to integrate other cell types. But one thing is that there seems to be a pattern.
+
+
+Let's take a look at the bottom vertex which is a little bit orthogonal to the Epithelial-Other cells plane , It is maybe mainly made of macrophages, let's explore this hypothesis :
+
+```{r pca4, eval=FALSE,echo=TRUE}
+fig4 <- plot_ly(x = scBCPCA$li$Axis1, 
+                y = scBCPCA$li$Axis2, 
+                z = scBCPCA$li$Axis3,
+                color =~CellsPropBC2$Macrophages,
+                type = "scatter3d", mode = "markers",
+                marker = list(symbol = "triangle",size = 4),
+                mode = "text")
+
+fig4 <- fig4 %>% layout(scene = list(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"), zaxis = list(title = "PC3") ),
+                        title = "PCA on cell proportions space of BC tumors")
+fig4
+#colnames(CellsPropBC2)
+```
+
+
+There are too few points to conclude that macrophages constitute the vertex, probably because of the fact that there are more highly abundant cells that hide the effect of other cells such as macrophages due to the unscaled PCA. 
+
+
+#### **Randomization on cells proportions**
+
+
+Each randomization slightly changes the percentage of variance explained by the 3 first PCs (between 30 and 40). 
+
+
+##### **FIXME**
+
+```{r figsArchs1, eval=FALSE,echo=TRUE}
+
+ArchCells2 <- as_tibble(t(B0),rownames=NA)%>%
+  rownames_to_column(var="archetype")%>%
+  pivot_longer(cols=rownames(B0),names_to="cell_type",values_to="proportion")
+ArchCells2<-ArchCells2%>%mutate(cell_type=str_replace_all(cell_type,c(EndothelialCells="endothelial cell",EpithelialCells="epithelial cell",
+                          OtherImmune="other immune cell", `CD4-T`="CD4 T cell",`CD8-T`="CD8 T cell",
+                          Macrophages="macrophage",`Mesenchymal-like`="mesenchymal-like cell")))%>%
+  mutate(archetype=str_replace(archetype,pattern="h",replacement="h. "))
+ggplot(data=ArchCells2 , aes(x=cell_type, y=proportion,fill=archetype)) +
+  geom_bar(stat="identity",position=position_dodge(),width=0.8) + 
+scale_fill_manual("legend", values = c("arch. 1" = "darkmagenta",
+                                       "arch. 2" = "dodgerblue",
+                                       "arch. 3" = "gold",
+                                       "arch. 4" = "black"))+
+  theme(axis.text.x=element_text(angle=35,hjust=1.2,vjust=0.9))+
+  xlab ("") + ylab("proportion")
+
+
+
+### Bar plot using log proportions
+ArchCells.log <- as_tibble(t(log2(B0)),rownames=NA)%>%
+  rownames_to_column(var="archetype")%>%
+  pivot_longer(cols=rownames(B0),names_to="cell_type",values_to="proportion")
+ArchCells.log<-ArchCells.log%>%mutate(cell_type=str_replace_all(cell_type,c(EndothelialCells="endothelial \ncell",EpithelialCells="epithelial \ncell",
+                          OtherImmune="other immune \ncell", `CD4-T`="CD4 T cell",`CD8-T`="CD8 T cell",
+                          Macrophages="macrophage",`Mesenchymal-like`="mesenchymal-like \ncell")))%>%
+  mutate(archetype=str_replace(archetype,pattern="h",replacement="h. "))
+ggplot(data=ArchCells.log , aes(x=cell_type, y=proportion,fill=archetype)) +
+  geom_bar(stat="identity",position=position_dodge(),width=0.9) + 
+scale_fill_manual("legend", values = c("arch. 1" = "darkmagenta",
+                                       "arch. 2" = "dodgerblue",
+                                       "arch. 3" = "gold",
+                                       "arch. 4" = "black"))+
+  theme(axis.text.x=element_text(angle=35,hjust=0.5,vjust=0.88))+
+  xlab ("") + ylab("log(proportion+1)")
+```
+
+
+
+### Scaled PCA 
+
+We will try to make an unscaled PCA, as we can see that the Other Cells type is too abundant, explains a lot of the variation of the dataset and hence hides the effect of the other diverse immune cells :
+
+```{r pcaUnscaled, eval=FALSE, echo=FALSE}
+
+scBCPCA2 <- dudi.pca(CellsPropBC2,scale=TRUE,center=TRUE,scannf=FALSE,nf=3)
+fviz_eig(scBCPCA2)
+fviz_pca_biplot(scBCPCA2,col.var = 'indianred2',col.ind = 'steelblue2',invisible = 'ind', repel = TRUE)
+EpithelialCells <- CellsPropBC2$EpithelialCells
+figScale <- plot_ly(x = scBCPCA2$li$Axis1, 
+                y = scBCPCA2$li$Axis2,
+                z = scBCPCA2$li$Axis3,
+                color =~EpithelialCells,
+                showlegend=TRUE,
+                type = "scatter3d", mode = "markers",
+                marker = list(symbol = "triangle",size = 4),
+                mode = "text",
+                name= "tumor")
+figScale <- figScale %>% layout(scene = list(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"), zaxis = list(title = "PC3") ),
+                        title = "PCA on cell proportions space of BC tumors")
+figScale
+
+
+```
+
+
+## **Correlations between cell types**
+
+We saw in the first part that an unscaled PCA on covariance matrix of our cell types doesn't yield satisfying results as some very variable cell types such as adipocytes mask the effect of other cell types that are less abundant but that are known to play a critical role on immune response against cancer cells and tumor fate in general. 
+
+Here we are going to see If doing a PCA on correlation matrix would be more relevant for us to map our findings with the building blocks.
+Let's compute correlations between cells proportions across tumor samples :
+
+```{r corr, eval=FALSE, echo=TRUE}
+corrscBC <- cor(as.matrix(CellsPropBC2),method="pearson")
+corrPCA <- princomp(x=CellsPropBC2,scores=TRUE,cor=TRUE)
+fviz_screeplot(corrPCA)
+fviz_pca_biplot(corrPCA,col.var = 'indianred2',col.ind = 'steelblue2',invisible = 'ind', repel = TRUE)
+
+fig5 <- plot_ly(x = corrPCA$scores[,1], 
+                y = corrPCA$scores[,2],
+                z = corrPCA$scores[,3],
+                type = "scatter3d", mode = "markers",
+                name="tumor",
+                marker = list(symbol = "triangle",size = 4),
+                mode = "text")
+#"EndothelialCells", "EpithelialCells","Fibroblasts","Other","NKCells","BCells","PlasmaCells","DCs","CD4TCells","CD8TCells","Monocytes","Macrophages","OtherImmune"  
+bb1x_2 <-(corrPCA$loadings[,1]%*%c(0,0,0,0,0,85,0,0,15,0,0,0))/(corrPCA$loadings[,1]%*%corrPCA$loadings[,1])
+bb1y_2 <-(corrPCA$loadings[,2]%*%c(0,0,0,0,0,85,0,0,15,0,0,0))/(corrPCA$loadings[,2]%*%corrPCA$loadings[,2])
+bb1z_2 <-(corrPCA$loadings[,3]%*%c(0,0,0,0,0,85,0,0,15,0,0,0))/(corrPCA$loadings[,3]%*%corrPCA$loadings[,3])
+
+
+bb2x_2 <-(corrPCA$loadings[,1]%*%c(0,0,0,0,5,0,0,5,30,50,10,0))/(corrPCA$loadings[,1]%*%corrPCA$loadings[,1])
+bb2y_2 <-(corrPCA$loadings[,2]%*%c(0,0,0,0,5,0,0,5,30,50,10,0))/(corrPCA$loadings[,2]%*%corrPCA$loadings[,2])
+bb2z_2 <-(corrPCA$loadings[,3]%*%c(0,0,0,0,5,0,0,5,30,50,10,0))/(corrPCA$loadings[,3]%*%corrPCA$loadings[,3])
+
+bb3x_2 <-(corrPCA$loadings[,1]%*%c(0,100,0,0,0,0,0,0,0,0,0,0))/(corrPCA$loadings[,1]%*%corrPCA$loadings[,1])
+bb3y_2 <-(corrPCA$loadings[,2]%*%c(0,100,0,0,0,0,0,0,0,0,0,0))/(corrPCA$loadings[,2]%*%corrPCA$loadings[,2])
+bb3z_2 <-(corrPCA$loadings[,3]%*%c(0,100,0,0,0,0,0,0,0,0,0,0))/(corrPCA$loadings[,3]%*%corrPCA$loadings[,3])
+
+bb4x_2 <-(corrPCA$loadings[,1]%*%c(0,0,100,0,0,0,0,0,0,0,0,0))/(corrPCA$loadings[,1]%*%corrPCA$loadings[,1])
+bb4y_2 <-(corrPCA$loadings[,2]%*%c(0,0,100,0,0,0,0,0,0,0,0,0))/(corrPCA$loadings[,2]%*%corrPCA$loadings[,2])
+bb4z_2 <-(corrPCA$loadings[,3]%*%c(0,0,100,0,0,0,0,0,0,0,0,0))/(corrPCA$loadings[,3]%*%corrPCA$loadings[,3])
+#building_blocks <-as.data.frame(cbind(c(bb1x,bb2x,bb3x),c(bb1y,bb2y,bb3y),c(bb1z,bb2z,bb3z)))
+BBs2 <- matrix(c(bb1x_2,bb2x_2,bb3x_2,bb4x_2,bb1y_2,bb2y_2,bb3y_2,bb4y_2,bb1z_2,bb2z_2,bb3z_2,bb4z_2),nrow=3, ncol=4,byrow=TRUE)
+colnames(BBs2) <- c("BB1","BB2","BB3","Fibroblasts")
+rownames(BBs) <- c("x","y","z")
+fig5 <- fig5 %>% add_trace(x=BBs2[1,],
+                      y=BBs2[2,],
+                      z=BBs2[3,],
+                      type="scatter3d",mode="markers+text",
+                      text =~c("BB1","BB2","BB3","Fibroblasts"),
+                      showlegend=TRUE,
+                      name="Building blocks",
+                      textposition="top center",
+                      textfont = list(size = 12),
+                      marker=list(color="red",symbol="star-diamond",size=10),
+                      inherit = FALSE)
+bestcol <- rgb(0, 0, 255, max = 255, alpha = 125, names = "blue20")
+fig5 <- fig5 %>%add_mesh(x=~BBs2[1,1:3],y=~BBs2[2,1:3],z=~BBs2[3,1:3],
+                         name = "BB plane",
+                         facecolor= bestcol,
+                         opacity=0.3,
+                         inherit=FALSE,
+                         showlegend=FALSE)
+fig5 <- fig5 %>%add_trace(x=~BBs2[1,2:4],y=~BBs2[2,2:4],z=~BBs2[3,2:4],
+                         type = "mesh3d",
+                         inherit=FALSE,
+                         showlegend=FALSE,
+                         opacity=0.1)
+fig5 <- fig5 %>%add_trace(x=~as.vector(BBs2[1,c("BB1","BB2","Fibroblasts")]),
+                          y=~as.vector(BBs2[2,c("BB1","BB2","Fibroblasts")]),
+                          z=~as.vector(BBs2[3,c("BB1","BB2","Fibroblasts")]),
+                         type = "mesh3d",
+                         inherit=FALSE,
+                         showlegend=FALSE,
+                         opacity=0.1)
+fig5 <- fig5 %>%add_trace(x=~BBs2[1,c("BB1","BB3","Fibroblasts")],y=~BBs2[2,c("BB1","BB3","Fibroblasts")],z=~BBs2[3,c("BB1","BB3","Fibroblasts")],
+                         type = "mesh3d",
+                         inherit=FALSE,
+                         showlegend=FALSE,
+                         opacity=0.2)
+
+fig5 <- fig5 %>% layout(scene = list(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"), zaxis = list(title = "PC3") ),
+                        title = "PCA on cell proportions space of BC tumors (correlations between cell types)")
+fig5
+
+```
+
+This PCA which is scaled as we used a correlation matrix instead of covariance (in dudi.pca), shows the large palette of immune cells that contribute to the variation of the dataset. Thus, we can see some cell types being associated to each other, those associations are biologically relevant.
+
+We tried to build a 3D simplex made of building blocks plus an extra one made of only Fibroblasts as this cell type is not present in Fabio's analysis. The simplex does not encompass our cloud of points. Mostly because in building block 1 and 2, we don't see tumors with the same ratios in cell types. Also, in the biplot of the PCA, we can see that some cell types vary linearly together such as CD4 and CD8 t cells along with B cells. On the other window (up right), we can find macrophages and Monocytes and NK cells. This is not exactly the kind of association that we have found in the building blocks. Here are the most abundant cell types inside the building blocks :
+
+* Building Block 1 = Tertiary Lymphoid Structure : B cells in bigger proportions + a little percentage of CD4 T cells
+* Building Block 2 = Cytotoxic/Pro-inflammation : Macrophages + CD8 T cells + little bit of CD4 T cells and NK cells
+* Building Block 3 = Full cancer : Only Keratin-positive and other kind of cancer cells.
+We also have to take into account the fact that the cell types are not the same across the experiments. 
+
+Nonetheless, that does not make our PCA not biologically relevant. We know that NK cells Epithelial cells (Cancer cells) are on the same axis but evolve on the opposite sides of It. Indeed, NK cells are cytotoxic cells that induce the death of cancer cells by activating Macrophages through IFN gamma. If we take a look at the correlation Matrix, ce can see that NKcells and DCs have a correlation =0.55 which shows that there is significant correlation between them. It is explained by the fact that NK cells get activated after PCs such as DCs showed the antigens (neoplasms here). 
+Also, we did a PCA on correlation matrix  of this dataset ==> some cells that are less abundant can be more visible than in Fabio's building blocks which represents the most abundant cells in each building block, maybe this can induce a bias. Maybe there is another simplex made of different building blocks, or the same but with cell types in different proportions that fists the best the shape of our cloud of points.
+
+```{r pcaCorr, eval=FALSE, echo=FALSE}
+fig6 <- plot_ly(x = corrPCA$scores[,1], 
+                y = corrPCA$scores[,2],
+                z = corrPCA$scores[,3],
+                type = "scatter3d", mode = "markers",
+                color=~CellsPropBC2$`CD8-T`,
+                marker = list(symbol = "triangle",size = 4),
+                mode = "text")
+fig6 <- fig6 %>% layout(scene = list(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"), zaxis = list(title = "PC3") ),
+                        title = "PCA on cell proportions space of BC tumors (correlations between cell types)")
+fig6
+```
+There are not enough points to be confident about a result, plus the points are scattered a lot. The tumors with the higher amounts of cancer cells are concentrated in what can be considered as the origin of a 3d space 
+
+
+
+## **What about non tumor tissue ?**
+
+
+Let's check the healthy tissues. We already know that there must not as immune infiltration as high as observed in the hot tumors, but It is interesting to see the landscape of healthy tissue as a basis comparison with TME :
+```{r healthy, echo= FALSE}
+CellsPropNorm <-CellsProp%>%filter(Tissue=="Mammoplasty")%>%filter(`LiveCells [%]`>50)
+#CellsPropBC <- left_join(CellsPropBC,MetaData,by="Patient")%>%filter(`Neoadjuvant Therapy Received` !="yes")
+CellsPropNorm <- CellsPropNorm%>%mutate(LiveCells_tot= `EndothelialCells [%]`+`EpithelialCells [%]`+`Fibroblasts [%]`+`ImmuneCells [%]`+`Other [%]`)
+CellsPropNorm <- CellsPropNorm%>%mutate(EndothelialCells=((`EndothelialCells [%]`/LiveCells_tot))*100)%>%
+  mutate(EpithelialCells =((`EpithelialCells [%]`/LiveCells_tot))*100)%>%
+  mutate(Fibroblasts =((`Fibroblasts [%]`/LiveCells_tot))*100)%>%
+  mutate(ImmuneCells =((`ImmuneCells [%]`/LiveCells_tot))*100)%>%
+  mutate(Other =((`Other [%]`/LiveCells_tot))*100)
+
+#Correction to ImmuneCells 
+CellsPropNorm <- CellsPropNorm%>%
+  mutate(TCells = (`TCells [%]`/100)*ImmuneCells)%>%
+  mutate(NKCells = (`NaturalKillerCells [%]`/100)*ImmuneCells)%>%
+  mutate(Granulocytes = (`Granulocytes [%]`/100)*ImmuneCells)%>%
+  mutate(BCells = (`BCells [%]`/100)*ImmuneCells)%>%
+  mutate(PlasmaCells = (`PlasmaCells [%]`/100)*ImmuneCells)%>%
+  mutate(DCs = (`plasmacytoidDendriticCells [%]`/100)*ImmuneCells)%>%
+  mutate(MyeloidCells = (`MyeloidCells [%]`/100)*ImmuneCells)%>%
+  mutate(Basophils = (`Basophils [%]`/100)*ImmuneCells)
+## Let's check for the proportion of T cells across the tumor samples
+ggplot(data= CellsPropNorm)+
+  geom_boxplot(mapping=aes(y=TCells))+
+  labs(title="Boxplot of proportions of T cells across 144 tumor samples (in %)")+
+  ylab("percentage")
+## Correciton to T cells
+CellsPropNorm <- CellsPropNorm%>%mutate(sumTcells = `TCells CD4+ [%]`+`TCells CD8+ [%]`)%>%
+  mutate(OtherTcells = ((100 - sumTcells)/100)*TCells)%>%
+  mutate(CD4TCells = (`TCells CD4+ [%]`/100)*TCells)%>%
+  mutate(CD8TCells = (`TCells CD8+ [%]`/100)*TCells)
+  
+## Correction to myeloid cells
+CellsPropNorm <- CellsPropNorm %>% mutate(Monocytes = (M06 + M15)*MyeloidCells)%>%
+  mutate (Macrophages = (M01 + M02 + M03 + M04 + M08 + M09 + M11 + M13 + M14 + M16 + M17)*MyeloidCells)%>%
+  mutate(OtherMyeloid = (M05 + M07 + M10 + M12 + M18 + M19)*MyeloidCells)%>%
+  mutate(OtherImmune = OtherMyeloid+ OtherTcells+Basophils+Granulocytes)
+
+CellsPropNorm2 <- CellsPropNorm%>%dplyr::select(`Sample ID`,EndothelialCells,EpithelialCells,Fibroblasts,Other,NKCells,BCells,PlasmaCells,DCs,CD4TCells,CD8TCells,Monocytes,Macrophages,OtherImmune)%>%column_to_rownames(var="Sample ID")
+```
+
+
+We can see that healthy tissues have already around 20 % T cells but the distribution in this boxplot is not as wide as It might have been observed in tumor tissue, but here we have only 4 samples, so It is difficult to measure accurately he proportions for healthy tissues in general. 
+```{r cells2, echo=TRUE}
+CellsBreastTissue.pca <- dudi.pca(AllCellsProps,scale=FALSE, center=TRUE, scannf=FALSE, nf=3)
+fviz_eig(CellsBreastTissue.pca)
+fviz_pca_biplot(CellsBreastTissue.pca,col.var = 'indianred2',col.ind = 'steelblue2',invisible = 'ind', repel = TRUE)
+fviz_pca_biplot(CellsBreastTissue.pca,axes=c(1,3),col.var = 'indianred2',col.ind = 'steelblue2',invisible = 'ind', repel = TRUE)
+#plot(x=CellsBreastTissue.pca$co[,1],y=CellsBreastTissue.pca$co[,3],pch=19,col="white")
+#arrows(x0=0,y0=0, x1=CellsBreastTissue.pca$co[,1],y1=CellsBreastTissue.pca$co[,3],
+#       col="indianred2",lwd=1)
+#text(x=CellsBreastTissue.pca$co[,1],y=CellsBreastTissue.pca$co[,3],pos=3,labels=rownames(CellsBreastTissue.pca$co),col="indianred2")
+## Plot in 3PC space the samples: Tumors+ Mammary tissue + Juxta-tumoral tissue
+fig7 <- plot_ly(x = CellsBreastTissue.pca$li$Axis1, 
+                y = CellsBreastTissue.pca$li$Axis2,
+                z = CellsBreastTissue.pca$li$Axis3,
+                type = "scatter3d", mode = "markers",
+                color=~CellsPropBC$Tissue,#AllCellsProps$Fibroblasts,
+                marker = list(symbol = "triangle",size = 6),
+                mode = "text")
+fig7 <- fig7 %>% layout(scene = list(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"), zaxis = list(title = "PC3") ),
+                        title = "PCA on cell proportions space of BC tumors (correlations between cell types)")
+fig7
+```
+
+### Conclusion
+
+Even after having discarded the samples containing high amounts of Other cells, this cell type still contributes the most to the PCA and so It hides the effect on the variation of many less abundant cell types. Of course, we would know for example that Tregs and maybe dendritic cells might not be a big axis on our PCA as we know that we can find them on low concentrations in the organism but some immune cells can be very abundant such as B cells that are the factory of antibodies and macrophages that can highly infiltrate the TME either to trigger tumor suppression, either to enhance Its survival. But those known effects are hidden. Nonetheless, we shall not disconsider the effect of those adipocytes and other cells from our analyses.
+
+As we already know, the tumor uses every external resources to survive and the pressure of evolution can give an advantage to those who are able to hijack the resident cells. For example, adipocytes in the breast tissue synthesize some lipids that are critical for survival of the surrounding cells. SOme cancer cells can use them as nutrients which can make adipocytes slowly dying. Can we consider that those cells are part of the TME  ? Because they were in this tissue at first, they haven't been recruited by any system, but somehow we can consider that they contribute to the development of TUmor as vasculature for example. 
+
+This analysis shows that the definition of the TME is quite sensitive as the tumor uses a lot of resources in order to survive and evade the immune system. We kept the tumor samples that had less than 40 % of adipocytes which seems to be a fair threshold regarding the poor amount of tumor samples.
+
+This analysis shows also the question of using the right mathematical tool to assess the relevance of using building blocks to describe the macroscopic view of a tumor. 
+
+## Building reference space to map macro and microscopic architecture of Breast cancer
+
+We can't precisely compare datasets from Keren and Wagner paper because they  don't use the same labels for cell types. Hence, we will build a reference space containing the cell types we selected . We use some tools from information theory in order to do It : bipartite graphs. Each side would represent either Keren of Wagner data, the vertices would represent the cell types in different dataset. While edges would represent the link or the mapping,i.e we would link Keratin positive tumors and tumors cell types to Epithelial Cells in Wagner dataset because we know that in this paper that they used markers of cancer cells and cytokeratins (panKeratin, K17, K5, etc...). to identify epithelial cells.
+
+To solve this problem, we are going to use the incidence matrix,let's call It G. THis matrix (of 0 or 1 ) tells the links between some objects (cell types across 2 datasets here). This will be the base for our set of reference cell types.
+
+```{r graphs1, echo=FALSE}
+
+GMatrix <- create_incidence_matrix(filename = "./data/G_matrix.xlsx")
+plot_graph_incidence_matrix(GMatrix)
+## Build the graph of incidence matrix between Wagner and Keren dataset
+#  graph <- graph_from_incidence_matrix(GMatrix, directed = FALSE,multiple=FALSE,
+#                                       mode = "in")
+#  from_incidence_matrix(graph)
+#  LO = layout_as_bipartite(graph)
+#  LO = LO[,c(2,1)]
+#  V(graph)$label.cex <- 0.82
+#  plot(graph,
+#       layout=LO,
+#  vertex.color = c("steelblue","orange")[V(graph)$type+1],
+#  vertex.shape = "circle",
+#  vertex.size = 6,
+#  label.font=2,
+#  vertex.label.dist=7,
+#  edge.width=2,
+#  asp = 0.95,
+#  margin=-0.05,
+#  vertex.label.degree= c(2*3.14,3.14)[V(graph)$type+1],
+#  main="Graph (incidence matrix) of cell labels from Keren and Wagner data")
+
+```
+
+
+
+Then, we are going to create two Matrices that will allow us to convert proportions of cell types from a dataset to our reference set, let's call them respectively Gk and Gw for Keren and Wagner datasets.
+* G --> Gk :  Sum up all the columns, if one is >1 , take the first row that is =1 in this column, give It the same name as column and remove the other rows that were equal to 1 in this column.
+* G --> Gw : Sum up all the rows, if one is >1 , take the first column that is =1 in this row, give It the same name as row and remove the other columns that were equal to 1 in this row.
+
+Then, we will produce two matrices Yk and Yw that represent the new datasets that represent the proportions of cell types from the reference across samples for respectively Keren and Wagner dataset. 
+
+Thus Yk = Gk.XkT (Xk : matrix of cells proportions from keren dataset) and YwT = Gw. XwT
+
+Let's compute the matrices Gk and Gw that will be used to do transformation :
+
+```{r compute, echo=TRUE}
+GMatrix <- as.matrix(GMatrix)
+Gk <- compute_Gk_matrix(GMatrix)
+Gw <- compute_Gw_matrix(GMatrix)
+# We will filter the tumors that contain too much Healthy tissue, we put the threshold at 50 % 
+CellsPropBC2<- CellsPropBC2%>%filter(Other<=50)
+Yw <- t(Gw%*%t(as.matrix(CellsPropBC2)))
+rownames(Yw) <- rownames(CellsPropBC2)
+colnames(Yw)[9] <- "EndothelialCells"
+
+#rowSums(Yw)
+```
+
+We fetch data from building blocks analysis in order to transform the cell abundances in the new cell reference space ==> 10 cell types.
+
+```{r dataKeren, echo=FALSE}
+
+## We fetch the data : building blocks archetypes and their coordinates in the 17-cells space (labels of cell types from Keren)
+DataKeren <- read.csv("./data/archetypes_building_blocks_17cells_space.csv")
+            #read.csv("/srv/mfs/hausserlab/anissa.el/ImmuneStates/building_blocks_cell_abundance.csv",header=TRUE)
+DataKeren <- DataKeren%>%dplyr::select(-(X))
+colnames(DataKeren) <- c('CD8-T', 'Other immune', 'DC / Mono', 'CD3-T', 'B', 'NK', 'Keratin-positive tumor', 'Tumor', 
+              'CD4-T', 'Mesenchymal-like', 'Macrophages', 'Endothelial', 'Tregs', 'Unidentified', 'DC', 'Mono / Neu', 
+              'Neutrophils')
+DataKeren <- DataKeren %>%mutate(`Mesenchymal-like` = `Mesenchymal-like`+ Unidentified)%>%dplyr::select(-(Unidentified))
+#DataKeren <- DataKeren %>%rownames_to_column(var = "bb")
+BuildingBlocks <- apply(as.matrix(DataKeren),1,function(x) (x/sum(x))*100)
+colnames(BuildingBlocks) <- c("BB1","BB2","BB3","BB4")
+
+## Load dataframe containing cell abundance for each sample as a tumor from a patient (43 patients in total in Keren article)
+CellsPropKeren <- readRDS(file = "./data/CellsPropKeren.rds")
+CellsPropKeren <- as_tibble(CellsPropKeren) 
+CellsPropKeren <- CellsPropKeren%>% mutate(`Mesenchymal-like` = `Mesenchymal-like` + Unidentified)%>%dplyr::select(-(Unidentified))
+
+#BuildingBlocks <- DataKeren #as.matrix(DataKeren%>%dplyr::select(-c(X,bb)))*100
+Yk <- as.matrix(CellsPropKeren) %*%Gk # Matrix of tumors from Keren datatset
+Ybb <- t(BuildingBlocks) %*% Gk# Matrix of only building blocks (archetypes from Keren data)
+bblocks <- colnames(BuildingBlocks)
+Yw <- as.matrix(as_tibble(Yw)%>%dplyr::select(c(colnames(Yk))))# we put the columns in the same order as Yk's columns
+Ytot <- rbind(Yw,Yk)
+
+```
+
+Let's compare proportions of cells (in our new cells-space reference) across the datasets :
+
+```{r plotCellsProp, echo=TRUE}
+
+CellsPropsk <- gather(as_tibble(Yk),key="cellType",value="proportion")%>%mutate(dataset="Keren")
+CellsPropsw <- gather(as_tibble(Yw),key="cellType",value="proportion")%>%mutate(dataset="Wagner")
+CellsPropswk <- bind_rows(CellsPropsk,CellsPropsw)
+plot1 <- ggplot(data=CellsPropswk,aes(x=dataset,y=proportion,color=dataset,group=dataset))+
+  geom_point()+
+  facet_wrap(~cellType)+
+  theme(axis.text.x=element_text(angle=45,hjust=0.8,vjust=0.5))+
+  labs(title = "Boxplot of proportions of cell types from tumors from Keren & Wagner datasets")+
+  xlab ("") + ylab("proportion")
+
+plot1
+
+```
+
+
+The distributions of cells proportions seem to be homogeneous across the datasets after the transformation in the new cells reference space, except for Mesenchymal-like cells. In the samples taken from Wagner data, there is a mix between tumor and healthy tissue(cells included in the group Mesenchymal-like). 
+In general, all the cell types seem to be comparable, so the cells reference space that has been computed allows us compare data from two different datasets such as Wagner and Keren. 
+
+## PCA on the new reference space :
+
+
+### PCA on building blocks sites (Keren data)
+
+```{r pcaNewKerern, echo=FALSE}
+newPCAk <- dudi.pca(Ybb, scale=FALSE, scannf=FALSE, nf=3)
+fviz_eig(newPCAk)
+fviz_pca_biplot(newPCAk,col.var = 'indianred2',col.ind = 'steelblue2',invisible = 'ind', repel = TRUE,max.overlaps =3)
+
+EpithelialCells2 <- as_tibble(Ybb)$EpithelialCells
+
+PC1 <- as.matrix(newPCAk$c1$CS1,ncol=1)
+PC2 <- as.matrix(newPCAk$c1$CS2,ncol=1)
+PC3 <- as.matrix(newPCAk$c1$CS3,ncol=1)
+Yw_proj1 <- (scale(Yw,center= newPCAk$cent,scale=FALSE)%*% PC1) 
+Yw_proj2 <- (scale(Yw,center= newPCAk$cent,scale=FALSE)%*% PC2)
+Yw_proj3 <- (scale(Yw,center= newPCAk$cent,scale=FALSE)%*% PC3)
+
+figNewk <- plot_ly(x =~newPCAk$li$Axis1, 
+                  y =~newPCAk$li$Axis2,
+                  z =~newPCAk$li$Axis3,
+                  type="scatter3d",
+                  mode="markers",
+                  color=~bblocks,
+                  showlegend=TRUE,
+                  marker = list(symbol = "triangle",size = 16))
+
+
+
+figNewk <- figNewk %>% add_trace(x=~as.vector(Yw_proj1),
+                                 y=~as.vector(Yw_proj2),
+                                 z=~as.vector(Yw_proj3),
+                                 type="scatter3d",
+                                 mode="markers",
+                                 showlegend=TRUE,
+                                 name="Wagner tumors",
+                                 marker=list(color="red",symbol="star-diamond",size=4),
+                                 inherit = FALSE)
+
+figNewk <- figNewk %>% layout(scene = list(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"), zaxis = list(title = "PC3")),
+                        title = "PCA on reference cell proportions space of sites in TNBC tumors(Keren data)")
+figNewk
+
+
+```
+ 
+ 
+The cloud of points from Wagner tumors projected in this 3PC space seems to be driven by the 3 building blocks, but for some tumor samples there is a high amount of non-cancer/immune cells which seems to be healthy tissue that we should get rid of. 
+ 
+ So the next steps consist in "purifying" the samples, discarding the "healthy" part of the sample.  This, will consist first in getting the average cell abundance of healthy tissue in breast : It is mainly composed of adipocytes (the most abundant cell type), a little bit of Fibroblast and a very little amount (but still significant) portion of tissue resident macrophages. We consider them as part of the healthy tissue because they were usually located in the tissue before the beginning of the cancer, they weren't recruited by the immune system, their presence is not a consequence of tumor appearance. 
+ 
+ We are going to discard the healthy part of the samples from Wagner dataset in a computational way, because this is the only way we can try to tweak the samples, based only on cell abundance. Let's visualize It in the 3D space. If we go back to our PCA space (Keren dataset), and plot points as tumors from Wagner dataset. The cloud of points can be represented as a simplex (as seen before) which vertices represent a cell type or group of cell types that are the most abundant and hence shape the dataset. There is a vertex representing the healthy tissue contained inside the  sample. We would do an orthogonal projection of the samples which amount of other cells are quite high on a plane defined by building blocks :
+```{r figs,echo=TRUE}
+ggplot(data=as_tibble(Yw,rownames=NA), mapping=aes(x=Macrophages,y=`CD8-T`))+
+  geom_point()+
+  labs(x = "% macrophages",y="% CD8 T cells")
+ggplot(data=as_tibble(Yw,rownames=NA), mapping=aes(x=`CD8-T`,y=EpithelialCells))+
+  geom_point()+
+  labs(x = "% CD8 T cells",y="% cancer cells")  
+#plot(x=Yw[,'CD8-T'],y=Yw[,"EpithelialCells"],pch=16,xlim=c(0,100))
+```
+ 
+```{r pcaNew, echo=FALSE}
+newPCAw <- dudi.pca(Yw, scale=TRUE, scannf=FALSE, nf=3)
+newPCAWagnerAxes <- as.matrix(newPCAw$li)
+#write.csv(as.matrix(newPCAw$li), "/srv/mfs/hausserlab/anissa.el/ImmuneStates/wagner_analysis/PCA_Wagner_3D.csv",row.names=FALSE)
+#write.csv(as.matrix(newPCAw$c1), "/srv/mfs/hausserlab/anissa.el/ImmuneStates/wagner_analysis/PCA_Wagner_components.csv",row.names=FALSE)
+#write.csv(as.matrix(newPCAw$cent), "/srv/mfs/hausserlab/anissa.el/ImmuneStates/wagner_analysis/PCA_Wagner_means.csv",row.names=FALSE)
+fviz_eig(newPCAw)
+pcs <-newPCAw$li
+pca_biplot <-fviz_pca_biplot(newPCAw,col.var = 'indianred2',col.ind = 'steelblue2',invisible = 'ind', repel = TRUE)
+contrib_plot <-fviz_contrib(newPCAw,choice = "var")
+contrib_plot
+#var_plot <- fviz_pca_var(newPCAw)
+#var_plot
+x1 <- c(0, newPCAw$c1$CS1)
+y1 <- c(0, newPCAw$c1$CS3)
+plot(x=x1 , y = y1,pch = 20,
+     main = "Scores of cells types in 2 first PCs of Wagner cell abundance",
+     xlab ="PC1", ylab = "PC3",
+     ylim = c(-0.5,1),xlim= c(-1.5,0.5))
+arrows(0, 0, newPCAw$c1$CS1, newPCAw$c1$CS3,col = "indianred")
+text(x=newPCAw$c1$CS1, y=newPCAw$c1$CS3, labels=rownames(newPCAw$c1),adj = 0,pos = 2,col ="indianred")
+dev.off()
+EpithelialCells2 <- as_tibble(Yw)$EpithelialCells
+figNew <- plot_ly(x = newPCAw$li$Axis1, 
+                y = newPCAw$li$Axis2,
+                z = newPCAw$li$Axis3,
+                showlegend=TRUE,
+                name="wagner tumors",
+                type = "scatter3d", mode = "markers",
+                marker = list(symbol = "triangle",size = 4),
+                mode = "text",
+                text= rownames(Yw))
+
+PC1 <- as.matrix(newPCAw$c1$CS1,ncol=1)
+PC2 <- as.matrix(newPCAw$c1$CS2,ncol=1)
+PC3 <- as.matrix(newPCAw$c1$CS3,ncol=1)
+#PC4 <- as.matrix(newPCAw$c1$CS4,ncol=1)
+# Projection of hte building lbocks on PC wagner tcell abundance space
+Yk_proj1 <- (scale(Ybb,center=newPCAw$cent,scale=FALSE) %*% PC1) 
+Yk_proj2 <- (scale(Ybb,center=newPCAw$cent,scale=FALSE)%*% PC2)
+Yk_proj3 <- (scale(Ybb,center=newPCAw$cent,scale=FALSE) %*% PC3) 
+#Yk_proj4 <- (scale(Ybb,center=newPCAw$cent,scale=FALSE) %*% PC4) 
+bb4x <- scale(t(as.matrix(c(0,0,100,0,0,0,0,0,0,0))),center=newPCAw$cent,scale=FALSE)%*%PC1
+bb4y <- scale(t(as.matrix(c(0,0,100,0,0,0,0,0,0,0))),center=newPCAw$cent,scale=FALSE)%*%PC2
+bb4z <- scale(t(as.matrix(c(0,0,100,0,0,0,0,0,0,0))),center=newPCAw$cent,scale=FALSE)%*%PC3
+#bb4z2 <- scale(t(as.matrix(c(0,0,100,0,0,0,0,0,0,0))),center=newPCAw$cent,scale=FALSE)%*%PC4
+#figNew <- figNew %>% add_trace(x=as.vector(Yk_proj1),
+#                                 y=as.vector(Yk_proj2),
+#                                 z=as.vector(Yk_proj3),
+#                                 color=~bblocks,
+#                                 type="scatter3d",mode="markers",
+#                                 showlegend=TRUE,
+#                                 marker=list(symbol="star-diamond",size=10),
+#                                 inherit = FALSE)
+#figNew <- figNew %>% add_trace(x=as.vector(bb4x),
+#                                 y=as.vector(bb4y),
+#                                 z=as.vector(bb4z),
+#                                 type="scatter3d",mode="markers+text",
+#                                 text="healthy tissue",
+#                                 showlegend=TRUE,
+#                                 name="Healthy tissue",
+#                                 marker=list(color="green",symbol="star-diamond",size=10),
+#                                 inherit = FALSE)
+figNew <- figNew %>% layout(scene = list(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"), zaxis = list(title = "PC3") ),
+                        title = "PCA on reference cell proportions space of BC tumors")
+figNew
+
+#correlations<-cor(Yw,method="pearson")
+
+```
+
+ We will build a plane driven by 2 main vectors : one that represents the variation of proportions of cancer cells, let's call It x_c and another now representing the variation of every infiltrated immune cell (x_i). We will project our tumors in this plane in order to eliminate *in silico* the parts in the tumors samples that are not from the tumor micro environment. We will also put a threshold from which we consider that the sample is not exploitable because of a high proportion of healthy tissue : if we have more than 50 % of mesenchymal-like cells, we discard the sample from our analysis (otherwise, If we keep It, we will have a wider error bar). 
+ 
+ 
+**Now we set up the equations that would define the space in which we will project our points**
+ The space is made by 2 main vectors : v1 representing the proportion of cancer cells mainly,
+And v2 representing the proportion of immune cells + endothelial cells
+So a tumor would be represented as linear combination of v1 and v2 including some constraints on space
+
+#### OBJECTIVE 
+
+ * Find a space (a plane, should It be necessarily orthogonal ??) of two vectors v1 and v2 
+ * Define v1 and v2 as a linear combination of 10 cell types ==> scores of each cell type in the PCA
+ * Project the points in the PCA (newPCAw$li) (orthogonal projection) in this space to get rid of the mesenchymal-like tissue part.
+
+#### CONSTRAINTS
+
+ *  We must be in PC space of Wagner dataset, let's keep 3 PCs
+ *  The linear combination of v1 and v2 must be equal to 100 (av1 + bv2 =100, for a,b in R)
+ *  Cellular space <==> in positive side (we cannot have negative proportions !!)
+ *  av1 <=100 but bv2 <100 because if we only have immune + endothelial cells, we do not consider the sample as a tumor
+ 
+ 
+```{r eq1,eval=TRUE,echo=FALSE}
+CellsScoresw <- newPCAw$co
+v1 <- t(CellsScoresw[2,])
+v2 <- as.matrix(as_tibble(colSums(bind_rows(CellsScoresw[1,] ,CellsScoresw[4:10,])))%>%dplyr::rename(ImmuneGp=value))
+rownames(v2) <- rownames(v1)
+V <- cbind(v1,v2) # Matrix of columns vectors v1 and v2
+## Get an orthonormal base from v1 and v2 : Gram Schhmidt orthonormalization
+library(pracma)
+E1E2 <- gramSchmidt(V)$Q
+e1 <- E1E2[,1]
+e2 <- E1E2[,2]
+
+X <- as.matrix(newPCAw$li)
+# Orthogonal projection in the new orthonormal space
+Xp1 <- (X%*%as.matrix(e1))%*% t(as.matrix(e1))
+Xp2 <- (X%*% as.matrix(e2))%*% t(as.matrix(e2))
+Xp <- Xp1 + Xp2
+
+figNew2 <- plot_ly(x = newPCAw$li$Axis1, 
+                y = newPCAw$li$Axis2,
+                z = newPCAw$li$Axis3,
+                showlegend=TRUE,
+                type = "scatter3d", mode = "markers+text",
+                marker = list(symbol = "triangle",size = 4),
+                mode = "text",
+                text= rownames(Yw))
+
+figNew2 <- figNew2 %>% add_trace(x=Xp[,1],
+                                 y=Xp[,2],
+                                 z=Xp[,3],
+                                 type="scatter3d",mode="markers",
+                                 showlegend=TRUE,
+                                 marker=list(color="red",symbol="star-diamond",size=4),
+                                 inherit = FALSE)
+figNew2 <- figNew2 %>% layout(scene = list(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"), zaxis = list(title = "PC3") ),
+                        title = "PCA on reference cell proportions space of BC tumors")
+
+figNew2
+```
+
+
+## **Correction : Getting rid of the healthy tissue in Wagner samples *in silico* **
+
+We would do an Archetypal Analysis in the PCA space of Wagner tumors :
+
+```{python archetypal, echo=TRUE}
+from archetypes import ArchetypalAnalysis
+import pandas as pd
+import numpy as np
+
+# Reading the file of PCA from Wagner dataset
+pcData = pd.read_csv("PCA_Wagner_3D.csv")
+pc3dWagner = np.array(pcData, dtype = "float64")
+AA = ArchetypalAnalysis(n_archetypes = 4, 
+                          tolerance = 0.001, 
+                          max_iter = 200, 
+                          random_state = 0, 
+                          C = 0.0001, 
+                          initialize = 'random',
+                          redundancy_try = 30)
+AA.fit_transform(pc3dWagner)
+archetypes_wagner = AA.alfa
+pd.DataFrame(AA.archetypes).to_csv("/scratch/anissa.el/ImmuneStates/wagner_analysis/Coordinates_Archetypes_Wagner_4PCA.csv")
+pd.DataFrame(archetypes_wagner).to_csv("/scratch/anissa.el/ImmuneStates/wagner_analysis/Archetypes_Wagner_PCA.csv")
+
+```
+
+The archetypal analysis (method used to determine building blocks in Keren dataset) shows three main archetypes that correspond to different types of tissue :
+
+* Archetype 1 : Tumors with only cancer cells
+
+* Archetype 2 : CD4 and CD8 cells
+
+* Archetype 3 : Tumors mainly made by healthy tissue (they would be dissected afterwards)
+
+* Archetype 4 : Innate immunity component (macrophages and granulocytes mainly)
+
+
+```{r archWagner, echo=FALSE}
+#Get the probabilities to belong to the 4 archetypes for each tumor in Wagner dataset (4 x 143)
+archWPCA <- as_tibble(read.csv("./outputs/Archetypes_Wagner_PCA.csv",header=TRUE))
+archWPCA <- archWPCA%>%column_to_rownames(var="X")
+rownames(archWPCA) <- c("arch1", "arch2","arch3","arch4")
+## Checking that the sum is equal to 1 : probability to belong to one of the archetypes
+#colSums(archWPCA)
+colnames(archWPCA) <- rownames(CellsPropBC2)
+
+archCoordw <- as.matrix(read.csv("./outputs/Coordinates_Archetypes_Wagner_4PCA.csv", header=TRUE))
+
+archCoordw <- archCoordw[,-1]
+colnames(archCoordw) <- c("arch1", "arch2","arch3","arch4")
+## PLot the archetypes in Wagner PCA space
+NKCells <- Yw[,4]
+CD8T <- Yw[,8]
+OtherImmune <- Yw[,10]
+MesenchymalLike <- Yw[,3]
+StatusTumor2 <- StatusTumor[StatusTumor$Patient %in% colnames(archWPCA),]#StatusTumor%>%filter(Patient%in%rownames(CellsPropBC2))
+AgeResection2 <- AgeResection[AgeResection$Patient %in% colnames(archWPCA),]
+PC1 <- as.matrix(newPCAw$c1$CS1,ncol=1)
+PC2 <- as.matrix(newPCAw$c1$CS2,ncol=1)
+PC3 <- as.matrix(newPCAw$c1$CS3,ncol=1)
+#PC4 <- as.matrix(newPCAw$c1$CS4,ncol=1)
+#fviz_pca_biplot(newPCAw)
+# Projection of hte building lbocks on PC wagner tcell abundance space
+Yk_proj1 <- (scale(Ybb,center=newPCAw$cent,scale=FALSE) %*% PC1) 
+Yk_proj2 <- (scale(Ybb,center=newPCAw$cent,scale=FALSE)%*% PC2)
+Yk_proj3 <- (scale(Ybb,center=newPCAw$cent,scale=FALSE) %*% PC3) 
+#Yk_proj4 <- (scale(Ybb,center=newPCAw$cent,scale=FALSE) %*% PC4) 
+#boundaries <- diag(100,ncol=ncol(Ybb),nrow=ncol(Ybb))
+#boundaries <- rbind(boundaries,c(0,0,0,0,0,0,0,0,0,0))
+#colnames(boundaries) <- colnames(Ybb)
+#eq1 <- function(x){x<=100 & x>=0 & sum(x)=100}
+#boundary1 <-(scale(boundaries,center=newPCAw$cent,scale=FALSE) %*% PC1)
+#boundary2 <-(scale(boundaries,center=newPCAw$cent,scale=FALSE) %*% PC2)
+#boundary3 <-(scale(boundaries,center=newPCAw$cent,scale=FALSE) %*% PC3)
+bb4x <- scale(t(as.matrix(c(0,0,0,0,0,0,0,0,0,0))),center=newPCAw$cent,scale=FALSE)%*%PC1
+bb4y <- scale(t(as.matrix(c(0,0,0,0,0,0,0,0,0,0))),center=newPCAw$cent,scale=FALSE)%*%PC2
+bb4z <- scale(t(as.matrix(c(0,0,0,0,0,0,0,0,0,0))),center=newPCAw$cent,scale=FALSE)%*%PC3
+#bb4z2 <- scale(t(as.matrix(c(0,0,0,0,0,0,0,0,0,0))),center=newPCAw$cent,scale=FALSE)%*%PC4
+pca_biplot
+figNew3 <- plot_ly(x = newPCAw$li$Axis1, 
+                y = newPCAw$li$Axis2,
+                z = newPCAw$li$Axis3,
+               # color= ~StatusTumor2$Status,#as.vector(AgeResection2$`Age at Surgery`),#MesenchymalLike,
+                showlegend=TRUE,
+                type = "scatter3d", mode = "markers",
+                marker = list(color="red",symbol = "triangle",size = 6),
+                mode = "text",
+                name = "tumors")
+figNew3 <- figNew3 %>% add_trace(x = archCoordw[1,],
+                                 y = archCoordw[2,],
+                                 z = archCoordw[3,],
+                                 type = "scatter3d",mode = "lines+markers+text",
+                                 text = c("arch. 1", "arch. 2","arch. 3","arch. 4"),
+                                 textposition = c('top right','top right','top left','top right'),
+                                 textfont = list(color = '#000000', size = 16),
+                                 showlegend = TRUE,
+                                 name = "Archetypes",
+                                 marker = list(color = c("darkmagenta","dodgerblue","gold","black"),symbol = "star-diamond",size = 14),
+                                 line = list(color = "red", size = 5),
+                                 inherit = FALSE)%>%
+                        add_trace(x = archCoordw[1,c(2,4,1,3)],
+                                y = archCoordw[2,c(2,4,1,3)],
+                                 z = archCoordw[3,c(2,4,1,3)],
+                                 type = "scatter3d",mode = "lines",
+                                 line = list(color = "red", size = 5),
+                                 showlegend = FALSE,
+                                 inherit = FALSE)
+#bestcol <- rgb(0, 0, 255, max = 255, alpha = 125, names = "blue20")
+#figNew3 <- figNew3%>% add_trace(x=as.vector(boundary1),
+#                                y=as.vector(boundary2),
+#                                z=as.vector(boundary1),
+#                                i = c(0, 0, 0, 1,0,0),
+#                                j = c(1, 2, 3, 2,1,3),
+#                                k = c(2, 3, 1, 3,4,4),
+#                                type="scatter3d",
+#                                facecolor= bestcol,
+#                                opacity=0.3,
+#                                inherit=FALSE,
+#                                showlegend=TRUE)
+#figNew3 <- figNew3 %>% add_trace(x=as.vector(boundary1),
+#                                y=as.vector(boundary2),
+#                                z=as.vector(boundary1),
+#                               type="scatter3d",mode="markers",
+#                                marker=list(color="green",symbol="x",size=6),
+#                                hoverinfo = "none",
+#                                showlegend=TRUE,
+#                                 inherit = FALSE)
+#figNew3 <- figNew3 %>% add_trace(x=as.vector(bb4x),
+#                                 y=as.vector(bb4y),
+#                                 z=as.vector(bb4z),
+#                                 type="scatter3d",mode="markers+text",
+#                                 text="origin",
+#                                 showlegend=TRUE,
+#                                 name="origin",
+#                                 marker=list(color="green",symbol="star-diamond",size=10),
+#                                 inherit = FALSE)
+figNew3 <- figNew3 %>% layout(scene = list(xaxis = list(title = "PC 1"), yaxis = list(title = "PC 2"), zaxis = list(title = "PC 3") ),
+                        title = "PCA on reference cell proportions space of BC tumors")
+figNew3
+
+ArchCellsProp <- t(archCoordw)%*% t(as.matrix(newPCAw$c1))   #t(scale(t(as.matrix(newPCAw$c1)),center=-(newPCAw$cent),scale=FALSE)) %*% archCoordw 
+
+## Decentering the matrix to obtain percentages of cell types ==> the sum for each archetype must be =0
+ArchCellsProp0 <- apply(t(ArchCellsProp), 2, function(x) x+newPCAw$cent)
+```
+
+The fourth archetype is really close to Building block 4 which puts us on a track that tumors from Wagner dataset might be in part explained by the fourth building block.
+
+To prove that PCA shows coordination between cells, we are going to shuffle our proportions values. THis will de-correlate some cell types:
+
+```{r random1, echo=TRUE}
+# de-correlate the cells using sample() as a row-wise operation (for each tumor)
+shuffle_cells <- function(cells){
+  cells <- as.vector(cells)
+  shuffled10 <- apply(replicate(10,sample(cells,size=length(cells),replace=FALSE),simplify="matrix"),MARGIN=1,function(x) mean(x))
+  return(shuffled10)
+}
+CellsPropBC.rand <-t(apply(Yw,MARGIN=1,function(x) shuffle_cells(x)))
+colnames(Yw) <- colnames(Yw)
+#Correlation map before randomization: SOme cells clearly correlate
+#heatmap(cor(CellsPropBC2,method="pearson"),Colv=NA,Rowv=NA,col=viridis(12))
+#COrrelation map after randomization
+heatmap(cor(CellsPropBC.rand,method="pearson"),Colv=NA,Rowv=NA,col=viridis(12))
+# RUn PCA on randomized dataset
+scBCPCA.rand <- dudi.pca(CellsPropBC.rand,scale=FALSE,center=TRUE,nf=3, scannf=FALSE)
+randEigFig <- fviz_eig(scBCPCA.rand)
+randEigFig 
+Eigs3PC.rand <-sum(scBCPCA.rand$eig[1:3]/sum(scBCPCA.rand$eig))*100
+fviz_pca_biplot(scBCPCA.rand)
+#figRand <- plot_ly(x = scBCPCA.rand$li$Axis1, 
+#                y = scBCPCA.rand$li$Axis2,
+#                z = scBCPCA.rand$li$Axis3,
+#                type = "scatter3d", mode = "markers",
+#                marker = list(symbol = "triangle",size = 4),
+#                mode = "text")
+
+#figRand <- figRand %>% layout(scene = list(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"), zaxis = list(title = "PC3") ),
+#                        title = "PCA on cell proportions space of randomized BC tumors")
+#figRand
+
+scBC.CumEigs <-cumsum(newPCAw$eig/sum(newPCAw$eig)*100) # Eigen vlaues of PCA from real tumors (Yw abundance matrix as input)
+scBC.randomized.CumEigs <- cumsum(scBCPCA.rand$eig/sum(scBCPCA.rand$eig)*100)
+nbComp<-seq(1,9,1)
+par(mar=c(5,6,2,7.7), xpd=TRUE)#bg = 'aliceblue'
+plot(x=nbComp,y=scBC.CumEigs,pch=16,type="l",lwd=2,
+     ylim=c(0,100),xlab = "Number of Principal Components (PCs)",
+     ylab = "% of variance in cellular \ncomposition of tumors")
+points(nbComp,scBC.randomized.CumEigs,type="l",lwd=2,lty=6,pch=16,col="red")
+legend(x="topright",inset=c(-0.29,-0.13), xpd=TRUE, bty="n",
+       lty=c(1,6),lwd=c(2,2),col=c("black","red"),
+       legend=c("real \ntumors","\nshuffled \ntumors"))
+
+
+
+```
+
+
+Let's do the dissection using the scores in PCA and the coordinates of archetypes in the 3 PC space. 
+
+
+```{r dissection, echo = TRUE}
+# First, we compute the matrix B which gives the scores of cell types for each archetype
+## We need the score the cell types in each PC (c1 dataframe in dudi.pca)
+## Our input is a matrix of the coordinates of our archetypes in the PC space (3D space)
+# B is the result of a tranSformation of archetypes coordinates in 3PCa to 10-dimension cellular space B = archetypes3PC (dot) Scores3PC
+#B <- t(archCoordw)%*% t(as.matrix(newPCAw$c1))   #t(scale(t(as.matrix(newPCAw$c1)),center=-(newPCAw$cent),scale=FALSE)) %*% archCoordw 
+
+## Decentering the matrix to obtain percentages of cell types ==> the sum for each archetype must be =0
+#B0 <- apply(t(B), 2, function(x) x+newPCAw$cent)
+
+## Correction of the archetypes ==> remove the part of archetype 3 (made essentially of mesenchymal-like cells)
+#archWPCAcorr <- rbind(archWPCA[1,]/(1-archWPCA[3,]) , archWPCA[2,]/(1-archWPCA[3,]),archWPCA[4,]/(1-archWPCA[3,]))
+  # Project the archetypes corrected on the 10-cell types space (With decentering !!!)
+#Bcorr <- t(archCoordw[,c("arch1", "arch2","arch4")])%*% t(as.matrix(newPCAw$c1))
+#Bcorr0 <- apply(t(Bcorr), 2, function(x) x+newPCAw$cent)#B0[,2:3] #apply(t(Bcorr), 2, function(x) x+newPCAw$cent)
+## CHecking that the sum of cell types proportions in each archetype is equal to 0 :
+#colSums(Bcorr0) 
+# Now, we get the corrected proportions of cell Types for Wagner data after purification :
+#cellAbundCorrected <- t(as.matrix(Bcorr0) %*%as.matrix(archWPCAcorr))
+
+B0 <- compute_cells_prop_archetypes(archCoordw,eigenVectPCA =as.matrix(newPCAw$c1),meansPCA= newPCAw$cent)
+
+cellAbundCorrected <- remove_healthy_archetype(ArchCellsProp = B0,
+                                               ArchScoresPCA = archWPCA,
+                                               ArchToKeep = c("arch1", "arch2","arch4"),
+                                               ArchToRemove = "arch3",
+                                               eigenVectPCA = as.matrix(newPCAw$c1))
+
+#checkArch <- scale(t(B0),center=newPCAw$cent,scale=FALSE)%*%as.matrix(newPCAw$c1)
+#figNew3 <- figNew3 %>% add_trace(x=checkArch[,1],
+#                    y=checkArch[,2],
+#                    z=checkArch[,3],
+#                    type="scatter3d",mode="markers+text",
+#                    text = c("1", "2","3","4"),
+#                    showlegend=TRUE,
+#                    name= "ArchProj",
+#                    marker=list(color="yellow",symbol="star-diamond",size=10),
+#                                 inherit = FALSE)
+#figNew3
+```
+
+
+
+Now, after having done the *in silico dissection* of samples from Wagner tumors, we can see if the cells proportions are comparable across the datasets with another plot per dataset :
+
+```{r plotCellsProp2, echo=TRUE}
+
+CellsPropsk <- gather(as_tibble(Yk),key="cellType",value="proportion")%>%mutate(dataset="Keren")
+CellsPropsw <- gather(as_tibble(cellAbundCorrected),key="cellType",value="proportion")%>%mutate(dataset="Wagner")
+CellsPropswk <-bind_rows(CellsPropsk,CellsPropsw)
+plot2 <-ggplot(data=CellsPropswk,aes(x=dataset,y=proportion,color=dataset,group=dataset))+
+  geom_point()+
+  facet_wrap(~cellType)+
+  theme(axis.text.x=element_text(angle=45,hjust=0.8,vjust=0.5))+
+  labs(title = "Boxplot of proportions of cell types from tumors from Keren & Wagner datasets")+
+  xlab ("") + ylab("proportion")
+
+plot2
+
+```
+
+The cell types look quite comparable, It means that the purification of Wagner tumors yielded good results (with a little error rate ==> how can we compute this ?) Nonetheless, we observe higher proportions of the type Other Immune in Keren dataset.
+
+
+Now, let's do another PCA on Wagner cells space :
+
+```{r pcaPure, echo = FALSE}
+YwPure <- cellAbundCorrected
+BCPCAwPure <- dudi.pca(YwPure, scale=FALSE, scannf=FALSE, nf=3)
+fviz_eig(BCPCAwPure)
+fviz_pca_biplot(BCPCAwPure,col.var = 'indianred2',col.ind = 'steelblue2',invisible = 'ind', repel = TRUE)
+fviz_contrib(BCPCAwPure,choice = "var")
+
+#EpithelialCells2 <- as_tibble(Yw)$EpithelialCells
+figPure <- plot_ly(x = BCPCAwPure$li$Axis1, 
+                   y = BCPCAwPure$li$Axis2,
+                   type="scatter",
+                   mode="markers",
+                   name="Wagner dissected tumors",
+                   marker = list(color="orange3",symbol = "triangle",size = 6))
+figPure <- figPure %>% layout(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"),
+                        title = "PCA on reference cell proportions of Wagner's BC tumors")
+#PC1 <- as.matrix(BCPCAwPure$c1$CS1,ncol=1)
+#PC2 <- as.matrix(BCPCAwPure$c1$CS2,ncol=1)
+#Yk_proj1 <- (scale(Ybb,center=BCPCAwPure$cent,scale=FALSE) %*% PC1) 
+#Yk_proj2 <- (scale(Ybb,center=BCPCAwPure$cent,scale=FALSE)%*% PC2)
+#BBprojPure <- cbind(Yk_proj1,Yk_proj2)
+#BBprojPure<- as_tibble(BBprojPure) %>%dplyr::rename(dim1 = V1)%>%dplyr::rename(dim2=V2) 
+PC1 <- as.matrix(BCPCAwPure$c1$CS1,ncol=1)
+PC2 <- as.matrix(BCPCAwPure$c1$CS2,ncol=1)
+Ybb_proj <- (scale(Ybb,center=newPCAw$cent,scale=FALSE) %*% as.matrix(BCPCAwPure$c1,ncol=2))
+# Projection of hte building lbocks on PC wagner tcell abundance space
+Yk_proj1 <- (scale(Ybb,center=newPCAw$cent,scale=FALSE) %*% PC1) 
+Yk_proj2 <- (scale(Ybb,center=newPCAw$cent,scale=FALSE)%*% PC2) 
+figPure <- figPure%>%add_trace(x=as.vector(Ybb_proj[,1]),
+                                 y=as.vector(Ybb_proj[,2]),
+                                 type="scatter",
+                                 mode = "markers",
+                                 color=~bblocks,
+                                 showlegend=TRUE,
+                                 marker=list(symbol="star-diamond",color=c("red", "orange","royalblue2","green"),size=12),
+                                 inherit = FALSE)
+
+figPure
+
+```
+
+The biplot shows 3 main axes that would be the vertices of our 2D-simplex (a triangle):
+* Cancer cells component
+* Adaptive immunity component (Made in majority by CD4/CD8 T cells and some B cells)
+* Innate immunity component (Leukocytes including phagocytes such as monocytes and granulocytes)
+
+Projecting the building blocks in this 2D PC space shows some linear relationships between the tumors cells-abundance (macro view) and sites cells-abundance (micro-view). A possible explanation can be that in the experiment conducted by Wagner *et al.*, the samples are prepared as a cells suspension which discard every kind of local architecture. Thus, It is almost impossible to see the TLS structure in terms of only cell abundance. WHereas for Keren *et al.* experiment, mass cytometry was combined with MIBI (Multiplex Ion Beam imaging) with spatial data which allowed to identify some local structures with ecology-like sampling. 
+
+Also, the observed simplex shows the main functions of immunity that shape the immune response against proliferating cancer cells and thus shaping the fate of the tumor. 
+
+```{r figs2,echo=TRUE}
+ggplot(data=as_tibble(YwPure,rownames=NA), mapping=aes(x=Macrophages,y=`CD8-T`))+
+  geom_point()+
+  labs(x = "% macrophages",y="% CD8 T cells")
+ggplot(data=as_tibble(YwPure,rownames=NA), mapping=aes(x=`CD8-T`,y=EpithelialCells))+
+  geom_point()+
+  labs(x = "% CD8 T cells",y="% cancer cells")  
+#plot(x=Yw[,'CD8-T'],y=Yw[,"EpithelialCells"],pch=16,xlim=c(0,100))
+```
+
+Now let's project the proportions we have found on the PCA space from Keren dataset ==> this will allow us to see if cell abundance of tumors (macro architecture) is a linear combination of building blocks :
+
+```{r pcaNewKeren2, echo=FALSE}
+#newPCAk <- dudi.pca(Ybb, scale=FALSE, scannf=FALSE, nf=3)
+#fviz_eig(newPCAk)
+#fviz_pca_biplot(newPCAk,col.var = 'indianred2',col.ind = 'steelblue2',invisible = 'ind', repel = TRUE,max.overlaps =3)
+
+EpithelialCells2 <- as_tibble(Ybb)$EpithelialCells
+figNewk2 <- plot_ly(x =~newPCAk$li$Axis1, 
+                y =~newPCAk$li$Axis2,
+                z =~newPCAk$li$Axis3,
+                color=~bblocks,
+                showlegend=TRUE,
+                type = "scatter3d", mode = "markers",
+                marker = list(symbol = "triangle",size = 8),
+                mode = "text")
+PC1 <- as.matrix(newPCAk$c1$CS1,ncol=1)
+PC2 <- as.matrix(newPCAk$c1$CS2,ncol=1)
+PC3 <- as.matrix(newPCAk$c1$CS3,ncol=1)
+Yw_proj1p <- (scale(YwPure,center= newPCAk$cent,scale=FALSE)%*% PC1) 
+Yw_proj2p <- (scale(YwPure,center= newPCAk$cent,scale=FALSE)%*% PC2)
+Yw_proj3p <- (scale(YwPure,center= newPCAk$cent,scale=FALSE)%*% PC3)
+
+figNewk2 <- figNewk2 %>% add_trace(x=~as.vector(Yw_proj1p),
+                                 y=~as.vector(Yw_proj2p),
+                                 z=~as.vector(Yw_proj3p),
+                                 type="scatter3d",mode="markers",
+                                 showlegend=TRUE,
+                                 name="Wagner tumors",
+                                 marker=list(color="red",symbol="star-diamond",size=4),
+                                 inherit = FALSE)
+
+figNewk2 <- figNewk2 %>% layout(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"),
+                        title = "PCA on reference cell proportions of BBs from Keren TNBC tumors")
+figNewk2
+
+
+```
+
+
+
+```{r density1, eval=FALSE, include=FALSE}
+#Let's take a look at the density of B cells and CD4 T cells for Wagner dataset :
+WagnerCellAbund <- tibble::as_tibble(YwPure)
+colnames(YwPure)
+rownames(YwPure)
+head(WagnerCellAbund)
+WagnerCellAbund <- WagnerCellAbund %>%gather(key = "cellType",value="proportion")%>%filter(cellType=="B" | cellType=="CD4-T")
+ggplot(data=WagnerCellAbund,aes(x=proportion,after_stat(count),color=cellType,fill=cellType))+
+  geom_density()+
+  labs(title  = "Density plots of B and CD4 T cells (Wagner dataset)")
+```
+
+
+
+```{r density2, eval=FALSE, echo=FALSE}
+#Let's take a look at B cells and CD4 T in Keren dataset :
+KerenCellAbund <- tibble::as_tibble(Yk)
+head(KerenCellAbund)
+colnames(Yk)
+rownames(Yk)
+KerenCellAbund <- KerenCellAbund %>%gather(key = "cellType",value="proportion")%>%filter(cellType=="B" | cellType=="CD4-T")
+
+ggplot(data=KerenCellAbund,aes(x=proportion,after_stat(count),color=cellType,fill=cellType))+
+  geom_density()+
+  labs(title  = "Density plots of B and CD4 T cells (Keren dataset)")
+```
+
+Building block 1 does not explain a lot of the distribution of cells proportions in Wagner tumors. Maybe, TLSs are too "mixed" with the inflammatory building blocks or there are some interactions between them. Another thing to point out is the numerical instability of some algorithms used for our analyses : the Archetypal analysis induced some inaccurate results probably due to floating points (a common issue in programming) which yields sometimes to probabilities higher than 1, sum of proportions lower than 100 an even negative cell proportions.  We kept those results to see how analysis goes but that induces too much biases, so we have to find a solution to tweak this numerical instability that  leads to have some tumors with -4 % B cells (which is spurious).
+We should investigate on solution to get rid of those rounding errors 
+
+
+## PCA on both of the datasets : Mapping the building blocks to macro-data :
+
+We will perform a PCA on both of the datasets from Keren and Wagner paper. Here, we are going to find if the two datasets share the same archetypes. And if the archetypes are likely to be Building blocks, this would mean that they can explain the cellular composition of breast cancer tumors.
+
+```{r pcaTotal, echo=TRUE}
+
+YtotNew <- rbind(as.matrix(cellAbundCorrected),Yk)
+WagnerKerenPCA <- dudi.pca(Ytot, scale=FALSE,scannf=FALSE,nf=3)
+fviz_eig(WagnerKerenPCA)
+fviz_pca_biplot(WagnerKerenPCA)
+figkw <- plot_ly(x =WagnerKerenPCA$li$Axis1, 
+                y =WagnerKerenPCA$li$Axis2,
+                z =WagnerKerenPCA$li$Axis3,
+                #color=~bblocks,
+                showlegend=TRUE,
+                type = "scatter3d", mode = "markers",
+                marker = list(color="red",symbol = "triangle",size = 4),
+                mode = "text")
+PC1 <- as.matrix(WagnerKerenPCA$c1$CS1,ncol=1)
+PC2 <- as.matrix(WagnerKerenPCA$c1$CS2,ncol=1)
+PC3 <- as.matrix(WagnerKerenPCA$c1$CS3,ncol=1)
+Ybb_proj1 <- (scale(Ybb,center= WagnerKerenPCA$cent,scale=FALSE)%*% PC1) 
+Ybb_proj2 <- (scale(Ybb,center= WagnerKerenPCA$cent,scale=FALSE)%*% PC2)
+Ybb_proj3 <- (scale(Ybb,center= WagnerKerenPCA$cent,scale=FALSE)%*% PC3)
+
+figkw <- figkw %>% add_trace(x=~as.vector(Ybb_proj1),
+                                 y=~as.vector(Ybb_proj2),
+                                 z=~as.vector(Ybb_proj3),
+                                 color=~bblocks,
+                                 type="scatter3d",mode="markers",
+                                 showlegend=TRUE,
+                                 marker=list(symbol="star-diamond",size=10),
+                                 inherit = FALSE)
+
+figkw <- figkw %>% layout(scene=list(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"),zaxis=list(title="PC3")),
+                        title = "PCA on reference cell proportions on Keren and Wagner tumors")
+figkw
+
+```
+
+## **Take-home messages**
+
+* Bridging macro and micro architecture of BC tumors shows that the building blocks can possibly linearly explain macro architecture of BC tumors
+
+* Building block 1 (TLSs) is not a visible archetype from a macro view of tumors in cell abundance space ==> correlates with inflammatory block
+
+* Rounding errors might induce spurious and biologically wrong results
+
+* Different datasets are difficult to compare due to different markers/techniques used
+
+**The next step consists in doing a multi-linear regression in order to see if we can predict cell composition of tumors by a weighted sum (linear combination) of building blocks observed from a micro perspective**
+
+
+```{r saveData, echo=TRUE}
+WagnerKerenData <- list("MacroTumorsW"= YwPure,
+                        "BBs" = Ybb,
+                        "KerenTumors"= Yk,
+                        "WagnerPCA" = BCPCAwPure,
+                        "KerenbbPCA" = newPCAk,
+                        "DensityBBs" = rowSums(DataKeren),
+                        "MetadataWagner" = AgeResection2)
+saveRDS(WagnerKerenData,"MacroMicroData.rds")
+```
+
+

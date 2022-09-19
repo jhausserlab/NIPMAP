@@ -1,0 +1,775 @@
+---
+title: "Linear Regression on TMENs"
+author: "Anissa El Marrahi"
+date: "11/10/2021"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 4
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## **Introduction**
+
+## Preliminary Settings
+
+```{r libs, echo=TRUE}
+rm(list=ls())
+gc()
+library(tidyverse)
+library(ade4)
+library(factoextra)
+library(readxl)
+library(reshape2)
+library(plotly)
+#library(GGally)
+library(ggpubr)
+library(ggridges)
+
+```
+
+
+```{r settings, echo=TRUE}
+dirName <- dirname(rstudioapi::getSourceEditorContext()$path )
+setwd(dirName)#setwd(dir="/scratch/anissa.el/ImmuneStates/wagner_analysis")
+source("./scripts/R/Wagner_Keren_functions.r")
+MacroMicroData <- readRDS(file="./outputs/MacroMicroData.rds")
+SitesBBKeren <- readRDS(file = "./data/archetypesSitesKeren.rds")
+metadataWagner <- readRDS(file = "./data/metadataBC.rds")
+
+```
+
+
+```{r data1, echo=TRUE}
+Y <- as_tibble(MacroMicroData$CellAbundanceBC) 
+Ywagner <- Y%>%
+  filter(group == "wagner_macro2")%>%
+  dplyr::select(-(group))%>%
+  column_to_rownames(var = "sample_id")
+Ykeren <- Y%>%
+  filter(group=="keren_macro")%>%
+  dplyr::select(-(group))%>%
+  column_to_rownames(var="sample_id")
+TMENs <- Y%>%
+  filter(group == "keren_micro")%>%
+  dplyr::select(-(group))# %>%column_to_rownames(var = "sample_id")
+B <- t(as.matrix(TMENs%>%column_to_rownames(var = "sample_id")))
+```
+
+## **Microscopic constraints on Macroscopic cell abundance**
+
+```{r pairs, echo= TRUE}
+#Yw.pairs <- cbind(Ywagner%>%gather(key = "x.key",value = "x.val"),Ywagner%>%gather(key = "y.key",value = "y.val"))
+  #pivot_longer(cols= c(EndothelialCells,EpithelialCells,`Mesenchymal-like`,NK,B,DC,`CD4-T`,`CD8-T`,Macrophages,OtherImmune),
+  #                     names_to="x",values_to="val")
+#Ybb.pairs <- cbind(B%>%pivot_longer(cols= c(EndothelialCells,EpithelialCells,`Mesenchymal-like`,NK,B,DC,`CD4-T`,`CD8-T`,Macrophages,OtherImmune),
+#                       names_to="x.key",values_to="x.val"),
+#                   B%>%pivot_longer(cols= c(EndothelialCells,EpithelialCells,`Mesenchymal-like`,NK,B,DC,`CD4-T`,`CD8-T`,Macrophages,OtherImmune),
+#                       names_to="y.key",values_to="y.val"))
+#colNb <- length(unique(Yw.pairs$y.key))
+#Yw.pairsToPlot <- expand(Yw.pairs,x.key,y.key,x.val,y.val)%>%
+#  filter((x.key =="B"& y.key =="CD4-T")|(x.key=="EpithelialCells"& y.key == "Mesenchymal-like")|(x.key == "Macrophages" & y.key == "EndothelialCells"))
+ggplot(Ywagner, aes(x = `CD8-T`, y =`CD4-T`)) +
+      geom_point() + 
+      #geom_smooth(method = 'lm') +
+#      facet_wrap(x.key ~ y.key, ncol = colNb, scales = 'free', labeller = label_both)#+
+  geom_point(Y%>%filter(group == "keren_micro"),
+             mapping=aes(x= `CD8-T`, y=`CD4-T`,colour=sample_id),size=6)+
+  geom_polygon(data = Y%>%filter(group=="keren_micro"), fill="skyblue", alpha=0.3)+
+  scale_color_manual("sample_id",values = c("BB1" ="#D463DF",#pink
+                                "BB2" = "#FF0000", #redc()
+                                "BB3" = "#1E90FF", #dodgerblue
+                                "BB4" = "#000000"))+
+  xlab("CD4 T")+ylab("CD8 T")
+ggsave("./figs/CD8VSCD4_TMENs.pdf", height = 3, width = 4)
+
+```
+
+```{r plotPairs2, fig.width=10,fig.height=11,echo=TRUE}
+
+cell_types <- c("CD4-T","CD8-T","B","EpithelialCells")
+#Ywagner2 <- Ywagner%>%pivot_longer(cols=c(EndothelialCells,EpithelialCells,`Mesenchymal-like`,NK,B,DC,`CD4-T`,`CD8-T`,Macrophages,OtherImmune),
+#                              names_to="cell_type",values_to="proportion")%>%
+#  filter(cell_type%in%cell_types)%>%mutate(cell_type2=cell_type)%>%mutate(prop2=proportion)
+
+# Ywagner.cells <- cbind(Ywagner%>%pivot_longer(cols= c(EndothelialCells,EpithelialCells,`Mesenchymal-like`,NK,B,DC,`CD4-T`,`CD8-T`,Macrophages,OtherImmune),
+#                        names_to="x.key",values_to="x.val")%>%
+#   filter(x.key%in%cell_types),
+#                    Ywagner%>%pivot_longer(cols= c(EndothelialCells,EpithelialCells,`Mesenchymal-like`,NK,B,DC,`CD4-T`,`CD8-T`,Macrophages,OtherImmune),
+#                        names_to="y.key",values_to="y.val")%>%
+#   filter(y.key%in%cell_types))
+# 
+# colNb <- length(unique(Ywagner.cells$y.key))
+# 
+# Ywagner.cells <- expand(Ywagner.cells,x.key,y.key,x.val,y.val)
+# ggplot(Ywagner.cells)+
+#   geom_point(aes(x=x.val,y=y.val))+
+#   facet_grid(x.key ~ y.key, scales = 'free', labeller = label_both)#, ncol = colNb
+
+
+pairs(rbind(Ywagner[,cell_types],t(B)[,cell_types]),
+      upper.panel = NULL,
+      pch = rep(c(19,19),c(nrow(Ywagner), nrow(B))),
+      col = c(rep("steelblue",nrow(Ywagner)),c("#D463DF","#FF0000","#1E90FF","#000000")),
+      cex = rep(c(1.5,2.5),c(nrow(Ywagner), nrow(B))))
+
+
+## Compute the error (unit: %) in cells % due to mass cytometry 
+# 1/ (average total nb of live cells in one tumor sample)
+NB_PATIENTS <- 144
+LIVE_CELLS_PROP <- 0.85
+TOTAL_NB_CELLS <- 26000000
+err <- round((1/((LIVE_CELLS_PROP*TOTAL_NB_CELLS)/NB_PATIENTS))*100,digits=7)
+Y.log10 <- log10(Ywagner+err)
+B.log10 <- log10(t(B) + 100 / (90^2))
+ 
+# ## Log10 functions of percentages:
+# ct.x <- "CD4-T"
+# ct.y <- "CD8-T"
+# 
+# values <- seq(B.log10[1,ct.x],B.log10[2,ct.x],0.1)
+# 
+# log10cells <- function(values){
+#   
+# }
+  
+
+pairs(rbind(Y.log10[,cell_types],B.log10[,cell_types]),
+      upper.panel = NULL,
+      pch = rep(c(19,19),c(nrow(Ywagner), nrow(B))),
+      col = c(rep("steelblue",nrow(Ywagner)),c("#D463DF","#FF0000","#1E90FF","#000000")),
+      cex = rep(c(1.5,2.5),c(nrow(Ywagner), nrow(B))))
+
+
+
+  
+
+```
+
+## **Linear Regression**
+
+**Parameters of the linear regression:**
+* **Variable to explain: Y matrix, macroscopic cellular abundance of tumors**
+* **Explanatory variable: B matrix, microscopic cellular abundance of 4 TMENs (TLS, Inflammatory nich, cancer and fibrotic niche)**
+
+### **Linear regression with no interaction** 
+
+```{r lm, echo=TRUE}
+#Y.pourri <- Y%>%filter(group == "wagner_macro1")%>%dplyr::select(-(group))%>%column_to_rownames(var = "sample_id")
+res.lm <- linear_regression(Y = as.matrix(Ywagner), B = B)
+Omega <- t(res.lm$OmegaT)
+RsqValues <- as_tibble(res.lm$R2_values,rownames=NA)%>%mutate(patients="BC patients")
+#OmegaT <- solve(t(B) %*% B) %*% t(B) %*% t(Ywagner)
+
+```
+
+**Assessing the linear regression with R-square values:**
+
+```{r r2, echo= TRUE}
+
+violinPlot_R_square(RsqValues,savePlot=FALSE,nameToSave=NA)
+
+```
+
+**Plot the TMENs weights in 3D space: how are the tumors organized in this space ?**
+
+
+```{r omegaPlot, echo=TRUE}
+
+fig1 <- plot_ly(x = Omega[,"BB1"],
+                y = Omega[,"BB2"],
+                z = Omega[,"BB3"],
+                #color=~Omega[,"BB4"],
+                type = "scatter3d",
+                name = "macroscopic tumors",
+                mode = "markers",
+                #inherit=FALSE,
+                showlegend = TRUE,
+                marker = list(size =5))#color = "#6495ED",
+planeCol <- rgb(0, 0, 255, max = 255, alpha = 125, names = "blue20")
+
+fig1 <- fig1%>%add_mesh(x = c(1,0,0),
+                      y = c(0,1,0),
+                      z = c(0,0,1),
+                      name = "BB plane",
+                      facecolor = planeCol,
+                      opacity = 0.3,
+                      inherit = FALSE,
+                      showlegend = TRUE)
+
+fig1 <- fig1%>%layout(scene = list(xaxis = list(title = "BB1"), 
+                                  yaxis = list(title = "BB2"), 
+                                  zaxis = list(title = "BB3") ),
+                       title = "BC tumors from Wagner dataset fitted in the Building Blocks space")
+fig1
+
+```
+
+
+
+#### Comparing with micro data of Keren dataset 
+
+```{r kerenlm, echo=TRUE}
+lmKeren <- linear_regression(Y = as.matrix(Ykeren), B = B)
+Omega.keren <- t(lmKeren$OmegaT)
+R2val.keren <- as_tibble(lmKeren$R2_values,rownames=NA)%>%
+  mutate(patients="BC patients")
+
+violinPlot_R_square(R2 = R2val.keren,savePlot = FALSE,nameToSave = NA)
+
+```
+
+
+
+```{r plotlm2}
+fig2 <- fig1%>%add_trace(x = Omega.keren[,"BB1"],
+                         y = Omega.keren[,"BB2"],
+                         z = Omega.keren[,"BB3"],
+                         inherit=FALSE,
+                         type="scatter3d",
+                         name="microscopic data",
+                         showlegend=TRUE,
+                         mode="markers",
+                         marker=list(color="#B22222",size=5))
+fig2
+```
+
+
+
+#### **Interaction between inflammatory block and TLS**
+
+
+### **Linear regression with interaction BB1:BB2** 
+
+```{r linCoeff12, echo=TRUE}
+OmegaInflTLS <- Omega[,c("BB1","BB2")]
+#Omega<-as_tibble(Omega,rownames=NA)
+pcaBB1BB2 <-dudi.pca(OmegaInflTLS,center=FALSE,scale=FALSE,scannf=FALSE, nf=2)
+fviz_eig(pcaBB1BB2)
+fviz_pca_biplot(pcaBB1BB2,col.var = 'indianred2',col.ind = 'steelblue2', repel = TRUE)
+
+plotbb12 <- plot(x = log(pcaBB1BB2$c1$CS1%*%t(Omega[,"BB1"])),
+                 y=log(pcaBB1BB2$c1$CS1%*%t(Omega[,"BB2"])),
+                 xlab="log(TLS)",
+                 ylab= "log(Inflamatory block)",
+                 main= "log-weights of TLS and inflammatory block across BC patients")
+plotbb12
+coeffBB1BB2 <- pcaBB1BB2$co$Comp1 #/(sum(pcaBB1BB2$co$Comp1))
+#Create new TMEN: Immune TMEN(BB1BB2) is a combination of TLS and Inflammatory block
+BB1BB2 <- (coeffBB1BB2[1]*B[,1] + coeffBB1BB2[2]*B[,2])/(coeffBB1BB2[1]+coeffBB1BB2[2])
+# New matrix of TMENs cell abundance
+B2<- cbind(B,BB1BB2)
+B2 <- B2[,c("BB1BB2","BB3","BB4")]
+#colnames(Omega)[5] <- "BB1BB2"
+```
+
+
+
+```{r plotBB1BB2, echo = TRUE}
+#equation1 <- lm(log10(Omega[,"BB2"])~log10(Omega[,"BB1"]))
+log10bb1bb2 <- log10(Omega[,c("BB1", "BB2")]) %>% as_tibble %>% drop_na()
+firstEV <- eigen(cov(log10bb1bb2))$vectors[,1]
+slope.log <- firstEV[2]/firstEV[1]
+intcpt.log <- mean(log10bb1bb2 %>% pull(BB2)) - mean(log10bb1bb2 %>% pull(BB1))
+cov.xx <- cov(log10bb1bb2)["BB1","BB1"]
+cov.yy <- cov(log10bb1bb2)["BB2","BB2"]
+cov.xy <- cov(log10bb1bb2)["BB1","BB2"]
+G <- nrow(log10bb1bb2)
+
+# f <-function(alpha){
+#   ((1+alpha^2)^((G-3)/2))/((cov.yy+cov.xx*alpha^2 -2*alpha*cov.xy)^((G-1)/2))
+# }
+# 
+# integral.f <- integrate(f,lower=0.5,upper=2,subdivisions = 10^5)
+# alpha.val <- seq(0.5,2,10^-6)
+# #integrate(f,lower=0,upper=0.)
+# #format(round(1.1234, 2), nsmall = 2)
+# low.CI <- signif((0.005)*integrate(f,lower=0.5,upper=2,subdivisions = 10^6)$value,digits=5)
+# high.CI <- signif((0.995)*integrate(f,lower=0.5,upper=2,subdivisions = 10^6)$value,digits=5)
+#  
+# funct1 <- as_tibble(cbind(alpha.val,f(alpha.val)))
+# alpha1 <- funct1[funct1$V2==max(funct1$V2),]$alpha.val
+# 
+# if(!exists("./outputs/alphaValuesCI99.rds")){
+#   for(i in 1:length(alpha.val)){
+#   #print(integrate(f,lower=0,upper=alpha.val[i])$value)
+#   if(signif(integrate(f,lower = 0.5,upper = alpha.val[i])$value,5)==low.CI){
+#     print("yes")
+#     low.alpha <- alpha.val[i]
+#     #print(low.alpha)
+#     next
+#     }
+#   if(signif(integrate(f,lower = 0.5,upper = alpha.val[i])$value,5)==high.CI){
+#     #print("yass queen!")
+#     high.alpha <- alpha.val[i]
+#     break
+#   }
+#   #saveRDS(list("alpha.low99"=low.alpha,"alpha.up99"=high.alpha),"./outputs/alphaValuesCI99.rds")
+# }
+# }else{
+#   CI99.alpha <- readRDS("./outputs/alphaValuesCI99.rds")
+#   alpha.low <- CI99.alpha$alpha.low99
+#   alpha.high <- CI99.alpha$alpha.up99}
+# 
+# 
+# # i<-1
+# # diff1<-1
+# # while(diff1!=0){
+# #   diff1 <- abs(low.CI-signif(integrate(f,lower = 0.5,upper = alpha.val[i])$value,5))
+# #   alpha.test1 <- alpha.val[i]
+# #   i<- i+1
+# # }
+# 
+# # plot(x = alpha.val,y = f(alpha.val),
+# #      pch = 19,cex = 0.2,
+# #      xlab = "alpha",ylab = "posterior probability (alpha)",
+# #      main = "distribution of posterior probability of alpha")
+# # abline(v=as.numeric(funct1[funct1$V2 ==max(f(alpha.val)),"alpha.val"]),col="red")
+# # abline(v=as.numeric(funct1[funct1$alpha.val ==high.alpha,"alpha.val"]),col="dodgerblue")
+# # abline(v=as.numeric(funct1[funct1$alpha.val ==low.alpha,"alpha.val"]),col="dodgerblue")
+# #polygon(list(x=c(as.numeric(funct1[funct1$alpha.val ==low.alpha,"alpha.val"]),as.numeric(funct1[funct1$alpha.val ==high.alpha,"alpha.val"])),
+# #        y=c(f(low.alpha),f(high.alpha))),
+# #        col="dodgerblue")
+# 
+# #a.eq1 <- coef(equation1)[1]
+# funct1<- funct1%>%dplyr::rename(y = V2)
+# #b.eq1 <- coef(equation1)[2]
+# ggplot(data=funct1,aes(x=alpha.val,y=y))+
+#   geom_point(size=0.2)+
+#   geom_line(aes(x=low.alpha,y=y))+
+#   annotate("text",x=low.alpha-0.5,y=low.CI-10^4,label=str(low.alpha))+
+#   geom_line(aes(x=high.alpha,y=y))+
+#   annotate("text",x=high.alpha+0.5,y=low.CI-10^4,label=str(high.alpha))+
+# #  geom_area(data=funct1[funct1$alpha.val>=low.alpha & funct1$alpha.val<=high.alpha,],fill="mediumseagreen")+
+#   xlab("alpha")+ylab("posterior probability density")
+
+#PC1.TMENs.log10 <- data.frame(PC1log10.x=as.vector(log10(pcaBB1BB2$c1$CS1%*%t(Omega[,"BB1"]))),
+#                              PC1log10.y=as.vector(log10(pcaBB1BB2$c1$CS1%*%t(Omega[,"BB2"]))))
+
+#library(ecoflux)
+library(sfsmisc)
+#scientific_10x(corTest.macro$p.value, digits = 1)
+
+text.eq1 <- paste0("log10(y) = ",round(slope.log,3),"log10(x) + ",round(intcpt.log,3))
+corTest.macro <- cor.test(x=log10(as.data.frame(Omega))%>%drop_na()%>%dplyr::select(BB1)%>%unlist(),
+                                       y=log10(as.data.frame(Omega))%>%drop_na()%>%dplyr::select(BB2)%>%unlist(),method="pearson")
+#bquote(italic(10)^2== .(r2))
+
+r1 <- as.numeric(round(corTest.macro$estimate,2))
+str1 <- c("R = "," p = "," \n")
+value2 <- pretty10exp(corTest.macro$p.value,digits=3)[[1]]
+text.macro <- as.expression(bquote(.(str1[1]) ~ .(r1) ~  .(str1[2]) ~ .(value2) * .(str1[3])))#formatC(corTest.macro$p.value, format = "e", digits = 2)
+corTest.micro <- cor.test(x=log10(as.data.frame(Omega.keren))%>%drop_na()%>%dplyr::select(BB1)%>%unlist(),
+                                     y=log10(as.data.frame(Omega.keren))%>%drop_na()%>%dplyr::select(BB2)%>%unlist(),method="pearson")
+
+text.micro <- as.expression(bquote(.(str1[3]) ~ .(str1[1]) ~ .(round(corTest.micro$estimate,2)) ~
+                     .(str1[2]) ~ .(round(corTest.micro$p.value,3))))
+text2 <- c(text.macro,text.micro)
+intercept_b <-mean(as.vector(log10(as.data.frame(Omega))%>%drop_na()%>%dplyr::select(BB2)%>%unlist()))-mean(as.vector(log10(as.data.frame(Omega))%>%drop_na()%>%dplyr::select(BB1)%>%unlist()))
+# #text.eq1
+#annotate("text",x=0.0039, y=0.5,label = text.eq1,color="darkorange1")+
+#stat_smooth()+
+ggplot(data = as_tibble(Omega,rownames = NA),aes(x = BB1 ,y = BB2,color = "Macroscopic data \n  (Wagner et al)"))+
+  geom_point()+
+  scale_x_continuous(trans = 'log10') + scale_y_continuous(trans = 'log10')+
+  #stat_cor(method="pearson",label.x = log10(.060), label.y =log10(0.01) ,cor.coef.name = c("R"),color= "darkorange1")+
+  annotate("text",x=.075, y=0.01,label = text.macro,color="darkorange1")+#annotate("text",x=0.0039, y=0.5,label = text.eq1,color="darkorange1")+
+  geom_abline(slope=1, intercept=intercept_b,color="darkorange1",linetype="dashed")+
+  geom_point(data = as_tibble(Omega.keren,rownames=NA),aes(x = BB1,y = BB2,color = "Microscopic data\n (Keren et al)"))+
+  #stat_cor(data = as_tibble(Omega.keren,rownames=NA),aes(x = BB1,y = BB2),method="pearson",label.x = log10(.09), label.y = log10(.1),cor.coef.name = c("R"),color="cornflowerblue")+
+  annotate(geom="text",x = .09, y = .005 ,label=text.micro,color="cornflowerblue")+
+  theme(legend.title=element_blank())+
+  scale_color_manual(values=c("Microscopic data\n (Keren et al)"="cornflowerblue","Macroscopic data \n  (Wagner et al)"= "darkorange1"))+
+    xlab("TLS niche weight (log10)")+ylab("Inflammatory niche weight (log10)")+
+  labs(color="Tumors") 
+ggsave("./figs/TMEN1VS2_WK.pdf", height = 3, width = 5)
+
+
+```
+
+
+Now, let's plot the coefficients found in the linear regression (PCA) of BB2 over BB1 (alpha is the coefficient that determines the linearity between BB2 and BB1. If alpha ==1,  BB2/BB1):
+
+```{r newBB1BB2, fig.width=10,fig.height=11,echo=TRUE}
+coefB2 = 10^intcpt.log / (10^intcpt.log + 1)
+coefB1 = 1 / (10^intcpt.log + 1)
+
+## below is correct assuming s
+#coefB2 <-1-(1/10^(intcpt.log)) #firstEV[1]/(firstEV[1]+firstEV[2])
+#coefB1 <- 1/10^(intcpt.log)#firstEV[2]/(firstEV[1]+firstEV[2])
+#B.log10 <- B.log10 %>%add_row(coefB1*BB1 + coefB2*BB2)
+#B.log10 <-t(as.data.frame(t(B.log10))%>%mutate(BB1BB2 =coefB1*BB1 + coefB2*BB2))
+B.log10 <- log10(t(as.data.frame(t(10^B.log10))%>%mutate(BB1BB2 =coefB1*BB1 + coefB2*BB2)) )
+pairs(rbind(Y.log10[,cell_types],B.log10[c("BB1BB2","BB3","BB4"),cell_types]),
+      upper.panel = NULL,
+      pch = rep(c(19,19),c(nrow(Ywagner), nrow(B))),
+      col = c(rep("steelblue",nrow(Ywagner)),c("#6C18A7","#1E90FF","#000000")),#c("#D463DF","#FF0000","#1E90FF","#000000")
+      cex = rep(c(1.5,2.5),c(nrow(Ywagner), nrow(B))))
+
+
+```
+
+
+```{r plotBoundaries,fig.width=12,fig.height=10,echo=TRUE}
+# C1<- "B" #"CD4-T"
+# C2 <- "EpithelialCells" # "CD8-T"
+# TMEN1 <- "BB3"
+# TMEN2 <- "BB1BB2"
+colsTMENs <- list("BB1"="#D463DF",
+                  "BB2"="#FF0000",#"BB1BB2" = "#6C18A7",
+                  "BB3" = "#1E90FF",
+                  "BB4" = "#000000")
+
+library(MASS)
+
+# x2 <- seq(B.log10[TMEN1,C1],B.log10[TMEN2,C1],.1)
+# f2 <- function(x){
+#   log10(((10^x -B["B","BB1"])/(B["B","BB3"]-B["B","BB1"]))*(B["EpithelialCells","BB3"]-B["EpithelialCells","BB1"])+B["EpithelialCells","BB1"])}
+
+Kerr = 100 / (90^2) # Error from Keren dataset
+B3 <- as.data.frame(B+Kerr)#%>%mutate(BB1BB2 =((coefB1*BB1)+(BB2*coefB2)))%>%dplyr::select(-c(BB1,BB2))
+
+
+plot_tmens_boundaries <- function(B=B3,OmegaMatrix = Omega,Blog10=B.log10,Ylog10=Y.log10,cellsLabels = c("CD4-T","B"),colors.TMENs = colsTMENs){
+  par(mfrow = c(1, 1))#par(mfrow = c(2, 3)) # grid of plots for 6 plots 
+  par(oma = c(4, 4, 0, 0)) # make room (i.e. the 4's) for the overall x and y axis titles
+  #par(mar = c(2, 2, 1, 1)) # make the plots be closer together
+  
+  # Create pairs of cell labels: our xy axes
+  # Create pairs of TMENs: plot a line between them (with the function f)
+  combs.cells <- combn(cellsLabels,2)
+  comb.tmens <- combn(names(colors.TMENs),2)
+  maxWeightsTMENS <- right_join(as.data.frame(OmegaMatrix)%>%rownames_to_column(var="sample_id"),
+                                as.data.frame(Ylog10)%>%drop_na()%>%rownames_to_column(var="sample_id"),
+                                by="sample_id")%>%
+    filter(BB1 == max(BB1) | BB2 ==max(BB2) | BB3 ==max(BB3) | BB4 == max(BB4))%>%group_by(sample_id)%>%
+    mutate(MaxWeight = ifelse(max(c(BB1,BB2,BB3,BB4))==BB1,"BB1",
+                              ifelse(max(c(BB1,BB2,BB3,BB4))==BB2,"BB2",
+                                     ifelse(max(c(BB1,BB2,BB3,BB4))==BB3,"BB3","BB4"))))%>%
+    column_to_rownames(var="MaxWeight")
+  #print(f2(x.vals,coordX,coordY,b1,b2))
+  for(j in 1:ncol(combs.cells)){
+    coordX <- combs.cells[1,j] # Define the x-y axes as combinations of cell labels
+    coordY <- combs.cells[2,j]
+    
+    
+    #Function:  TMEN1 = f(TMEN2) in log10 scale
+    f2 <- function(x,coordX,coordY,b1,b2){
+      log10(((10^x -B[coordX,b2])/(B[coordX,b1]-B[coordX,b2]))*(B[coordY,b1]-B[coordY,b2])+B[coordY,b2])}
+    
+    #FUnction for max weights TMENmax1 = g(TMENmax1)
+    g2 <- function(x,coordX,coordY,b1,b2){
+      log10(((10^x -maxWeightsTMENS[b2,coordX])/(maxWeightsTMENS[b1,coordX]-maxWeightsTMENS[b2,coordX]))*(maxWeightsTMENS[b1,coordY]-maxWeightsTMENS[b2,coordY])+maxWeightsTMENS[b2,coordY])}
+    
+    #X boundaries
+    #Xmin <- round(min(as.data.frame(rbind(Ylog10,Blog10)[,coordX])%>%drop_na()),3)
+    #Xmax <- round(max(as.data.frame(rbind(Ylog10,Blog10)[,coordX])%>%drop_na()),3)
+    Xmin <- min(as.data.frame(rbind(Ylog10,Blog10)[,coordX])%>%drop_na())
+    Xmax <- max(as.data.frame(rbind(Ylog10,Blog10)[,coordX])%>%drop_na())
+    
+    #Y boundaries 
+    #Ymin <- round(min(as.data.frame(rbind(Ylog10,Blog10)[,coordY])%>%drop_na()),3)
+    #Ymax <- round(max(as.data.frame(rbind(Ylog10,Blog10)[,coordY])%>%drop_na()),3)
+    Ymin <- min(as.data.frame(rbind(Ylog10,Blog10)[,coordY])%>%drop_na())
+    Ymax <- max(as.data.frame(rbind(Ylog10,Blog10)[,coordY])%>%drop_na())
+    newCoordX <- set_cells_names(cell_types[cell_types==coordX])
+    newCoordY <- set_cells_names(cell_types[cell_types==coordY])
+    #Plot macroscopic tumor samples
+    plot(x = Ylog10[,coordX],y = Ylog10[,coordY],pch = 19,col = "steelblue",
+         xlim = c(Xmin,Xmax),
+         ylim = c(Ymin,Ymax),
+         xlab = paste("% of ",newCoordX,"(log10)"),ylab = paste("% of ",newCoordY,"(log10)"))
+    #xVect <- unlist(as.data.frame(Ylog10%>%drop_na())[,coordX])
+    #yVect <- unlist(as.data.frame(Ylog10%>%drop_na())[,coordY])
+    #biv_kde <- MASS::kde2d(xVect, yVect)
+    #contour(biv_kde,levels=c(0.05, 0.5), add = T)
+    #axis(1,labels=coordX)
+    #axis(2,labels=coordY)
+    #Plot TMENs
+    points(x = Blog10[names(colors.TMENs),coordX],y = Blog10[names(colors.TMENs),coordY],
+           col = unlist(colors.TMENs),pch = 19,cex = 2)
+    #Plot max weigths of TMENs in linear regression
+    #points(x= maxWeightsTMENS[,coordX],y = maxWeightsTMENS[,coordY],col="red",pch=9,cex=2)
+    
+    #Plot line between two TMENs
+    for(k in 1:ncol(comb.tmens)){
+      TMEN1 <- comb.tmens[1,k]
+      TMEN2 <- comb.tmens [2,k]
+      ## If both points have th same x value, then draw a straight line between them:
+      #if(round(Blog10[TMEN1,coordX],3)==round(Blog10[TMEN2,coordX],3)){
+      if ( abs(Blog10[TMEN1,coordX] - Blog10[TMEN2,coordX]) < .05 ) {
+        #print("OK")
+        points(x = c(Blog10[TMEN1,coordX],Blog10[TMEN1,coordX]),
+               y = c(Blog10[TMEN1,coordY],Blog10[TMEN2,coordY]),
+           type = "l",lty = 1)
+      }
+      else{
+        if(Blog10[TMEN1,coordX]>Blog10[TMEN2,coordX] ){ #| maxWeightsTMENS[TMEN1,coordX]>maxWeightsTMENS[TMEN2,coordX]){#
+          #print("here")
+          old.TMEN1 <- TMEN1
+          TMEN1 <- TMEN2 
+          TMEN2 <- old.TMEN1
+        }
+        x.vals <- seq(from=Blog10[TMEN1,coordX],
+                      to=Blog10[TMEN2,coordX],
+                      len=100)
+        # x.vals2 <- seq(from=maxWeightsTMENS[TMEN1,coordX],
+        #               to=maxWeightsTMENS[TMEN2,coordX],
+        #               len=100)
+        # if(is.na(f2(x.vals,coordX,coordY,b1=TMEN1,b2=TMEN2))){
+        #   print("STOP!")
+        #   print(TMEN1)
+        #   print(TMEN2)
+        #   print(coordX)
+        #   print(coordY)}
+        points(x = x.vals,y = f2(x.vals,coordX,coordY,b1=TMEN1,b2=TMEN2),
+             type = "l",lty = 1)
+        # points(x = x.vals2,y = g2(x.vals2,coordX,coordY,b1=TMEN1,b2=TMEN2),
+        #      type = "l",lty = 2,col="red")
+      }
+    }
+  }
+ 
+
+} 
+
+
+pdf("./figs/plotTMENsBound_CD4vsB.pdf", height=6, width=7)
+plot_tmens_boundaries(B = B3,cellsLabels=c("CD4-T","B"),colors.TMENs = colsTMENs)#plot_tmens_boundaries(coordX=C1,coordY=C2,b1=TMEN1,b2=TMEN2)
+dev.off()
+#plot_tmens_boundaries(coordX=C1,coordY=C2,b1="BB4",b2="BB1")
+#plot_tmens_boundaries(coordX=C1,coordY=C2,b1="BB3",b2="BB2")
+
+```
+
+
+
+**Plot of TMENs weights with "interaction" between TLS and Inflammatory TMEN**
+
+```{r lm_bb1bb2,echo=TRUE}
+lm.inter <- linear_regression(Y = Ywagner,B=as.matrix(as.data.frame(B+Kerr)%>%mutate(BB1BB2 =((coefB1*BB1)+(BB2*coefB2)))%>%dplyr::select(-c(BB1,BB2))))
+Omega.inter <-t(lm.inter$OmegaT) 
+R2val.inter <- as_tibble(lm.inter$R2,rownames="patient_id")%>%mutate(patients="128 patients")%>%column_to_rownames(var="patient_id")
+#Plot distribution of R square values
+violinPlot_R_square(R2 = R2val.inter,savePlot=TRUE,nameToSave="VlnPlotR2_lm")
+```
+
+
+
+```{r fig3,echo=TRUE}
+
+metadataBC.wagner <- metadataWagner%>%filter(`Health Status` =="Breast cancer patient")%>%
+  mutate(Patient =paste0("T_",Patient))
+
+left_join(Omega.inter%>%as_tibble(rownames=NA)%>%rownames_to_column(var="Patient"),metadataBC.wagner,by="Patient")
+## Plot Omega values with coupling with TLS and Inflammatory block 
+fig3 <- plot_ly(x = Omega.inter[,"BB1BB2"],
+                y = Omega.inter[,"BB3"],
+                z = Omega.inter[,"BB4"],
+                #color=~Omega[,"BB4"],
+                type = "scatter3d",
+                name = "macroscopic tumors",
+                mode = "markers",
+                #inherit=FALSE,
+                showlegend = TRUE,
+                marker = list(size = 5))#color = "#6495ED",
+planeCol <- rgb(0, 0, 255, max = 255, alpha = 125, names = "blue20")
+
+fig3 <- fig3%>%add_mesh(x = c(1,0,0), #c(max(Omega.inter[,"BB1BB2"]),0,0),
+                        y = c(0,1,0), #c(0,max(Omega.inter[,"BB3"]),0),
+                        z = c(0,0,1), #c(0,0,max(Omega.inter[,"BB4"])), 
+                        name = "BB plane",
+                        facecolor = planeCol,
+                        opacity = 0.3,
+                        inherit = FALSE,
+                        showlegend = TRUE)
+
+fig3 <- fig3%>%layout(scene = list(xaxis = list(title = "TLS-Inflammatory TMEN"), 
+                                   yaxis = list(title = "cancer"), 
+                                   zaxis = list(title = "fibrotic")),
+                       title = "BC tumors from Wagner dataset fitted in TMENs space")
+#pdf(file = "./figs/testPDF.pdf", dpi)
+fig3
+#dev.off()
+
+```
+
+### **Assessment of linear regression: residuals and predicted values**
+
+
+```{r obsVSpred,echo=TRUE}
+
+# plot_obs_VS_pred_patient(Y = Ywagner, B = B2,Omega = Omega.inter, 
+#                           R2 = R2val.inter,error = 0,log10Scale = F,#error=err
+#                           measure = "mean",savePlot = FALSE,namePlot = "ObsVSPred_lm2")
+plot_obs_VS_pred_patient <- function(Y, B, R2, Omega,error = 0,log10Scale = FALSE,savePlot = FALSE,namePlot = " "){
+  Y <- Y + error
+  B <- B + error
+  R2 <- R2 %>%rownames_to_column(var = "names")
+  print(head(R2))
+  # if(measure =="mean"){
+  #   meanR2 <- mean(R2$value)
+  #   
+  #   #Create subset of R2
+  #   #Select the patient whose R2 val is the closest to mean(R2) (its name + value)
+  #   avPatient <- R2[which(abs(R2$value-meanR2)==min(abs(R2$value-meanR2)))[1],]
+  # }
+  # else if(measure=="median"){
+  #   medianR2 <- median(R2$value)
+  #   #Create subset of R2
+  #   #Select the patient whose R2 val is the closest to median(R2) (its name + value)
+  #   avPatient <- R2[which(abs(R2$value-medianR2)==min(abs(R2$value-medianR2)))[1],]
+  # }
+  colnames(Y) <- colnames(Y)%>%set_cells_names()#change cell labels for plot
+  rownames(B) <- rownames(B)%>%set_cells_names()#change cell labels for plot
+  print(Y)
+  plots <- list()
+  #names(plots) <- rownames(Y)
+  names_patients <- rownames(Y)
+  #for (i in rownames(Y)){
+  plots <- lapply(names_patients, function(x){
+    avPatient <- R2[x, ] #R2[which(R2$names == x),value]
+    #print(avPatient)
+    #print(x)
+    namePlot=x
+    #print(t(B%*%t(Omega)[,avPatient$names]))
+    #print(Y[x,])
+    #print(B)
+    #Create df of observed cell% (Y) and predicted cell % (B%*%t(Omega))
+    ObsVSPred <- data.frame(Observed = as.vector(t(Y[x,])),#t(Y)[,avPatient$names],
+                             Predicted=B%*%t(Omega)[,x])#t(B%*%t(Omega)[,avPatient$names]))
+    print(ObsVSPred)
+    #ObsVSPred <- data.frame(Observed = t(Y),
+    #                        Predicted=(B%*%t(Omega)))
+    ObsVSPred<- as_tibble(ObsVSPred,rownames=NA)%>%
+      rownames_to_column(var="cell_type")%>%
+      mutate(cell_type = set_cells_names(cell_type))# set same cell labels
+
+    #Scatterplot of cell % (Observed VS predicted)
+    
+    r2 <- round(as.numeric(avPatient$value),2)
+    label1 <- as.expression(bquote(italic(r)^2== .(r2)))
+    print(label1)
+    p <- ggplot(data = ObsVSPred,aes(x = Predicted,y = Observed))+
+      geom_point()+
+      ggrepel::geom_text_repel(aes(label = cell_type),max.overlaps=13)+
+      geom_abline(slope = 1, intercept = 0) + 
+      xlab("% predicted tumor cellular composition")+
+      ylab("% observed tumor cellular composition ")+
+    # if(log10Scale==TRUE){
+    #   plot <- plot + scale_x_continuous(trans='log10') +
+    #     scale_y_continuous(trans='log10')
+    #   #xlab("log10(%) predicted tumor cellular composition") +
+    #   #ylab("log10(%) observed tumor cellular composition ")
+    # }
+    #stat_cor(method = "pearson", label.x = 3, label.y = 35)+
+    annotate("text",x =5,y=40,label=avPatient$names)+
+    annotate("text", x = 5, y = 33, label = label1)#expression(paste(italic(R)^2, " = ", format(r2, digits = 2)))
+    #plot
+    
+    ## Saving fig in pdf file in figs directory
+    if(savePlot==TRUE){
+      figName  <- paste0("./figs/",namePlot,".pdf") #add the name of the measure (mean or median) in the name of the file
+       ggsave(figName,p, height = 3, width = 4)
+     }     
+  })
+ names(plots) <- names_patients
+  return(plots)
+}
+
+plots <-plot_obs_VS_pred_patient(Y = Ywagner, B = B2,Omega = Omega.inter, 
+                          R2 = R2val.inter,error = 0, savePlot=TRUE,log10Scale = F)
+#plots
+# for (i in names(plots)){
+#   ggsave(paste0("./figs/ObsVSPreds/ObsVSPred_",i,".pdf"),plots[[i]],height=4,width=5)
+# }
+lapply(plots,FUN =function(x) ggsave(paste0("./figs/ObsVSPreds/ObsVSPred_",x,".pdf"),x,height=4,width=5))
+
+map2(plots, names(plots),function(x, name){ggsave(paste0("./figs/ObsVSPreds/ObsVSPred_",name,".pdf"),x,height=4,width=5)})
+
+```
+
+#### **Residuals analysis**
+
+We will analyze the nature of residuals. Residuals are just (observed values - predicted value). Here, as we performed a linear regression on macroscopic cellular composition, the observed value would be the cell percentages across tumors. We are going to assess the assumptions of our linear model. Residuals are considered as constant across fitted values and follow a gaussian distribution (centered to 0).
+
+```{r res1, echo=TRUE}
+#residuals.cd4 <- as.data.frame(res.lm$residual)$`CD4-T`
+CELL.LABELS <- c("CD4-T","CD8-T","B","EpithelialCells")
+for(cellLabel in CELL.LABELS){
+  y.fit <- (Omega%*%t(B))[,cellLabel]
+  residuals.cellType <- (Ywagner[,cellLabel]-y.fit)
+  ## Testing normality of residuals
+  pval <- shapiro.test(residuals.cellType)$p.value
+  #print(var(residuals.cellType))
+  ## Checking hetero/homoscedasticity of residuals
+  plot(x = y.fit,y = residuals.cellType,
+       xlab = paste("fitted %",cellLabel),
+       ylab = paste("residuals for %",cellLabel),
+       pch = 19,col = "steelblue")
+  grid(nx = 8, ny = 6)
+  abline(a = 0,b = 0,col = "black",lty = 10)
+  text(x = 6,y = 14,labels = paste("Shapiro test (residuals)\n p value:",formatC(pval, format = "e", digits = 2)))
+} 
+
+
+```
+
+
+#### **Observed versus predicted values**
+
+```{r ObsVSPred2,echo=TRUE}
+## Create a dataframe of predicted versus observed values
+CELL.LABELS <- c("CD4-T","CD8-T","B","EndothelialCells","EpithelialCells","Mesenchymal-like","DC","Macrophages","OtherImmune","NK")
+ObsVSPred.cells <- inner_join(as_tibble(Ywagner[,all_of(CELL.LABELS)]+err,rownames=NA)%>%rownames_to_column(var="sample_id")%>%
+                                pivot_longer(cols=all_of(CELL.LABELS),names_to="cell_type",values_to="observed_prop"),
+                        as_tibble((Omega%*%t(B))[,all_of(CELL.LABELS)]+err,rownames=NA)%>%rownames_to_column(var="sample_id")%>%
+                          pivot_longer(cols=all_of(CELL.LABELS),names_to="cell_type",values_to="predicted_prop"),
+                        by=c("sample_id","cell_type"))%>%mutate(cell_type=set_cells_names(cell_type))
+
+ggplot(data=ObsVSPred.cells)+
+  geom_point(aes(x = observed_prop,y = predicted_prop))+
+  scale_x_continuous(trans='log10') + scale_y_continuous(trans="log10")+
+  facet_wrap(~cell_type,ncol=5, labeller = "label_value")+
+  geom_abline(slope = 1, intercept = 0,linetype = "dashed")+
+  xlab("observed %") + ylab("predicted %")+
+  theme(axis.text.x = element_text(angle = 45, vjust = .2))
+ggsave("./figs/ObsVSPredictedCells.pdf", height = 4, width = 8)
+# ggplot(data=ObsVSPred.cells)+
+#   geom_point(aes(x=observed_prop ,y=predicted_prop))+
+#   facet_wrap(~cell_type,ncol=5, labeller = label_both)+
+#   geom_abline(slope = 1, intercept = 0,linetype = "dashed")+
+#   theme(axis.text.x = element_text(angle = 45, vjust = .2))
+
+
+```
+
+
+
+### **Distribution of TMENs across patients**
+
+```{r densities, echo=TRUE}
+#theme_set(theme_ridges())
+#ggplot(BBscores, aes(y = proportion)) +
+#  geom_density_ridges(aes(x = building_block,y = proportion, fill = proportion))# +
+#  scale_fill_manual(values = c("#00AFBB", "#E7B800", "#FC4E07","#FC4E08"))
+##Creating same dataset as BBscores but here with the building block BB1:BB2 (linear comb of BB1 and BB2):
+BBscores.inter <- as_tibble(Omega.inter,rownames = NA)%>%
+  rownames_to_column(var="sample")%>%
+  pivot_longer(c(BB1BB2,BB3,BB4),names_to = "building_block",values_to = "props")
+
+gg1 <-ggplot(BBscores.inter, aes(y =  building_block)) +
+geom_density_ridges(
+    aes(x = props, fill = building_block), 
+    alpha = .8, color = "white", from = 0, to = 1)+
+  labs(x = "proportion",
+       y ="building block",
+       title = "density of building blocks proportions across BC samples (Wagner)")
+
+gg1
+
+```
+

@@ -1,0 +1,674 @@
+---
+title: "Data transformation of cellular abundance (%) and PCA"
+author: "Anissa El Marrahi"
+date: "10/11/2021"
+output:
+  html_document:
+    df_print: paged
+always_allow_html: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction 
+
+PCA is used to plot our dataset to understand new variables that explain most of its variability by using a linear combination of our variables based on covariance (or correlation matrix). In order to compare variables between them, variables must be at the same scale. One of the most common data transformation before PCA is Z-score normalization. It consists in considering a variable as normal distribution whose mean $\mu$ will be equal to 0 and the standard deviation $\sigma$ is equal. 
+While this normalization allows the comparison between variables whose scales and measure units are different, it can induce skewness if the variables are at the same scale and have been measured from the same instrument. Therefore, the scaling to $\sigma = 1$ might look arbitrary considering the instruments precision, depth of signal, etc...
+A common other transformation is the logarithm. Its properties allow a "stretching" of variables whose mean and standard deviation are very low and "flatten" extreme values. It induces "symmetry" in our data (Gaussian-like distribution). 
+
+Such transformations might be tempting because normal distribution is very easy to interpret and work with, but there is a special case in which statistics might be skewed: compositional data. Compositional data is defined also as closed data. The variables are expressed as fractions, proportions and are under the following constraint: the total sum is always equal to a constant number (1 for proportion, 100 for percentages). Karl Pearson (1897) warned about the spurious correlation that can result from compositional data as the variables are under the constant sum constrain. Moreover, if we consider a vector of proportion called x, $x = (x1, ....,xd)$ of dimension $d$, we can express it in $d-1$ dimension because we need to have at least $d-1$ elements, the last one can be inferred. Those spurious correlation can skew the whole process of PCA as it is based on covariance matrix. Under such constraints, the significance of correlation/covariance values may be misleading.
+Aitchison (Biometrika,1982,1983,1986) worked on compositional data and introduced several concepts, including the Centered-Log Ratio (CLR) transformation in order to break the constraints and do a correct PCA. 
+
+In many fields such as geology, ecology, compositional data is usually the only kind of data scientists can work with. Thus they are aware of those statistical issues and the transformations their data should go through. Nonetheless, it remains ignored in many fields of biology. It is thus necessary to bridge some fields, because they might have common attributes, methods to share. 
+
+Our research focuses on the cellular landscape of tumor micro-environment and in order to find recurring immune patterns. We behave like ecologists counting species of cells, covering a large area and therefore, we might gain accuracy using their same methods for analyzing multi-dimensional data.
+In our case, the dataset is cell percentages identified by CyTOF from 143 breast cancer tumors \textit{(Wagner et al, 2019(Cell))}. 
+
+
+```{r libs, echo =FALSE}
+#library(knitr)
+#pandoc('input.md', format = 'latex')
+
+rm(list=ls())
+library(tidyverse)
+library(ade4)
+library(factoextra)
+library(readxl)
+library(reshape2)
+library(plotly)
+library(igraph)
+library(viridis)
+#library("ClusterR")
+#library(cluster)
+
+```
+
+First, we remove the older objects and set the new working directory
+
+```{r env, echo = TRUE}
+
+dirName <- dirname(rstudioapi::getSourceEditorContext()$path )
+setwd(dirName) #setwd("/scratch/anissa.el/ImmuneStates/wagner_analysis")
+source ("./scripts/R/Wagner_Keren_functions.r") # Some useful functions for Keren and Wagner Data processing
+```
+
+
+
+## Pre-processing of the data 
+
+
+```{r metadata, echo=TRUE}
+MetaData <- read_excel("./data/mmc2.xlsx",col_names=TRUE,skip=1)%>%dplyr::rename(Patient=`Patient ID`)
+MetaData<- MetaData%>%mutate(Status = ifelse(`ER Status by IHC`=='P' & `PR Status by IHC`=='P'& `HER2 Status by IHC`=='N',"ER+PR+",
+                                             ifelse(`ER Status by IHC`=='P' & `PR Status by IHC`=='N'& `HER2 Status by IHC`=='N',"ER+",
+                                                    ifelse(`ER Status by IHC`=='N' & `PR Status by IHC`=='P'& `HER2 Status by IHC`=='N',"PR+",
+                                                           ifelse(`ER Status by IHC`=='N' & `PR Status by IHC`=='N'& `HER2 Status by IHC`=='P',"HER2+",
+                                                                ifelse(`ER Status by IHC`=='N' & `PR Status by IHC`=='N'& `HER2 Status by IHC`=='N',"TN",
+                                                                       ifelse(`ER Status by IHC`=='N' & `PR Status by IHC`=='P'& `HER2 Status by IHC`=='P',"PR+HER2+",
+                                                                              ifelse(`ER Status by IHC`=='P' & `PR Status by IHC`=='P'& `HER2 Status by IHC`=='P',"HER2+","Unknown")))  )))))
+
+#Check the tumors for which patients received a Neoadjuvant treatment ==> this may interfere with the proportions of T cells in the sample:
+NeoAdjuvant <- MetaData%>%filter(`Neoadjuvant Therapy Received` =="yes")
+```
+
+This is the composition of BC samples : 54 luminal A, 71 luminal B, six luminal B-HER2+, one HER2+, and six TN tumors (144 in total). Let's group and summarize the found percentages:
+
+```{r data, echo=TRUE}
+# FIrst, we remove the old objects stored in the R environment
+
+CellsProp <-read_excel("./data/mmc5.xlsx",col_names=TRUE,skip=2)
+
+#colnames(CellsProp)
+CellsPropBC <- CellsProp%>%filter(`LiveCells [%]`>50)#CellsProp%>%filter(Tissue=="Tumor")%>%filter(`LiveCells [%]`>50)
+
+#CellsPropBC <- left_join(CellsPropBC,MetaData,by="Patient")%>%filter(`Neoadjuvant Therapy Received` !="yes")
+CellsPropBC <- CellsPropBC%>%
+  mutate(LiveCells_tot= `EndothelialCells [%]`+`EpithelialCells [%]`+`Fibroblasts [%]`+`ImmuneCells [%]`+`Other [%]`)
+
+CellsPropBC <- CellsPropBC%>%
+  mutate(EndothelialCells=((`EndothelialCells [%]`/LiveCells_tot))*100)%>%
+  mutate(EpithelialCells=((`EpithelialCells [%]`/LiveCells_tot))*100)%>%
+  mutate(Fibroblasts=((`Fibroblasts [%]`/LiveCells_tot))*100)%>%
+  mutate(ImmuneCells=((`ImmuneCells [%]`/LiveCells_tot))*100)%>%
+  mutate(Other=((`Other [%]`/LiveCells_tot))*100)
+
+#Correction to ImmuneCells percentage
+CellsPropBC <- CellsPropBC%>%
+  mutate(TCells= (`TCells [%]`/100)*ImmuneCells)%>%
+  mutate(NK= (`NaturalKillerCells [%]`/100)*ImmuneCells)%>%
+  mutate(Granulocytes = (`Granulocytes [%]`/100)*ImmuneCells)%>%
+  mutate(BCells= (`BCells [%]`/100)*ImmuneCells)%>%
+  mutate(PlasmaCells= (`PlasmaCells [%]`/100)*ImmuneCells)%>%
+  mutate(DC= (`plasmacytoidDendriticCells [%]`/100)*ImmuneCells)%>%
+  mutate(MyeloidCells= (`MyeloidCells [%]`/100)*ImmuneCells)%>%
+  mutate(Basophils= (`Basophils [%]`/100)*ImmuneCells)
+## Let's check for the proportion of T cells across the tumor samples
+#ggplot(data= CellsPropBC)+
+#  geom_boxplot(mapping=aes(y=TCells))+
+# labs(title="Boxplot of proportions of T cells across 144 tumor samples (in %)")+
+#  ylab("percentage")
+## Correcyion of T cells percentage
+CellsPropBC <- CellsPropBC%>%
+  mutate(sumTcells = `TCells CD4+ [%]`+`TCells CD8+ [%]`)%>%
+  mutate(OtherTcells = ((100 - sumTcells)/100)*TCells)%>%
+  mutate(`CD4-T` = (`TCells CD4+ [%]`/100)*TCells)%>%
+  mutate(`CD8-T` = (`TCells CD8+ [%]`/100)*TCells)
+
+## Correction to myeloid cells percentage
+CellsPropBC <- CellsPropBC %>% mutate(Monocytes = (M06 + M15)*MyeloidCells)%>%
+  mutate (Macrophages = (M01 + M02 + M03 + M04 + M08 + M09 + M11 + M13 + M14 + M16 + M17)*MyeloidCells)%>%
+  mutate(OtherMyeloid = (M05 + M07 + M10 + M12 + M18 + M19)*MyeloidCells)%>%
+  mutate(OtherImmune = OtherMyeloid+ OtherTcells+Basophils+Granulocytes+Monocytes)
+  #mutate(CD4TCells = (T02+T03+T04+T08+T09+T13+T17+T18+T20)*50)%>%
+  #mutate(Tregs = T01*50)%>%
+  #mutate(CD8Tcells = (T05 + T06 + T07 + T10 + T11 + T12 + T14 + T15 + T16 + T19)*50)
+CellsPropBC2 <- CellsPropBC%>%filter(Tissue=="Tumor")%>%dplyr::select(`Sample ID`,EndothelialCells,EpithelialCells,Fibroblasts,Other,NK,BCells,PlasmaCells,DC,`CD4-T`,`CD8-T`,Macrophages,OtherImmune)%>%
+  column_to_rownames(var="Sample ID")
+
+#Select metadata from BC patients
+MetaData<- MetaData%>%mutate(Patient=rownames(CellsPropBC2))
+StatusTumor <- MetaData%>%dplyr::select(Patient,Status)
+AgeResection <-MetaData%>%dplyr::select(Patient,`Age at Surgery`)
+
+AllCellsProps <-  CellsPropBC%>%dplyr::select(`Sample ID`,EndothelialCells,EpithelialCells,Fibroblasts,Other,NK,BCells,PlasmaCells,DC,`CD4-T`,`CD8-T`,Macrophages,OtherImmune)%>%
+  column_to_rownames(var="Sample ID")
+
+
+
+```
+
+
+## Data transformations
+
+In this section, we are going to explore some well-known data transformations traditionally used before PCA. Most of them aim to simplify the data as a normal distribution (0,1): from Z-score to log transformation. We'll see how it impacts PCA (correlations and dimension reduction). Finally, we'll introduce the CLR transformation suggested by J. Aitchison (Biometrika,1983)
+
+
+### Raw original data 
+Cells have differential abundance and the mean/sd of each cell type might be very different. THis is due to biology: obviously, cancer cells might be the most abundant ones whereas for certain immune cells, it is well-known that they are not so abundant because only few of them are needed to trigger bigger immune responses.
+
+```{r rawData,echo=TRUE}
+library(gplots)
+
+CellsPropBC2.types <- as_tibble(CellsPropBC2,rownames=NA)%>%
+  pivot_longer(cols=colnames(CellsPropBC2),names_to="cell_type",
+               values_to="proportion")
+ggplot(CellsPropBC2.types,aes(x=cell_type,y=proportion,fill=cell_type))+
+  geom_boxplot()+
+  theme(axis.text.x=element_text(angle=45,hjust=0.8,vjust=0.5),
+        legend.title = element_blank())+
+  xlab(" ") + ylab("raw proportion")
+
+#heatmap(cor(CellsPropBC2),Rowv = NA,Colv = NA,scale="none")
+CellsPropBC2.2 <- CellsPropBC2
+colnames(CellsPropBC2.2) <- set_cells_names(colnames(CellsPropBC2.2))
+pdf("./figs/heatmapRawCells.pdf",width=5,height=5)
+heatmap.2(cov(CellsPropBC2.2),Colv = NA,Rowv = NA,dendrogram = "none",
+          key = FALSE,margins = c(2,5),#srtCol = 45,srtRow =  45,
+          lmat = rbind(c(0,0,0),c(0,1,0),c(0,0,0)),lhei=c(0.5,1,0.75),lwid=c(0.5,1,0.5),
+          density.info = "none",trace = "none",col = viridis(12))
+dev.off()
+
+```
+
+
+
+
+
+### Mean scaling
+
+```{r dataProc, echo=TRUE}
+#CellsPropBC2<- CellsPropBC2%>%filter(Other<=50)
+#(2/pi *sqrt(asin(CellsPropBC2/100)))
+#library(Rtsne)
+
+cells.means <- apply(CellsPropBC2,MARGIN=2, function(x) mean(x))
+
+CellsPropBC2.types2 <- as_tibble(CellsPropBC2/cells.means,rownames=NA)%>%
+  pivot_longer(cols=colnames(CellsPropBC2),names_to="cell_type",
+               values_to="proportion")
+ggplot(CellsPropBC2.types2,aes(x = cell_type,y = proportion,fill = cell_type))+
+  geom_boxplot()+
+  theme(axis.text.x=element_text(angle=45,hjust=0.8,vjust=0.5),
+        legend.title = element_blank())+
+  xlab(" ") + ylab("proportion per mean of cell type")
+
+scBCPCA.scaleMean <- dudi.pca(CellsPropBC2.2/cells.means,scale = FALSE,
+                              center = TRUE,scannf = FALSE,nf = 3)
+fviz_pca_biplot(scBCPCA.scaleMean,invisible = "ind",repel = TRUE)
+
+pdf("./figs/biplot12MeanScale.pdf",width = 4,height = 3)
+fviz_pca_biplot(scBCPCA.scaleMean,axes=c(1,2),label ="var",col.var="black",col.ind = "indianred2",repel=TRUE)
+dev.off()
+pdf("./figs/biplot13MeanScale.pdf",width = 4,height = 3)
+fviz_pca_biplot(scBCPCA.scaleMean,axes=c(1,3),label ="var",col.var="black",col.ind = "indianred2",repel=TRUE)
+dev.off()
+fviz_eig(scBCPCA.scaleMean)
+fig11 <- plot_ly(x = scBCPCA.scaleMean$li$Axis1, 
+                y = scBCPCA.scaleMean$li$Axis2,
+                z = scBCPCA.scaleMean$li$Axis3,
+                color =~CellsPropBC2$`Other`,
+                type = "scatter3d", mode = "markers",
+                marker = list(symbol = "triangle",size = 4),
+                mode = "text")
+
+fig11 <- fig11 %>% layout(scene = list(xaxis = list(title = "PC1"), 
+                                       yaxis = list(title = "PC2"), 
+                                       zaxis = list(title = "PC3")),
+                        title = "PCA on cell proportions space of BC tumors")
+fig11
+
+pdf("./figs/heatmapMeanScaling.pdf",width=5,height=5)
+heatmap.2(cov(CellsPropBC2.2/cells.means),Colv = NA,Rowv = NA,dendrogram = "none",
+          key = FALSE,margins = c(4,6),#srtCol = 45,srtRow =  45,
+          lmat = rbind(c(0,0,0),c(0,1,0),c(0,0,0)),lhei=c(0.5,1,0.75),lwid=c(0.5,1,0.5),
+          density.info = "none",trace = "none",col = viridis(12))
+dev.off()
+```
+
+
+### log2 transformation
+
+```{r dataProcLog, echo=TRUE}
+#CellsPropBC2<- CellsPropBC2%>%filter(Other<=50)
+CellsPropBC2log.types <- as_tibble(log2(CellsPropBC2+1),rownames=NA)%>%pivot_longer(cols=colnames(CellsPropBC2),
+                                                  names_to="cell_type",
+                                                  values_to="proportion")
+ggplot(CellsPropBC2log.types,aes(x=cell_type,y=proportion,fill=cell_type))+
+  geom_boxplot()+
+  theme(axis.text.x=element_text(angle=45,hjust=0.8,vjust=0.5),
+        legend.title=element_blank())+
+  xlab("")+ylab("log(proportion)")
+#(2/pi *sqrt(asin(CellsPropBC2/100)))
+#library(Rtsne)
+cells.means <- apply(CellsPropBC2,MARGIN=2, function(x) mean(x))
+heatmap(cor(log2(CellsPropBC2.2+1)),Rowv = NA,Colv = NA,scale="none")
+pdf("./figs/heatmapLog2.pdf",width=5,height=5)
+heatmap.2(cov(log2(CellsPropBC2.2+1)),Colv = NA,Rowv = NA,dendrogram = "none",
+          key = FALSE,margins = c(4,6),#srtCol = 45,srtRow =  45,
+          lmat = rbind(c(0,0,0),c(0,1,0),c(0,0,0)),lhei=c(0.5,1,0.75),lwid=c(0.5,1,0.5),
+          density.info = "none",trace = "none",col = viridis(12))
+dev.off()
+
+scBCPCA.log <- dudi.pca(log2(CellsPropBC2.2+1),scale=FALSE,center=TRUE,scannf=FALSE,nf=3)
+pdf("./figs/biplot12Log2.pdf",width = 4,height = 3)
+fviz_pca_biplot(scBCPCA.log,axes=c(1,2),label ="var",col.var="black",col.ind = "indianred2",repel=TRUE)
+dev.off()
+
+
+pdf("./figs/biplot13Log2.pdf",width = 4,height = 3)
+fviz_pca_biplot(scBCPCA.log,axes=c(1,3),label ="var",col.var="black",col.ind = "indianred2",repel=TRUE)
+dev.off()
+
+fviz_eig(scBCPCA.log)
+fig12 <- plot_ly(x = scBCPCA.log$li$Axis1, 
+                y = scBCPCA.log$li$Axis2,
+                z = scBCPCA.log$li$Axis3,
+                color =~CellsPropBC2$`Other`,
+                type = "scatter3d", mode = "markers",
+                marker = list(symbol = "triangle",size = 8),
+                mode = "text")
+
+fig12 <- fig12 %>% layout(scene = list(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"), zaxis = list(title = "PC3") ),
+                        title = "PCA on cell proportions space of BC tumors")
+fig12
+
+
+```
+#### Shuffling the cell proportions
+
+```{r randomLog,eval=TRUE, echo=TRUE}
+
+# de-correlate the cells using sample() as a row-wise operation (for each tumor)
+# For each randomization, we perform an unscaled, centered PCA on the data
+# We then collect the list of eigen values for each principal component
+# A cumulative sum of variance explained is then computed (in %)
+# The results are plotted in a figure with the mean of those shuffled +/- 2 sd
+nbShuffles <- 100
+nPC <- length(colnames(CellsPropBC2))
+EigenVals.rand <- matrix(nrow = nbShuffles,ncol = nPC)
+set.seed(15) # for reproducibility
+for (i in 1:nbShuffles){
+  CellsPropBC.rand <- apply(CellsPropBC2,MARGIN = 2,function(x) sample(x,size = length(x),replace = FALSE)) ## Column-wise operation ==> MARGIN=2
+  sumsSamples <- apply(CellsPropBC.rand,MARGIN=1,function(x) sum(x))
+  CellsPropBC.rand2 <- (CellsPropBC.rand/sumsSamples)*100
+  CellsPropBC.rand.log2 <- log2(CellsPropBC.rand2+1)
+  eigs <- dudi.pca(CellsPropBC.rand.log2,scale = FALSE,center = TRUE,nf = 3, scannf = FALSE)$eig
+  #print(length(eigs))
+  EigenVals.rand[i,]<- cumsum(eigs/sum(eigs)*100)
+}
+
+# Original data: PropsBC.CLR2
+
+#### Get mean and +/- sd of the eigen values from shuffles (100 shuffles)
+scBC.rand.CumEigs.mean <- apply(EigenVals.rand,MARGIN = 2,function(x) mean(x))
+scBC.rand.CumEigs.sdUp <- apply(EigenVals.rand,MARGIN = 2,function(x) mean(x) + 2*sd(x))
+scBC.rand.CumEigs.sdLow <- apply(EigenVals.rand,MARGIN = 2,function(x) mean(x) - 2*sd(x))
+scBC.CumEigs <- cumsum(scBCPCA.log$eig/sum(scBCPCA.log$eig)*100) # Eigen vlaues of PCA from real tumors (CellsPropBC2 abundance matrix as input)
+
+#Correlation map after randomization
+heatmap(cor(CellsPropBC.rand.log2,method = "pearson"),Colv = NA,Rowv = NA,col = viridis(12))
+
+nbComp <- seq(1,nPC,1)
+CumEigs.rand <- as_tibble(cbind(scBC.rand.CumEigs.sdUp,scBC.rand.CumEigs.sdLow))%>%
+  mutate(nbComp = nbComp)
+CumEigs <- as_tibble(cbind(scBC.CumEigs,scBC.rand.CumEigs.mean))%>%
+  mutate(nbComp = nbComp)
+
+CumEigs<-CumEigs%>%
+  dplyr::rename(`real \ntumors` = scBC.CumEigs)%>%
+  dplyr::rename(`shuffled \ntumors` = scBC.rand.CumEigs.mean)%>%
+  pivot_longer(cols = c(`real \ntumors`, `shuffled \ntumors`),
+               names_to = "groups",
+               values_to = "value")
+
+ggplot()+
+   geom_line(data = CumEigs,
+             aes(x = nbComp,y = value,
+                 group = groups,color = groups,
+                 linetype = groups))+
+   scale_linetype_manual(values = c("solid", "twodash"))+
+   scale_color_manual(values = c("black","red"))+
+   scale_size_manual(values = c(2, 2))+
+   geom_vline(xintercept = 3, linetype = "dotted", 
+                 color = "black", size = 0.8)+
+  labs(x="Number of Principal Components (PCs)",
+       y="% of variance in cellular \ncomposition of tumors")+
+  theme(legend.title = element_blank())+
+  geom_ribbon(data = CumEigs.rand, aes(x = nbComp,
+                                       ymin = scBC.rand.CumEigs.sdLow,
+                                       ymax = scBC.rand.CumEigs.sdUp),
+              fill = "indianred2",alpha = 0.3)
+  #ggsave("./figs/EigsRandWagner.pdf", height = 3, width = 4)
+
+```
+
+### CLR tranformation: prior step to PCA for compositional data
+
+```{r logRatios,echo=TRUE}
+
+#install.packages("zCompositions")
+#install.packages("compositions")
+library(zCompositions)
+library(compositions)
+#multLN(CellsPropBC2)
+
+CellsPropBC.corrected <- CellsPropBC2 +1
+geom.means <- apply(CellsPropBC.corrected,MARGIN=1,function(x) exp(mean(log(x))))
+
+PropsBC.CLR2 <- clr(CellsPropBC.corrected)#log(CellsPropBC.corrected/geom.means)#t(apply(CellsPropBC.corrected,MARGIN=1,function(x) log(x/geom.means)))
+#colnames(PropsBC.CLR) <- colnames(CellsPropBC2)
+PropsBC.CLR <- log(CellsPropBC.corrected/geom.means)
+colnames(PropsBC.CLR2) <- set_cells_names(colnames(PropsBC.CLR2))
+plot(x = PropsBC.CLR2$fibroblast,
+     y = PropsBC.CLR2$endothelial,
+     xlab = "Fibroblast (clr(%))",
+     ylab = "Endothelial (clr(%))")
+plot(x = PropsBC.CLR2$B,
+     y = PropsBC.CLR2$`CD4 T`,
+     xlab="B (clr(%))",
+     ylab="CD4 T clr((%))")
+
+PropsBC.CLR.types <- as_tibble(PropsBC.CLR2,rownames = NA)%>%
+                                pivot_longer(cols = colnames(PropsBC.CLR2),
+                                             names_to = "cell_type",
+                                             values_to = "proportion")
+
+ggplot(PropsBC.CLR.types,aes(x = cell_type,
+                             y = proportion,
+                             fill = cell_type))+
+  geom_boxplot()+
+  theme(axis.text.x = element_text(angle = 45,hjust = 0.8,vjust = 0.5),
+        legend.title = element_blank())+
+  xlab("")+ylab("CLR (Centered Log ratio)")
+
+#PropsBC.CLR2.types <- as_tibble(PropsBC.CLR2,rownames=NA)%>%pivot_longer(cols=colnames(PropsBC.CLR2),
+#                                                  names_to="cell_type",
+#                                                  values_to="proportion")
+#ggplot(PropsBC.CLR2.types,aes(x=cell_type,y=proportion,fill=cell_type))+
+#  geom_boxplot()
+
+#heatmap(cov(PropsBC.CLR),colV=NA,Rowv = NA)
+
+#rowSums(PropsBC.CLR)
+scBCPCA.CLR <- dudi.pca(PropsBC.CLR2,scale=FALSE,center=TRUE,scannf=FALSE,nf=3)
+write.csv(as.matrix(scBCPCA.CLR$li), "/scratch/anissa.el/ImmuneStates/wagner_analysis/data/3PCA_Wagner_CLR.csv",row.names=FALSE)
+
+pdf("./figs/biplot12CLR.pdf",width = 4,height = 3)
+fviz_pca_biplot(scBCPCA.CLR,axes=c(1,2),label ="var",col.var="black",col.ind = "indianred2",repel=TRUE)
+dev.off()
+
+
+pdf("./figs/biplot13CLR.pdf",width = 4,height = 3)
+fviz_pca_biplot(scBCPCA.CLR,axes=c(1,3),col.var="black",label="var",col.ind = "indianred2",repel=TRUE)
+dev.off()
+fviz_pca_biplot(scBCPCA.CLR,axes=c(2,3),col.var="black",label="var",col.ind = "indianred2",repel=TRUE)
+fviz_eig(scBCPCA.CLR)
+fig12 <- plot_ly(x = scBCPCA.CLR$li$Axis1, 
+                y = scBCPCA.CLR$li$Axis2,
+                z = scBCPCA.CLR$li$Axis3,
+                color =~CellsPropBC2$`Other`,
+                type = "scatter3d", mode = "markers",
+                marker = list(symbol = "triangle",size = 8),
+                mode = "text")
+              
+
+fig12 <- fig12 %>% layout(scene = list(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"), zaxis = list(title = "PC3") ),
+                        title = "PCA on cell proportions space of BC tumors")
+fig12
+
+# heatmap.2(cor(CellsPropBC2),Colv = NA,Rowv = NA,dendrogram = "none",
+#           srtCol = 45,srtRow =  45,key = FALSE,margins = c(5,8),
+#           lmat = c(2,1),lhei = 1.5,lwid = 1.5,      #lmat = rbind( c(5,3,4), c(2,1,4) ), lhei = c(1.5, 4) , lwid = c(1.5, 4, 0.75),
+#           density.info = "none",trace = "none",col = viridis(12))
+
+#heatmap(cor(PropsBC.CLR),Rowv = NA,Colv = NA,scale="none")
+
+#heatmap.2(cor(PropsBC.CLR),Rowv = NA,Colv = NA,scale = "none",
+#          srtCol = 45,srtRow =  45,key = FALSE,margins = c(5,8),
+#          density.info = "none",trace = "none",col = viridis(12))
+pdf("./figs/heatmapCLR.pdf",width = 5,height = 5)
+heatmap.2(cov(PropsBC.CLR2),Colv = NA,Rowv = NA,dendrogram = "none",
+          key = FALSE,margins = c(4,6),#srtCol = 45,srtRow =  45,
+          lmat = rbind(c(0,0,0),c(0,1,0),c(0,0,0)),lhei=c(0.5,1,0.75),lwid=c(0.5,1,0.5), #rbind(c(0,0,0),c(0,1,0),c(0,1,0)),lhei=c(0.25,1.5,0.75),lwid=c(0.5,1.5,0.5),
+          density.info = "none",trace = "none",col = viridis(12))
+dev.off()
+
+varExp3PC.clr <- sum( scBCPCA.CLR$eig[1:3]/sum( scBCPCA.CLR$eig))*100
+
+```
+
+
+
+The CLR transformation allows us to do a proper dimension reduction as the first 3 Principal Components explain 73.5% of the total variance. 
+
+The tumors with a high number of healthy tissue are clearly separated from the rest of the cloud of points which shows that the CLR transformation was able to point out some aspects of our dataset that were not clearly distinguished when running the analysis on raw proportions. 
+
+It is thus possible to proceed to clustering in order to do a primary binary classification: samples that are on the edge of the TME and those that are part of the TME. Then,we can do an archetypal analysis on the tumors that are part of the TME to look for a structure in cellular abundance.
+
+#### CLustering TME and non-TME samples: K means clustering
+
+```{r kmeans1, echo=TRUE}
+
+set.seed(250)
+km.res <- kmeans(as.matrix(scBCPCA.CLR$li), 2, nstart = 4)
+
+fig3 <- plot_ly(x = scBCPCA.CLR$li$Axis1, 
+                y = scBCPCA.CLR$li$Axis2,
+                z = scBCPCA.CLR$li$Axis3,
+                color =~as.factor(km.res$cluster),
+                type = "scatter3d", mode = "markers",
+                marker = list(symbol = "triangle",size = 8),
+                mode = "text")
+              
+
+fig3 <- fig3 %>% layout(scene = list(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"), zaxis = list(title = "PC3") ),
+                        title = "PCA on cell proportions space of BC tumors")
+fig3
+
+
+scBC.TME.PCA <-scBCPCA.CLR[km.res$cluster ==2,] 
+write.csv(as.matrix(scBC.TME.PCA$li), "/srv/mfs/hausserlab/anissa.el/ImmuneStates/wagner_analysis/data/3PCA_Wagner_CLR_clust1.csv",row.names=FALSE)
+
+```
+
+
+
+Now, let's apply an archetypal analysis on the latter PCA. The aim remains the same: finding archetypes that shape the continuum of immunes states in cellular abundance of BC tumors.
+
+```{python AAclr, echo=TRUE}
+import sys
+sys.path.insert(1, '/srv/mfs/hausserlab/fabio/data_analysis/src/utils')
+from archetypes import ArchetypalAnalysis
+import pandas as pd
+import numpy as np
+
+# Reading the file of PCA from Wagner dataset
+pcData = pd.read_csv("/scratch/anissa.el/ImmuneStates/wagner_analysis/data/3PCA_Wagner_CLR_clust1.csv")
+pc3dWagner = np.array(pcData, dtype = "float64")
+AA = ArchetypalAnalysis(n_archetypes = 3, 
+                          tolerance = 0.0001, 
+                          max_iter = 500, 
+                          random_state = 1, 
+                          C = 0.01, 
+                          initialize = 'random',
+                          redundancy_try = 30)
+AA.fit_transform(pc3dWagner)
+archetypes_wagner = AA.alfa
+pd.DataFrame(AA.archetypes).to_csv("/scratch/anissa.el/ImmuneStates/wagner_analysis/outputs/Coordinates_3PCs_Archetypes_Wagner_CLR_clust1.csv")
+pd.DataFrame(archetypes_wagner).to_csv("/scratch/anissa.el/ImmuneStates/wagner_analysis/outputs/Archetypes_3PCA_Wagner_CLR_clust1.csv")
+
+```
+
+
+
+```{r pcaCLR2, echo=TRUE}
+ArchetypesBCWagner.CLR <- as_tibble(read.csv("./outputs/Archetypes_3PCA_Wagner_CLR_clust1.csv",header=TRUE))
+ArchetypesBCWagner.CLR <- ArchetypesBCWagner.CLR%>%column_to_rownames(var="X")
+rownames(ArchetypesBCWagner.CLR) <- c("ARCH1", "ARCH2","ARCH3")
+## Checking that the sum is equal to 1 : probability to belong to one of the archetypes
+#colSums(archWPCA)
+colnames(ArchetypesBCWagner.CLR) <- rownames(scBC.TME.PCA$li)
+
+ArchsCoord.CLR <- as.matrix(read.csv("./outputs/Coordinates_3PCs_Archetypes_Wagner_CLR_clust1.csv", header=TRUE))
+
+ArchsCoord.CLR <- ArchsCoord.CLR[,-1]
+colnames(ArchsCoord.CLR) <- c("ARCH1", "ARCH2","ARCH3")
+
+fig4 <-  plot_ly(x = scBCPCA.CLR$li$Axis1, 
+                y = scBCPCA.CLR$li$Axis2,
+                z = scBCPCA.CLR$li$Axis3,
+                color =~as.factor(km.res$cluster),
+                type = "scatter3d", mode = "markers",
+                marker = list(symbol = "triangle",size = 8),
+                mode = "text")
+              
+
+fig4 <- fig4 %>% layout(scene = list(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"), zaxis = list(title = "PC3")),
+                        title = "PCA on cell proportions space of BC tumors")
+
+fig4 <- fig4%>%add_trace(x = ArchsCoord.CLR[1,],
+                                 y = ArchsCoord.CLR[2,],
+                                 z = ArchsCoord.CLR[3,],
+                                 type = "scatter3d",mode = "lines+markers+text",
+                                 text = c("ARCH2","ARCH1","ARCH3"),#c("arch. 2", "arch. 1","arch. 3","arch. 4"),
+                                 textposition = c('top right','top right','top left'),
+                                 textfont = list(color = '#000000', size = 16),
+                                 showlegend = TRUE,
+                                 name = "Archetypes",
+                                 marker = list(color = c("darkmagenta","dodgerblue","black"),symbol = "star-diamond",size = 14),
+                                 line = list(color = "black", size = 5),
+                                 inherit = FALSE)%>%
+                        add_trace(x = ArchsCoord.CLR[1,c(3,1,2)],
+                                  y = ArchsCoord.CLR[2,c(3,1,2)],
+                                  z = ArchsCoord.CLR[3,c(3,1,2)],
+                                  type = "scatter3d",mode = "lines",
+                                  line = list(color = "black", size = 5),
+                                  showlegend = FALSE,
+                                  inherit = FALSE)              
+
+#fig12 <- fig12 %>% layout(scene = list(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"), zaxis = list(title = "PC3") ),
+#                        title = "PCA on cell proportions space of BC tumors")
+fig4
+
+
+```
+
+```{r test1, eval=FALSE,echo=FALSE}
+fig5 <-  plot_ly(x =mat1[,1], 
+                y = mat1[,2],
+                z = mat1[,3],
+                #color =~as.factor(km.res$cluster),
+                type = "scatter3d", mode = "markers",
+                marker = list(symbol = "triangle",size = 8),
+                mode = "text")
+              
+
+fig5 <- fig5 %>% layout(scene = list(xaxis = list(title = "x"), yaxis = list(title = "y"), zaxis = list(title = "z") ),
+                        title = "test")
+fig5
+```
+
+
+
+#### Random shuffling
+
+
+```{r random1,eval=TRUE, echo=TRUE}
+
+# de-correlate the cells using sample() as a row-wise operation (for each tumor)
+# For each randomization, we perform an unscaled, centered PCA on the data
+# We then collect the list of eigen values for each principal component
+# A cumulative sum of variance explained is then computed (in %)
+# The results are plotted in a figure with the mean of those shuffled +/- 2 sd
+library(zCompositions)
+library(compositions)
+nbShuffles <- 100
+nPC <- length(colnames(CellsPropBC2))-1
+EigenVals.rand <- matrix(nrow = nbShuffles,ncol = nPC)
+set.seed(15) # for reproducibility
+for (i in 1:nbShuffles){
+  CellsPropBC.rand <- apply(CellsPropBC2,MARGIN = 2,function(x) sample(x,size = length(x),replace = FALSE)) ## Column-wise operation ==> MARGIN=2
+  sumsSamples <- apply(CellsPropBC.rand,MARGIN=1,function(x) sum(x))
+  CellsPropBC.rand2 <- (CellsPropBC.rand/sumsSamples)*100
+  CellsPropBC.rand.clr <- clr( CellsPropBC.rand2 +1)
+  eigs <- dudi.pca(CellsPropBC.rand.clr,scale = FALSE,center = TRUE,nf = 3, scannf = FALSE)$eig
+  #print(length(eigs))
+  EigenVals.rand[i,]<- cumsum(eigs/sum(eigs)*100)
+}
+
+# Original data: PropsBC.CLR2
+
+#### Get mean and +/- sd of the eigen values from shuffles (100 shuffles)
+scBC.rand.CumEigs.mean <- apply(EigenVals.rand,MARGIN = 2,function(x) mean(x))
+scBC.rand.CumEigs.sdUp <- apply(EigenVals.rand,MARGIN = 2,function(x) mean(x) + 2*sd(x))
+scBC.rand.CumEigs.sdLow <- apply(EigenVals.rand,MARGIN = 2,function(x) mean(x) - 2*sd(x))
+scBC.CumEigs <- cumsum(scBCPCA.CLR$eig/sum(scBCPCA.CLR$eig)*100) # Eigen vlaues of PCA from real tumors (CellsPropBC2 abundance matrix as input)
+
+#Correlation map after randomization
+heatmap(cor(CellsPropBC.rand.clr,method = "pearson"),Colv = NA,Rowv = NA,col = viridis(12))
+
+nbComp <- seq(1,nPC,1)
+CumEigs.rand <- as_tibble(cbind(scBC.rand.CumEigs.sdUp,scBC.rand.CumEigs.sdLow))%>%
+  mutate(nbComp = nbComp)
+CumEigs <- as_tibble(cbind(scBC.CumEigs,scBC.rand.CumEigs.mean))%>%
+  mutate(nbComp = nbComp)
+
+CumEigs<-CumEigs%>%
+  dplyr::rename(`real \ntumors` = scBC.CumEigs)%>%
+  dplyr::rename(`shuffled \ntumors` = scBC.rand.CumEigs.mean)%>%
+  pivot_longer(cols = c(`real \ntumors`, `shuffled \ntumors`),
+               names_to = "groups",
+               values_to = "value")
+
+ggplot()+
+  geom_line(data = CumEigs,
+            aes(x = nbComp,y = value,
+                group = groups,color = groups,
+                linetype = groups))+
+  scale_linetype_manual(values = c("solid", "twodash"))+
+  scale_color_manual(values = c("black","red"))+
+  scale_size_manual(values = c(2, 2))+
+  geom_vline(xintercept = 3, linetype = "dotted", 
+                color = "black", size = 0.8)+
+  labs(x="Number of Principal Components (PCs)",
+       y="% of variance in cellular \ncomposition of tumors")+
+  theme(legend.title = element_blank())+
+  geom_ribbon(data = CumEigs.rand, aes(x = nbComp,
+                                       ymin = scBC.rand.CumEigs.sdLow,
+                                       ymax = scBC.rand.CumEigs.sdUp),
+              fill = "indianred2",alpha = 0.3)
+  #ggsave("./figs/EigsRandWagner.pdf", height = 3, width = 4)
+
+```
+
+
+
+```{r ilr1, echo=TRUE}
+library(zCompositions)
+library(compositions)
+
+CellsBC.ilr <- ilr(CellsPropBC2)
+
+scBCPCA.ILR <- dudi.pca(CellsBC.ilr,scale=FALSE,center=TRUE,scannf=FALSE,nf=3)
+#write.csv(as.matrix(scBCPCA.CLR$li), "/scratch/anissa.el/ImmuneStates/wagner_analysis/data/3PCA_Wagner_CLR.csv",row.names=FALSE)
+
+
+fviz_pca_biplot(scBCPCA.ILR,label ="var",col.var="black",col.ind = "indianred2",repel=TRUE)
+fviz_pca_biplot(scBCPCA.ILR,axes=c(1,3),col.var="black",label="var",col.ind = "indianred2",repel=TRUE)
+fviz_pca_biplot(scBCPCA.ILR,axes=c(2,3),col.var="black",label="var",col.ind = "indianred2",repel=TRUE)
+fviz_eig(scBCPCA.ILR)
+fig3 <- plot_ly(x = scBCPCA.ILR$li$Axis1, 
+                y = scBCPCA.ILR$li$Axis2,
+                z = scBCPCA.ILR$li$Axis3,
+                color =~CellsPropBC2$`Other`,
+                type = "scatter3d", mode = "markers",
+                marker = list(symbol = "triangle",size = 8),
+                mode = "text")
+              
+
+fig3 <- fig3 %>% layout(scene = list(xaxis = list(title = "PC1"), yaxis = list(title = "PC2"), zaxis = list(title = "PC3") ),
+                        title = "PCA on cell proportions space of BC tumors")
+fig3
+```
