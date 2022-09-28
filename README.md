@@ -22,7 +22,7 @@ pip install qpsolvers
 
 ## FILES
 
-``
+```
 └───/main_nipmap.py: calls py functions for NIPMAP pipeline + saves outputs into .json files
 └───/py_wrapper_nipmap.r: get NIPMAP outputs from .json files and loads R objects for further analyses
 |
