@@ -17,13 +17,27 @@ pip install pandas
 pip install numpy
 pip install scikit-learn
 pip install seaborn
-pip install 
+pip install qpsolvers
 ```
 
 ## FILES
 
-```
-TMENS_analysis
+``
+└───/main_nipmap.py: calls py functions for NIPMAP pipeline + saves outputs into .json files
+└───/py_wrapper_nipmap.r: get NIPMAP outputs from .json files and loads R objects for further analyses
+|
+/macro_niches_analysis
+|
+└───/data
+|
+└───/figs
+|
+└───/outputs
+|
+└───/scripts
+/phenotype_niches
+|
+/TMENS_analysis
 |   README.md
 |
 └───/data
@@ -69,7 +83,7 @@ TMENS_analysis
 |   └───/csv_files_nature
 | 
 └───/src
-    |	  CellAbundance.py
+    |	CellAbundance.py
     |   Cell.py
     |   CellsImage.py
     |   mPCA.py
