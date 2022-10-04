@@ -55,14 +55,14 @@ MARKERS <- c("dsDNA","Vimentin","SMA","B7H3","FoxP3","Lag3","CD4","CD16","CD56",
 
 ```{r data, echo=TRUE}
 ##CSV file of archetypes found by archetype analysis and their cell composition
-archsToTMENs <- read.csv("../data_BB/archetypes_building_blocks_17cells_space_gaussian.csv")
+archsToTMENs <- read.csv("../TMENS_analysis/output/archetypes_building_blocks_17cells_space_gaussian.csv")
 # ARCH1: TLS
 # ARCH2: INFLAMMATORY NICHE
 # ARCH3: CANCER NICHE
 # ARCH4: FIBROTIC/NECROTIC NICHE
 
 ## .csv file containing the expression of markers from all cells from all images
-cell_markers <- read.csv('/scratch/anissa.el/ImmuneStates/cellData.csv',header = TRUE, sep =',')
+cell_markers <- read.csv('../TMENS_analysis/data/cellData.csv',header = TRUE, sep =',')
 
 #colnames(cell_markers)
 cell_markers <- cell_markers %>% relocate(Background, .after = cellLabelInImage)
@@ -194,7 +194,7 @@ hclust_cellTypes()
 #tmens_cells <- read.csv("../data_BB/archetypes_sites_centered_cells_gaussian.csv")%>%filter(cell_type_site!="Unidentified")#remove Unidentified cells from analysis  archetypes_sites_centered_cells_gaussian.csv
 
 ##.csv file containing the TMENs proportion of cells
-tmens_cells2 <- read.csv("../data_BB/archetypes_sites_centered_cells_gaussian2.csv")%>%filter(cell_type_site!="Unidentified")
+tmens_cells2 <- read.csv("../TMENS_analysis/output/archetypes_sites_centered_cells_gaussian2.csv")%>%filter(cell_type_site!="Unidentified")
 #rowSums(tmens_cells[,c("archetype1","archetype2","archetype3","archetype4")])
 
 ```
@@ -467,8 +467,8 @@ ggplot(data=randsToPlot,aes(x=tmen_prop,y=value))+
 
 ```{r plots1,eval=TRUE,warning=FALSE,echo=TRUE}
 #cMf <- correlations_tmens_CM(MarkersCellsTMENs=MarkersCellsTMENS,cellTypes=CELLTYPES, markers=FuncMarkers)
-cMf2<- correlations_tmens_CM(MarkersCellsTMENs=MarkersCellsTMENS2,cellTypes=CELLTYPES, markers=FuncMarkers)
-write_csv(cMf2%>%as_tibble(rownames=NA)%>%rownames_to_column(var="cell_marker"), "./CM_corr_tmensREDUCED_thresh0.3.csv")
+cMf<- correlations_tmens_CM(MarkersCellsTMENs=MarkersCellsTMENS2,cellTypes=CELLTYPES, markers=FuncMarkers)
+write_csv(cMf%>%as_tibble(rownames=NA)%>%rownames_to_column(var="cell_marker"), "./CM_corr_tmens_thresh0.3.csv")
 # if(file.exists()){
 #   
 # }else{
@@ -477,11 +477,11 @@ write_csv(cMf2%>%as_tibble(rownames=NA)%>%rownames_to_column(var="cell_marker"),
 # rm(cMf)
 #saveRDS(cMf,"./corMatrixCM_fdr.rds")
 #cMf <- readRDS("./corMatrixCM_fdr.rds")
-figWidth <- nrow(cMf2) * 30/267
+figWidth <- nrow(cMf) * 30/267
 #pheatmap(cMf%>%t)
 
-pheatmap(cMf2%>%t)
-#pdf("./figs/cMf2.pdf", height=8, width=ifelse(figWidth<6, 6, figWidth+2)); pheatmap(cMf2%>%t); dev.off()
+pheatmap(cMf%>%t)
+pdf("./figs/cMf.pdf", height=8, width=ifelse(figWidth<6, 6, figWidth+2)); pheatmap(cMf%>%t); dev.off()
 ######## VISUALIZATION ################
 
 # figWidth <- nrow(cMf) * 30/267
@@ -508,7 +508,7 @@ archs.CT <- get_CT_enriched_all_archs(archetypesSitesKeren,cellAbSites,thresh = 
 #names(archs.CT) <- set_tmens_names(names(archs.CT))
 
 
-tabTMENs2 <- as_tibble(cMf2,rownames=NA)%>%
+tabTMENs2 <- as_tibble(cMf,rownames=NA)%>%
   rownames_to_column(var="names")%>%
   separate(names,into=c("cell_type","marker"),sep=";")%>%
   mutate(marker=paste0(marker,"+"))%>%
@@ -602,12 +602,12 @@ tabCellPhen3 <- tabCellPhen2%>%
 
 
 ```{r corrCells,eval=TRUE }
-
-cts <- unique(pull(as_tibble(cMf2,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),cell_type))
-markersCorr <- unique(pull(as_tibble(cMf2,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),marker))
+library("RColorBrewer")
+cts <- unique(pull(as_tibble(cMf,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),cell_type))
+markersCorr <- unique(pull(as_tibble(cMf,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),marker))
 
 ######### HEATMAP ORGANIZED BY CELL TYPES
-CM_TMENs_ct <- as_tibble(cMf2,rownames=NA)%>%
+CM_TMENs_ct <- as_tibble(cMf,rownames=NA)%>%
      rownames_to_column(var="names")%>%
      separate(names,into=c("cell_type","marker"),sep=";")%>%#mutate(marker=paste0(marker,"+"))%>%
      pivot_longer(cols=c('a1','a2','a3',"a4","a1a2","a1a3","a1a4","a2a3","a2a4","a3a4"),names_to = "region",values_to="corr_val")%>%
@@ -619,15 +619,21 @@ hclustCells <- hclust(dists,method="ward")
 #plot(as.dendrogram(hclustCells))
 cellTypes <- data.frame(cell_type =pull(CM_TMENs_ct ,cell_type))
 Markers<- pull(CM_TMENs_ct ,marker)
-
+#### Annotations colors = length of cell types
+colorCount = length(CELLTYPES)
+getPalette = colorRampPalette(brewer.pal(9, "Set1"))
+getPalette(colorCount)
+# List with colors for each annotation.
+CTcolors <- list(cell_type = getPalette(colorCount))
+names(CTcolors$cell_type) <- CELLTYPES
 rownames(cellTypes) <- rownames(CM_TMENs_ct)
 #rownames(Markers) <-rownames(CM_TMENs_ct)
 pdf("./figs/cM_byCells2.pdf",height=8, width=ifelse(figWidth<6, 6, figWidth+2))
-pheatmap(t(cMf2),cluster_cols = hclustCells,cluster_rows = FALSE,annotation_col=cellTypes,labels_col = Markers)#
+pheatmap(t(cMf),cluster_cols = hclustCells,cluster_rows = FALSE,annotation_col=cellTypes,annotation_colors= CTcolors,labels_col = Markers)#
 dev.off()
 
 ####### HEATMAP ORGANIZED BY MARKERS
-CM_TMENs_ph <- as_tibble(cMf2,rownames=NA)%>%
+CM_TMENs_ph <- as_tibble(cMf,rownames=NA)%>%
      rownames_to_column(var="names")%>%
      separate(names,into=c("cell_type","marker"),sep=";")%>%#mutate(marker=paste0(marker,"+"))%>%
      pivot_longer(cols=c('a1','a2','a3',"a4","a1a2","a1a3","a1a4","a2a3","a2a4","a3a4"),names_to = "region",values_to="corr_val")%>%
@@ -642,7 +648,7 @@ dists2 <- dist(as.matrix(CM_TMENs_ph%>%dplyr::select(-c(marker,cell_type,idx))),
 hclustPhen <- hclust(dists2,method="ward") 
 #plot(as.dendrogram(hclustPhen))
 
-cMf.copy <- cMf2
+cMf.copy <- cMf
 rownames(cMf.copy)<- unname(unlist(sapply(rownames(cMf.copy),function(x){paste0(strsplit(x,";")[[1]][2],";",strsplit(x,";")[[1]][1])})))#sub('(\\w|\\.|\\_|\\ / |+);(\\w|.|_| / |+)', '\\2;\\1', rownames(cMf))#sub('([^;]);([^;])', '\\2;\\1^', rownames(cMf))
 # 
 cMf_ordered <- cMf.copy%>%as_tibble(rownames=NA)%>%rownames_to_column(var="names")%>%separate(col="names",into=c("marker","cell_type"),sep=";")%>%group_by(marker)%>%arrange(marker)%>%mutate(names=paste0(marker,";",cell_type))%>%column_to_rownames(var="names")%>%dplyr::select(-c(cell_type,marker))
@@ -665,8 +671,8 @@ library(RColorBrewer)
 library(pheatmap)
 
 ## Get cell types that are associated with a tmen/interface
-cts <- unique(pull(as_tibble(cMf2,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),cell_type))
-markersCorr <- unique(pull(as_tibble(cMf2,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),marker))
+cts <- unique(pull(as_tibble(cMf,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),cell_type))
+markersCorr <- unique(pull(as_tibble(cMf,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),marker))
 
 
 ### Classify correlations by cell type
@@ -751,12 +757,12 @@ If so, is it a continuum or do we have clusters ?
 library(pheatmap)
 library(RColorBrewer)
 library(ggplot2)
-CM_TMENs.pca <- dudi.pca(cMf2[,c('a1','a2','a3',"a4","a1a2","a1a3","a1a4","a2a3","a2a4","a3a4")],center=FALSE, scale=TRUE,scannf=FALSE,nf=3)
+CM_TMENs.pca <- dudi.pca(cMf[,c('a1','a2','a3',"a4","a1a2","a1a3","a1a4","a2a3","a2a4","a3a4")],center=FALSE, scale=TRUE,scannf=FALSE,nf=3)
 fviz_eig(CM_TMENs.pca)
 fviz_pca_var(CM_TMENs.pca,col.var = "red",repel=TRUE)
 fviz_pca_var(CM_TMENs.pca,axes=c(1,3),col.var = "red",repel=TRUE)
 fviz_pca_ind(CM_TMENs.pca)
-CM <- cMf2%>%as_tibble(rownames=NA)%>%rownames_to_column(var="names")%>%separate(col=names, into=c("cell_type","marker"),sep=";")%>%dplyr::select(c(cell_type,marker))
+CM <- cMf%>%as_tibble(rownames=NA)%>%rownames_to_column(var="names")%>%separate(col=names, into=c("cell_type","marker"),sep=";")%>%dplyr::select(c(cell_type,marker))
 
 # CM_TMENs.pca$co[,1:3] <- sweep(CM_TMENs.pca$co[,1:3], 2, CM_TMENs.pca$eig[1:3]^0.8, FUN='/')
 # CM_TMENs.pca$li[,1:3] <- sweep(CM_TMENs.pca$li[,1:3], 2, CM_TMENs.pca$eig[1:3], FUN='/')
@@ -807,7 +813,7 @@ PCA on correlations between cells protein expression and TMENs justify to reduce
 The third Principal Component explains 12 % of the total variance. TLS-cancer as well as TLS niche positively associates with the PC3.
 
 ```{r plotsa2a3,echo=TRUE}
-corr_cm <-as_tibble(cMf2,rownames=NA)%>%rownames_to_column(var="names")%>%separate(col=names, into=c("cell_type","marker"),sep=";")%>%filter(!(cell_type %in% c("DC / Mono", "Mono / Neu","Other immune")))%>%mutate(marker=ifelse(marker%in%c("phospho.S6","Beta.catenin","HLA_Class_1"),marker,"other"))#%>%group_by(marker)%>%mutate(randA2 = ifelse(marker=="other",rnorm(),))
+corr_cm <-as_tibble(cMf,rownames=NA)%>%rownames_to_column(var="names")%>%separate(col=names, into=c("cell_type","marker"),sep=";")%>%filter(!(cell_type %in% c("DC / Mono", "Mono / Neu","Other immune")))%>%mutate(marker=ifelse(marker%in%c("phospho.S6","Beta.catenin","HLA_Class_1"),marker,"other"))#%>%group_by(marker)%>%mutate(randA2 = ifelse(marker=="other",rnorm(),))
 library(RColorBrewer)
 #library(tune)
 colorCount = length(unique(corr_cm$marker))
@@ -833,9 +839,9 @@ To understand with cores/interfaces of TMENs associate (positively or negatively
 ```{r SScors}
 #install.packages("ggrepel")
 library(ggrepel)
-coreCorr <- cMf2[,c('a1','a2','a3',"a4")]
-interCorr <- cMf2[,c("a1a2","a1a3","a1a4","a2a3","a2a4","a3a4")]
-SS <- apply(cMf2[,c('a1','a2','a3',"a4","a1a2","a1a3","a1a4","a2a3","a2a4","a3a4")],2, function(x) sum(x)^2)#var(x) #sum(x-mean(x))^2
+coreCorr <- cMf[,c('a1','a2','a3',"a4")]
+interCorr <- cMf[,c("a1a2","a1a3","a1a4","a2a3","a2a4","a3a4")]
+SS <- apply(cMf[,c('a1','a2','a3',"a4","a1a2","a1a3","a1a4","a2a3","a2a4","a3a4")],2, function(x) sum(x)^2)#var(x) #sum(x-mean(x))^2
 sort(SS)
 names(SS) <- str_replace_all(names(SS), c("a2a3"="inflammatory x cancer",
                                                            "a1a3" = "TLS x cancer",

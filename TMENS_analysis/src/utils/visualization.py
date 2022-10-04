@@ -206,7 +206,7 @@ def plot_cells_positions(data, cell_types, segment_image=False, segmentation_typ
 
 def plot_cells_markers_tmens(patient_id,cell_types,path_data, data_markers_path,cell_type, marker,segment_image=False,
                              segmentation_type="hard", counting_type="gaussian",h=800,w=800,granularity=20,radius=25,
-                             pca_obj=None,AA_obj=None, to_plot=None,path_fig=None):
+                             pca_obj=None,AA_obj=None, to_plot=None,path_fig=None, intOutQuant=0):
     '''
     plots cells positions in MIBI image of TNBC overlayed with TMENs colors + saves it in a .svg image
     @param patient_id:{integer} id of the image patient (number here)
@@ -249,8 +249,17 @@ def plot_cells_markers_tmens(patient_id,cell_types,path_data, data_markers_path,
         df_markers = df_markers.loc[df_markers["SampleID"] == patient_id]
         df_markers.rename(columns = {"cellLabelInImage":"label"},inplace=True)
         data_CM = pd.merge(data,df_markers,on = "label",how = "left")
+        maxIntensity = data_CM[marker].quantile(1-intOutQuant)
+        data_CM.loc[data_CM[marker] > maxIntensity,marker ] = maxIntensity
+        #print(data_CM)
         plt.imshow(z, origin='lower')
-        cm = plt.cm.get_cmap("YlGn")#('RdYlBu')
+        #cm = plt.cm.get_cmap("YlGn")#('RdYlBu')
+        #cm = plt.cm.get_cmap("summer")#('RdYlBu') #fails on DC Keratin6
+        #cm = plt.cm.get_cmap("viridis")#('RdYlBu') #fails on DC Keratin6
+        #cm = plt.cm.get_cmap("bone")#('RdYlBu') #fails on DC Keratin6 becuase high Ker6 DCs diseapear in cancer niche
+        cm = plt.cm.get_cmap("pink")#('RdYlBu')
+        #cm = plt.cm.get_cmap("hot")#('RdYlBu') #works
+        #cm = plt.cm.get_cmap("copper")#('RdYlBu') #ok, but DC Ker6 not so visible in cancer
         plt.scatter(data_CM['x'], data_CM['y'], marker="o", s=14, c=data_CM[marker],cmap=cm)
 
     plt.legend(bbox_to_anchor=(1.0, 1), loc='upper left')
@@ -288,7 +297,7 @@ def plot_all_tumors_cell_positions(patient_ids, cell_types, segment_image=False,
     #Value: color
     print(len(cells_cols.keys()))
     for i, patientID in enumerate(patient_ids):
-        
+        print("Processing patient ID: {}".format(patientID))
         plt.subplot(8, 5, i+1)
         data = pd.read_csv("{}/patient{}_cell_positions.csv".format(root_path, patientID))
         groups = data.groupby('cell_type')

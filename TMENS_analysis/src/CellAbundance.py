@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import KDTree
+import matplotlib.pyplot as plt
 
 
 def generate_abundance_matrix(cell_types, patient_ids, n_site, radius, method, snr=1, root="../../output/",
@@ -147,18 +148,29 @@ class CellAbundance:
                              centers[c_idx])
                      for c_idx in range(x_centers.shape[0])}
         else:
-            x_centers = x
-            y_centers = y
+            # Filter cells that are in the border of the image
+            threshX = self.image_x_size - radius
+            threshY = self.image_y_size - radius
+            cells_positions = self.cell_positions_df.loc[((self.cell_positions_df['x']<= threshX) & (self.cell_positions_df['x']>=radius)) & ((self.cell_positions_df['y']<= threshY) & (self.cell_positions_df['y']>=radius))]
+            #print(self.cell_positions_df.shape, cells_positions.shape)
+            #x = self.cell_positions_df['x'].to_numpy().astype(float)
+        #y = self.cell_positions_df['y'].to_numpy().astype(float)
+        
+            x_centers = cells_positions['x'].to_numpy().astype(float)
+            y_centers = cells_positions['y'].to_numpy().astype(float)
+            
+            t_center = cells_positions['cell_type'].to_numpy()
+            cell_id_center = cells_positions['label']
             centers = np.stack((x_centers, y_centers), axis=-1)
+            #print(x_centers.shape[0])
             points = np.stack((x, y), axis=-1)
             tree = KDTree(points, leaf_size=5)
             idx_b = tree.query_radius(centers, r=radius, count_only=False)
-            sites = {(cell_id.tolist()[c_idx],t.tolist()[c_idx]): (np.stack((x[idx_b[c_idx]], y[idx_b[c_idx]], t[idx_b[c_idx]], cell_id[idx_b[c_idx]],
+            sites = {(cell_id_center.tolist()[c_idx],t_center.tolist()[c_idx]): (np.stack((x[idx_b[c_idx]], y[idx_b[c_idx]], t[idx_b[c_idx]], cell_id[idx_b[c_idx]],
                                       [x_centers[c_idx]]*len(idx_b[c_idx]), [y_centers[c_idx]]*len(idx_b[c_idx])), axis=-1),
                              centers[c_idx])
                      for c_idx in range(x_centers.shape[0])}
 
-        
         return sites
 
     def get_site_cell_map_dataframe(self):

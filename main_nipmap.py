@@ -15,8 +15,8 @@ from sklearn.decomposition import PCA
 import json
 
 
-#print(sys.argv[2])
 
+#### ARGUMENTS
 CELLTYPES = list(sys.argv[1].split(",")) #['CD8-T', 'Other immune', 'DC / Mono', 'CD3-T', 'B', 'NK', 'Keratin-positive tumor', 'Tumor','CD4-T', 'Mesenchymal-like', 'Macrophages', 'Endothelial', 'Tregs', 'Unidentified', 'DC', 'Mono / Neu','Neutrophils']
 ImageIDs = [int(i) for i in sys.argv[2].split(",")] #[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 34, 35, 36, 37,38, 39, 40, 41]
 NSITES = int(sys.argv[3]) #100
@@ -28,7 +28,7 @@ ROOT_OUTPUT_PATH = sys.argv[8] #"./TMENS_analysis/output"
 
 
 if __name__ == "__main__":
-  
+  #####----- GENERATE SITES AND COMPUTE CELL ABUNDANCE ----#####
   CellAb_list = generate_abundance_matrix(CELLTYPES, ImageIDs, NSITES,RADIUS,method=METHOD, snr=3,center_sites_cells=False,root=ROOT_DATA_PATH)
   sites, patients_ids,sites_ids, _ = join_abundance_matrices(CellAb_list)
   CellAb_df = pd.DataFrame() 
@@ -38,10 +38,10 @@ if __name__ == "__main__":
       abundance_df['patient_id'] = ca.patient_id
       CellAb_df = CellAb_df.append(abundance_df)
   CellAb_df = CellAb_df.reset_index()
-  ## PCA on sites abundance
+  #####----- PCA ON SITES ABUNDANCE ----#####
   pca_obj = PCA()
   pc_proj = pca_obj.fit_transform(sites)
-  
+  #####----- ARCHETYPE ANALYSIS ----#####
   AA = ArchetypalAnalysis(n_archetypes = NBNICHES, 
                      tolerance = 0.001, 
                      max_iter = 200, 
@@ -51,7 +51,7 @@ if __name__ == "__main__":
                      redundancy_try = 30)
   AA.fit_transform(pc_proj[:,:NBNICHES-1])
   
-  ##########----- GENERATE SITES CENTERED ON CELLS AND THEIR NICHE WEIGHTS ----##########
+  #####----- GENERATE SITES CENTERED ON CELLS AND THEIR NICHE WEIGHTS ----#####
   CellAbCC_list = generate_abundance_matrix(CELLTYPES, ImageIDs, NSITES,RADIUS,method=METHOD, snr=3,center_sites_cells=True,root=ROOT_DATA_PATH)
   sitesCC, patients_ids2,sites_ids2, _ = join_abundance_matrices(CellAbCC_list)
   CellAbCC_df = pd.DataFrame()
@@ -74,8 +74,8 @@ if __name__ == "__main__":
   # print(sites_archs[0:9,: ])
 
  
-    ##########----- SAVE OUTPUTS IN CSV ----##########
-    ## SAVE PCA AND Archetype Analysis OBJECTS
+  ##########----- SAVE OUTPUTS IN CSV ----##########
+  ## SAVE PCA AND Archetype Analysis OBJECTS
   dict_pca = {"PC_proj":pc_proj.tolist(),"components":pca_obj.components_.tolist(),"expl_variance":pca_obj.explained_variance_.tolist(),
     "expl_var_ratio":pca_obj.explained_variance_ratio_.tolist(),"mean":pca_obj.mean_.tolist()}
     
@@ -84,13 +84,13 @@ if __name__ == "__main__":
   dict_caSites = {"cellAbSites": CellAb_df.to_dict()}
   dict_caSitesCC = {"cells_niches": sites_archs.to_dict(),"cellAb_sitesCC": CellAbCC_df.to_dict()}
     
-    # Serializing json objects
+  # Serializing json objects
   PCA_json = json.dumps(dict_pca, indent=4)
   AA_json = json.dumps(dict_AA, indent=4)
   caSites_json = json.dumps(dict_caSites,indent=4)
   cellsNiches_json = json.dumps(dict_caSitesCC,indent=4)
      
-    # Writing to .json files
+  # Writing to .json files
   with open("./pca_sites.json", "w") as outfile:
     outfile.write(PCA_json)
     
