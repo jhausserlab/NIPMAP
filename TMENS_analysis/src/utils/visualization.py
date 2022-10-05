@@ -8,6 +8,8 @@ from scipy.spatial import ConvexHull
 import mpl_toolkits.mplot3d as a3
 import matplotlib.colors
 import numpy as np
+import seaborn as sns
+#import image_seaborn as isns
 import pandas as pd
 import matplotlib.patheffects as path_effects
 
@@ -204,7 +206,7 @@ def plot_cells_positions(data, cell_types, segment_image=False, segmentation_typ
         plt.savefig(path_fig,format="svg")
     return plt
 
-def plot_cells_markers_tmens(patient_id,cell_types,path_data, data_markers_path,cell_type, marker,segment_image=False,
+def plot_cells_markers_tmens(patient_id,cell_types,path_data, data_markers_path,cell_type, marker,symbols,segment_image=False,
                              segmentation_type="hard", counting_type="gaussian",h=800,w=800,granularity=20,radius=25,
                              pca_obj=None,AA_obj=None, to_plot=None,path_fig=None, intOutQuant=0):
     '''
@@ -215,6 +217,7 @@ def plot_cells_markers_tmens(patient_id,cell_types,path_data, data_markers_path,
     @param data_markers_path:{string} path to csv file containing markers expressions for each cells in all images
     @param cell_type:{string} cell type we choose to analyze
     @param marker:{string} marker expressed in a cell type
+    @param symbols:{list} of symbols for each marker to plot
     @param segment_image: {boolean}, if True, color image from results of AA, if False, plot only cells (Default=False)
     @param segmentation_type:{str} ssegment pixels of images and color them as TMENs proportions (default='hard')
     @param counting_type:{str} counting type of cells within the sites:'abs' for absolute, 'log' fro log normalization and 'gaussian' for gaussian density (Default='abs')
@@ -227,7 +230,6 @@ def plot_cells_markers_tmens(patient_id,cell_types,path_data, data_markers_path,
     @param to_plot:{str} plot all images or not (Default='all')
     
     @return: plot
-    
     '''    
     data = pd.read_csv(path_data+"/patient{}_cell_positions.csv".format(patient_id))
    # data = data.loc[data["cell_type"] == cell_type]
@@ -249,10 +251,9 @@ def plot_cells_markers_tmens(patient_id,cell_types,path_data, data_markers_path,
         df_markers = df_markers.loc[df_markers["SampleID"] == patient_id]
         df_markers.rename(columns = {"cellLabelInImage":"label"},inplace=True)
         data_CM = pd.merge(data,df_markers,on = "label",how = "left")
-        maxIntensity = data_CM[marker].quantile(1-intOutQuant)
-        data_CM.loc[data_CM[marker] > maxIntensity,marker ] = maxIntensity
+        
         #print(data_CM)
-        plt.imshow(z, origin='lower')
+        plt.imshow(z, origin='lower')#isns.imgplot(z)
         #cm = plt.cm.get_cmap("YlGn")#('RdYlBu')
         #cm = plt.cm.get_cmap("summer")#('RdYlBu') #fails on DC Keratin6
         #cm = plt.cm.get_cmap("viridis")#('RdYlBu') #fails on DC Keratin6
@@ -260,10 +261,31 @@ def plot_cells_markers_tmens(patient_id,cell_types,path_data, data_markers_path,
         cm = plt.cm.get_cmap("pink")#('RdYlBu')
         #cm = plt.cm.get_cmap("hot")#('RdYlBu') #works
         #cm = plt.cm.get_cmap("copper")#('RdYlBu') #ok, but DC Ker6 not so visible in cancer
-        plt.scatter(data_CM['x'], data_CM['y'], marker="o", s=14, c=data_CM[marker],cmap=cm)
+        if type(marker)=="str":
+            maxIntensity = data_CM[marker].quantile(1-intOutQuant)
+            data_CM.loc[data_CM[marker] > maxIntensity,marker ] = maxIntensity
+            plt.scatter(data_CM['x'], data_CM['y'], marker="o", s=14, c=data_CM[marker],cmap=cm)
+            plt.legend(bbox_to_anchor=(1.0, 1), loc='upper left')
+            plt.colorbar()
+        else:
+            plt.scatter(data_CM['x'], data_CM['y'], marker="o",facecolors="none", s=70, edgecolors="white")
+            for m,s in zip(marker,symbols):##
+                print(m)
+                namePhen = m+'_phen'
+                data_CM[namePhen]="o" # for each marker, if cells are positive to m, set a symbol and plot it
+                data_CM.loc[data_CM[m]>0,namePhen] = s
+                if m=="CD45RO":
+                    print(data_CM[namePhen])
+                for i in range(len(data_CM[namePhen].tolist())):
+                    if m=="Keratin6":
+                        plt.scatter(data_CM['x'][i],data_CM['y'][i],marker="o",s=75,facecolors='none',edgecolors="green",linewidths=3)
+                    else:
+                        plt.scatter(data_CM['x'][i],data_CM['y'][i],marker=data_CM[namePhen].tolist()[i],s=70,facecolors='none',edgecolors="white",linewidths=1)
+                #sns.scatterplot(data_CM['x'],data_CM['y'],markers=data_CM[namePhen].tolist(),s=14,color=".2")#
+        # if cells are positive to multiple markers, stack the same points with different symbols in the plot       
+            
 
-    plt.legend(bbox_to_anchor=(1.0, 1), loc='upper left')
-    plt.colorbar()
+    
     plt.xlim(0, w)
     plt.ylim(0, h)
     if path_fig!=None:

@@ -110,10 +110,14 @@ FuncMarkers <- append(str_replace_all(FuncMarkers,c("HLA-DR"="HLA.DR","PD-L1" = 
 ```{r hclustCT,eval=TRUE}
 library(cluster)
 
-CellsFunctMarkers.df <- cell_markers[which(cell_markers$cell_type %in% c("DC")),append(append(FuncMarkers,"cell_type"),"cell_id")]#%>%mutate(id = paste0(cell_type,"_",cell_id))%>%column_to_rownames(var="id")#%>%group_by(cell_type) c("DC", "Keratin-positive tumor", "NK", "Neutrophils", "Tregs")
-rownames(CellsFunctMarkers.df) <- make.names(paste0(CellsFunctMarkers.df$cell_type,"_",CellsFunctMarkers.df$cell_id),unique=TRUE)
+colsToKeep <- append(append(FuncMarkers,"cell_type"),"cell_id")
+CellsFunctMarkers.df <- cell_markers[which(cell_markers$cell_type %in% c("DC")),append(colsToKeep,"patient_id")]
+#%>%mutate(id = paste0(cell_type,"_",cell_id))%>%column_to_rownames(var="id")#%>%group_by(cell_type) c("DC", "Keratin-positive tumor", "NK", "Neutrophils", "Tregs")
+rownames(CellsFunctMarkers.df) <- make.names(paste0(CellsFunctMarkers.df$cell_type,"_",CellsFunctMarkers.df$cell_id,"_",CellsFunctMarkers.df$patient_id),unique=TRUE)
 #cells.markers <- group_split(CellsFunctMarkers.df )
 
+
+## Scale the values of intensity markers for each cluster
 ZscoreScale <- function(M, cutOff=3) {
   M0 = apply(M, 2, function(x) {(x-mean(x)) / sd(x)}) %>% t
   M0[M0>cutOff] = cutOff
@@ -121,12 +125,16 @@ ZscoreScale <- function(M, cutOff=3) {
   return(M0)
 }
 #list_heatmap <- lapply(cells.markers, FUN = function(x) pheatmap(as.matrix(x%>%dplyr::select(-(cell_type)))))
-cm.mat <- CellsFunctMarkers.df%>%dplyr::select(-c(cell_type,cell_id))%>%ZscoreScale()%>%t()
+
+### Apply Z-score scaling marker-wise and compute mean(Z-score) 
+# Apply hclustering using Ward's linkaage method
+cm.mat <- CellsFunctMarkers.df%>%dplyr::select(-c(cell_type,cell_id,patient_id))%>%ZscoreScale()%>%t()
 CM.dist <- dist(cm.mat,method="euclidian")
 clust.DC <- hclust(CM.dist,method = "ward.D")
 sub_grp <-  data.frame(cell_id=names(cutree(clust.DC, k = 10)),cluster=cutree(clust.DC, k = 10),row.names=NULL)
 #cm.mat[,'cluster'] <- sub_grp
 
+## Group by marker and apply mean(Z-score) for each cell type
 clustMarkers.zscore <- cm.mat %>%as_tibble(rownames=NA)%>%rownames_to_column(var="cell_id")%>%
   left_join(.,sub_grp, by="cell_id")%>%
   pivot_longer(cols = FuncMarkers, names_to="marker",values_to = "value")%>%
@@ -145,26 +153,28 @@ pheatmap(as.matrix(clustMarkers.zscore),cluster_cols = FALSE,cluster_rows = FALS
 ## Hierarchical clustering on cells from the same type, ward's method (variance minimization, scaled with cut-off value of markers intensity =3)
 hclust_cellTypes <- function(){
   
-  CellsFunctMarkers.df <- cell_markers[which(cell_markers$cell_type %in% c("DC", "NK", "Neutrophils", "Tregs","Macrophages")),append(append(all_of(FuncMarkers),"cell_type"),"cell_id")]# "Keratin-positive tumor"
+  CellsFunctMarkers.df <- cell_markers[which(cell_markers$cell_type %in% c("DC", "NK", "Neutrophils", "Tregs","Macrophages")),append(append(append(all_of(FuncMarkers),"cell_type"),"cell_id"),"patient_id")]# "Keratin-positive tumor"
   
-  rownames(CellsFunctMarkers.df) <- make.names(paste0(CellsFunctMarkers.df$cell_type,"_",CellsFunctMarkers.df$cell_id),unique=TRUE)
+  rownames(CellsFunctMarkers.df) <- make.names(paste0(CellsFunctMarkers.df$cell_type,"_",CellsFunctMarkers.df$cell_id,"_",CellsFunctMarkers.df$patient_id),unique=TRUE)
   #print(rownames(CellsFunctMarkers.df))
-  cells.markers <- group_split(CellsFunctMarkers.df%>%group_by(cell_type))
+  cells.markers <- group_split(CellsFunctMarkers.df%>%rownames_to_column(var="id")%>%group_by(cell_type))
   #print(cells.markers)
   
   list_heatmaps <-lapply(cells.markers, FUN = function(x) {
-    print(unique(x$cell_type))
+    #print(unique(x$cell_type))
     ct <- unique(x$cell_type)
-
-    cm.mat <- x%>%dplyr::select(-c(cell_type,cell_id))%>%ZscoreScale()%>%t()
+    x <- x%>%column_to_rownames(var="id")
+    cm.mat <- x%>%dplyr::select(-c(cell_type,cell_id,patient_id))%>%ZscoreScale()%>%t()
     print(dim(cm.mat))
+    print(rownames(x))
     CM.dist <- dist(cm.mat,method="euclidian")
     Cells.hclust <- hclust(CM.dist,method = "ward.D")
     #print(table(cutree(Cells.hclust, k = 10)))
-    sub_grp <-  data.frame(cell_id=seq(1,nrow(x),1),cluster=cutree(Cells.hclust, k = 10),row.names=NULL)
+    ##Cluster ids assigned to each cell
+    sub_grp <-  data.frame(cell_id=rownames(x),cluster=cutree(Cells.hclust, k =10),row.names=NULL)#(cell_id=seq(1,nrow(x),1),cluster=cutree(Cells.hclust, k = 10),row.names=NULL)
     #cm.mat[,'cluster'] <- sub_grp
-    
-    clustMarkers.zscore <- cm.mat %>%as_tibble()%>%mutate(cell_id=seq(1,nrow(x),1))%>%#as_tibble(rownames=NA)%>%rownames_to_column(var="cell_id")%>%
+    write_csv(sub_grp%>%separate(cell_id,into=c("cell_type","cell_id","patient_id"),sep="_"),paste0("./outputs/",ct,"_hclustIDs.csv"))
+    clustMarkers.zscore <- cm.mat %>%as_tibble()%>%mutate(cell_id=rownames(x))%>%#as_tibble(rownames=NA)%>%rownames_to_column(var="cell_id")%>%
       left_join(.,sub_grp, by="cell_id")%>%
       pivot_longer(cols = FuncMarkers, names_to="marker",values_to = "value")%>%
       group_by(cluster,marker)%>%
@@ -181,9 +191,6 @@ hclust_cellTypes <- function(){
 
 hclust_cellTypes()
 
-## TODO 
-### Remove markers that have a weak association to the TMENs
-### OR keep all markers in correlation matrix for each cell to make it easy to compare 
 
 ```
 
