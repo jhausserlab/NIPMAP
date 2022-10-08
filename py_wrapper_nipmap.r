@@ -3,6 +3,8 @@
 .libPaths("/scratch/anissa.el/R_old/x86_64-redhat-linux-gnu-library/4.0")
 install.packages("rjson")
 library(rjson)
+library(tidyverse)
+library(purrr)
 #install.packages("reticulate", dependencies = TRUE, INSTALL_opts = '--no-lock')
 # library(reticulate)
 # update.packages(instlib = "local")
@@ -40,24 +42,36 @@ system("source /scratch/anissa.el/miniconda3/bin/activate /scratch/anissa.el/min
 system(paste("/scratch/anissa.el/miniconda3/envs/building-blocks/bin/python3 ./main_nipmap.py",CELLTYPES," ",ImageIDs," ",NSITES," ",RADIUS," ",NBNICHES," ",METHOD," ",ROOT_DATA_PATH," ",ROOT_OUTPUT_PATH))
 
 file1 = "./pca_sites.json" # pca object on sites elements 
-file2 = "./AA_sites" # archetype Analysis object based on sites cell abundance
+file2 = "./AA_sites.json" # archetype Analysis object based on sites cell abundance
 file3 = "./ca_sites.json" # cell abundance of randomly generated sites
 file4 = "./cells_niches.json" # sites centered on cells and niches weights
 
 #######---- Open .json files ----#######
 json_data <- fromJSON(file=file1)
-json_data <- fromJSON(file=file2)
-json_data <- fromJSON(file=file3)
-json_data <- fromJSON(file=file4)
+json_data2 <- fromJSON(file=file2)
+json_data3 <- fromJSON(file=file3)
+json_data4 <- fromJSON(file=file4)
 
+
+
+##### LOAD OUTPUT OBJECTS
+## Cell abundance in sites
+sitesCellAb <- as_tibble(lapply(json_data3$cellAbSites,unlist))
+write_csv(sitesCellAb%>%dplyr::select(-c(index, patient_id,site_id)),"sitesCA.csv")
+## Archetypes coordinates in reduced PC space 
+Archs_3D <- do.call(cbind,lapply(json_data2$archs_coord,unlist))
+## Projection of sites cell abundance in reduced PC space
 pca3D <- matrix(unlist(json_data$PC_proj),nrow=17)[1:3,]
-
-
 plotly::plot_ly(x=pca3D[1,],
                 y=pca3D[2,],
                 z=pca3D[3,],
                 type="scatter3d",
                 mode="marker")
+
+## Niches weights(proportions) of all cells from all images 
+cellsNiches <- as_tibble(lapply(json_data4$cells_niches,unlist))%>%
+  mutate(site_id=as.numeric(site_id))
+
 
 ### IMPORT PYTHON LIBRARIES
 

@@ -55,14 +55,14 @@ MARKERS <- c("dsDNA","Vimentin","SMA","B7H3","FoxP3","Lag3","CD4","CD16","CD56",
 
 ```{r data, echo=TRUE}
 ##CSV file of archetypes found by archetype analysis and their cell composition
-archsToTMENs <- read.csv("../data_BB/archetypes_building_blocks_17cells_space_gaussian.csv")
+archsToTMENs <- read.csv("../TMENS_analysis/output/archetypes_building_blocks_17cells_space_gaussian.csv")
 # ARCH1: TLS
 # ARCH2: INFLAMMATORY NICHE
 # ARCH3: CANCER NICHE
 # ARCH4: FIBROTIC/NECROTIC NICHE
 
 ## .csv file containing the expression of markers from all cells from all images
-cell_markers <- read.csv('/scratch/anissa.el/ImmuneStates/cellData.csv',header = TRUE, sep =',')
+cell_markers <- read.csv('../TMENS_analysis/data/cellData.csv',header = TRUE, sep =',')
 
 #colnames(cell_markers)
 cell_markers <- cell_markers %>% relocate(Background, .after = cellLabelInImage)
@@ -110,10 +110,14 @@ FuncMarkers <- append(str_replace_all(FuncMarkers,c("HLA-DR"="HLA.DR","PD-L1" = 
 ```{r hclustCT,eval=TRUE}
 library(cluster)
 
-CellsFunctMarkers.df <- cell_markers[which(cell_markers$cell_type %in% c("DC")),append(append(FuncMarkers,"cell_type"),"cell_id")]#%>%mutate(id = paste0(cell_type,"_",cell_id))%>%column_to_rownames(var="id")#%>%group_by(cell_type) c("DC", "Keratin-positive tumor", "NK", "Neutrophils", "Tregs")
-rownames(CellsFunctMarkers.df) <- make.names(paste0(CellsFunctMarkers.df$cell_type,"_",CellsFunctMarkers.df$cell_id),unique=TRUE)
+colsToKeep <- append(append(FuncMarkers,"cell_type"),"cell_id")
+CellsFunctMarkers.df <- cell_markers[which(cell_markers$cell_type %in% c("DC")),append(colsToKeep,"patient_id")]
+#%>%mutate(id = paste0(cell_type,"_",cell_id))%>%column_to_rownames(var="id")#%>%group_by(cell_type) c("DC", "Keratin-positive tumor", "NK", "Neutrophils", "Tregs")
+rownames(CellsFunctMarkers.df) <- make.names(paste0(CellsFunctMarkers.df$cell_type,"_",CellsFunctMarkers.df$cell_id,"_",CellsFunctMarkers.df$patient_id),unique=TRUE)
 #cells.markers <- group_split(CellsFunctMarkers.df )
 
+
+## Scale the values of intensity markers for each cluster
 ZscoreScale <- function(M, cutOff=3) {
   M0 = apply(M, 2, function(x) {(x-mean(x)) / sd(x)}) %>% t
   M0[M0>cutOff] = cutOff
@@ -121,12 +125,16 @@ ZscoreScale <- function(M, cutOff=3) {
   return(M0)
 }
 #list_heatmap <- lapply(cells.markers, FUN = function(x) pheatmap(as.matrix(x%>%dplyr::select(-(cell_type)))))
-cm.mat <- CellsFunctMarkers.df%>%dplyr::select(-c(cell_type,cell_id))%>%ZscoreScale()%>%t()
+
+### Apply Z-score scaling marker-wise and compute mean(Z-score) 
+# Apply hclustering using Ward's linkaage method
+cm.mat <- CellsFunctMarkers.df%>%dplyr::select(-c(cell_type,cell_id,patient_id))%>%ZscoreScale()%>%t()
 CM.dist <- dist(cm.mat,method="euclidian")
 clust.DC <- hclust(CM.dist,method = "ward.D")
 sub_grp <-  data.frame(cell_id=names(cutree(clust.DC, k = 10)),cluster=cutree(clust.DC, k = 10),row.names=NULL)
 #cm.mat[,'cluster'] <- sub_grp
 
+## Group by marker and apply mean(Z-score) for each cell type
 clustMarkers.zscore <- cm.mat %>%as_tibble(rownames=NA)%>%rownames_to_column(var="cell_id")%>%
   left_join(.,sub_grp, by="cell_id")%>%
   pivot_longer(cols = FuncMarkers, names_to="marker",values_to = "value")%>%
@@ -145,26 +153,28 @@ pheatmap(as.matrix(clustMarkers.zscore),cluster_cols = FALSE,cluster_rows = FALS
 ## Hierarchical clustering on cells from the same type, ward's method (variance minimization, scaled with cut-off value of markers intensity =3)
 hclust_cellTypes <- function(){
   
-  CellsFunctMarkers.df <- cell_markers[which(cell_markers$cell_type %in% c("DC", "NK", "Neutrophils", "Tregs","Macrophages")),append(append(all_of(FuncMarkers),"cell_type"),"cell_id")]# "Keratin-positive tumor"
+  CellsFunctMarkers.df <- cell_markers[which(cell_markers$cell_type %in% c("DC", "NK", "Neutrophils", "Tregs","Macrophages")),append(append(append(all_of(FuncMarkers),"cell_type"),"cell_id"),"patient_id")]# "Keratin-positive tumor"
   
-  rownames(CellsFunctMarkers.df) <- make.names(paste0(CellsFunctMarkers.df$cell_type,"_",CellsFunctMarkers.df$cell_id),unique=TRUE)
+  rownames(CellsFunctMarkers.df) <- make.names(paste0(CellsFunctMarkers.df$cell_type,"_",CellsFunctMarkers.df$cell_id,"_",CellsFunctMarkers.df$patient_id),unique=TRUE)
   #print(rownames(CellsFunctMarkers.df))
-  cells.markers <- group_split(CellsFunctMarkers.df%>%group_by(cell_type))
+  cells.markers <- group_split(CellsFunctMarkers.df%>%rownames_to_column(var="id")%>%group_by(cell_type))
   #print(cells.markers)
   
   list_heatmaps <-lapply(cells.markers, FUN = function(x) {
-    print(unique(x$cell_type))
+    #print(unique(x$cell_type))
     ct <- unique(x$cell_type)
-
-    cm.mat <- x%>%dplyr::select(-c(cell_type,cell_id))%>%ZscoreScale()%>%t()
+    x <- x%>%column_to_rownames(var="id")
+    cm.mat <- x%>%dplyr::select(-c(cell_type,cell_id,patient_id))%>%ZscoreScale()%>%t()
     print(dim(cm.mat))
+    print(rownames(x))
     CM.dist <- dist(cm.mat,method="euclidian")
     Cells.hclust <- hclust(CM.dist,method = "ward.D")
     #print(table(cutree(Cells.hclust, k = 10)))
-    sub_grp <-  data.frame(cell_id=seq(1,nrow(x),1),cluster=cutree(Cells.hclust, k = 10),row.names=NULL)
+    ##Cluster ids assigned to each cell
+    sub_grp <-  data.frame(cell_id=rownames(x),cluster=cutree(Cells.hclust, k =10),row.names=NULL)#(cell_id=seq(1,nrow(x),1),cluster=cutree(Cells.hclust, k = 10),row.names=NULL)
     #cm.mat[,'cluster'] <- sub_grp
-    
-    clustMarkers.zscore <- cm.mat %>%as_tibble()%>%mutate(cell_id=seq(1,nrow(x),1))%>%#as_tibble(rownames=NA)%>%rownames_to_column(var="cell_id")%>%
+    write_csv(sub_grp%>%separate(cell_id,into=c("cell_type","cell_id","patient_id"),sep="_"),paste0("./outputs/",ct,"_hclustIDs.csv"))
+    clustMarkers.zscore <- cm.mat %>%as_tibble()%>%mutate(cell_id=rownames(x))%>%#as_tibble(rownames=NA)%>%rownames_to_column(var="cell_id")%>%
       left_join(.,sub_grp, by="cell_id")%>%
       pivot_longer(cols = FuncMarkers, names_to="marker",values_to = "value")%>%
       group_by(cluster,marker)%>%
@@ -181,9 +191,6 @@ hclust_cellTypes <- function(){
 
 hclust_cellTypes()
 
-## TODO 
-### Remove markers that have a weak association to the TMENs
-### OR keep all markers in correlation matrix for each cell to make it easy to compare 
 
 ```
 
@@ -194,7 +201,7 @@ hclust_cellTypes()
 #tmens_cells <- read.csv("../data_BB/archetypes_sites_centered_cells_gaussian.csv")%>%filter(cell_type_site!="Unidentified")#remove Unidentified cells from analysis  archetypes_sites_centered_cells_gaussian.csv
 
 ##.csv file containing the TMENs proportion of cells
-tmens_cells2 <- read.csv("../data_BB/archetypes_sites_centered_cells_gaussian2.csv")%>%filter(cell_type_site!="Unidentified")
+tmens_cells2 <- read.csv("../TMENS_analysis/output/archetypes_sites_centered_cells_gaussian2.csv")%>%filter(cell_type_site!="Unidentified")
 #rowSums(tmens_cells[,c("archetype1","archetype2","archetype3","archetype4")])
 
 ```
@@ -467,8 +474,8 @@ ggplot(data=randsToPlot,aes(x=tmen_prop,y=value))+
 
 ```{r plots1,eval=TRUE,warning=FALSE,echo=TRUE}
 #cMf <- correlations_tmens_CM(MarkersCellsTMENs=MarkersCellsTMENS,cellTypes=CELLTYPES, markers=FuncMarkers)
-cMf2<- correlations_tmens_CM(MarkersCellsTMENs=MarkersCellsTMENS2,cellTypes=CELLTYPES, markers=FuncMarkers)
-write_csv(cMf2%>%as_tibble(rownames=NA)%>%rownames_to_column(var="cell_marker"), "./CM_corr_tmensREDUCED_thresh0.3.csv")
+cMf<- correlations_tmens_CM(MarkersCellsTMENs=MarkersCellsTMENS2,cellTypes=CELLTYPES, markers=FuncMarkers)
+write_csv(cMf%>%as_tibble(rownames=NA)%>%rownames_to_column(var="cell_marker"), "./CM_corr_tmens_thresh0.3.csv")
 # if(file.exists()){
 #   
 # }else{
@@ -477,11 +484,11 @@ write_csv(cMf2%>%as_tibble(rownames=NA)%>%rownames_to_column(var="cell_marker"),
 # rm(cMf)
 #saveRDS(cMf,"./corMatrixCM_fdr.rds")
 #cMf <- readRDS("./corMatrixCM_fdr.rds")
-figWidth <- nrow(cMf2) * 30/267
+figWidth <- nrow(cMf) * 30/267
 #pheatmap(cMf%>%t)
 
-pheatmap(cMf2%>%t)
-#pdf("./figs/cMf2.pdf", height=8, width=ifelse(figWidth<6, 6, figWidth+2)); pheatmap(cMf2%>%t); dev.off()
+pheatmap(cMf%>%t)
+pdf("./figs/cMf.pdf", height=8, width=ifelse(figWidth<6, 6, figWidth+2)); pheatmap(cMf%>%t); dev.off()
 ######## VISUALIZATION ################
 
 # figWidth <- nrow(cMf) * 30/267
@@ -508,7 +515,7 @@ archs.CT <- get_CT_enriched_all_archs(archetypesSitesKeren,cellAbSites,thresh = 
 #names(archs.CT) <- set_tmens_names(names(archs.CT))
 
 
-tabTMENs2 <- as_tibble(cMf2,rownames=NA)%>%
+tabTMENs2 <- as_tibble(cMf,rownames=NA)%>%
   rownames_to_column(var="names")%>%
   separate(names,into=c("cell_type","marker"),sep=";")%>%
   mutate(marker=paste0(marker,"+"))%>%
@@ -602,12 +609,12 @@ tabCellPhen3 <- tabCellPhen2%>%
 
 
 ```{r corrCells,eval=TRUE }
-
-cts <- unique(pull(as_tibble(cMf2,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),cell_type))
-markersCorr <- unique(pull(as_tibble(cMf2,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),marker))
+library("RColorBrewer")
+cts <- unique(pull(as_tibble(cMf,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),cell_type))
+markersCorr <- unique(pull(as_tibble(cMf,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),marker))
 
 ######### HEATMAP ORGANIZED BY CELL TYPES
-CM_TMENs_ct <- as_tibble(cMf2,rownames=NA)%>%
+CM_TMENs_ct <- as_tibble(cMf,rownames=NA)%>%
      rownames_to_column(var="names")%>%
      separate(names,into=c("cell_type","marker"),sep=";")%>%#mutate(marker=paste0(marker,"+"))%>%
      pivot_longer(cols=c('a1','a2','a3',"a4","a1a2","a1a3","a1a4","a2a3","a2a4","a3a4"),names_to = "region",values_to="corr_val")%>%
@@ -619,15 +626,21 @@ hclustCells <- hclust(dists,method="ward")
 #plot(as.dendrogram(hclustCells))
 cellTypes <- data.frame(cell_type =pull(CM_TMENs_ct ,cell_type))
 Markers<- pull(CM_TMENs_ct ,marker)
-
+#### Annotations colors = length of cell types
+colorCount = length(CELLTYPES)
+getPalette = colorRampPalette(brewer.pal(9, "Set1"))
+getPalette(colorCount)
+# List with colors for each annotation.
+CTcolors <- list(cell_type = getPalette(colorCount))
+names(CTcolors$cell_type) <- CELLTYPES
 rownames(cellTypes) <- rownames(CM_TMENs_ct)
 #rownames(Markers) <-rownames(CM_TMENs_ct)
 pdf("./figs/cM_byCells2.pdf",height=8, width=ifelse(figWidth<6, 6, figWidth+2))
-pheatmap(t(cMf2),cluster_cols = hclustCells,cluster_rows = FALSE,annotation_col=cellTypes,labels_col = Markers)#
+pheatmap(t(cMf),cluster_cols = hclustCells,cluster_rows = FALSE,annotation_col=cellTypes,annotation_colors= CTcolors,labels_col = Markers)#
 dev.off()
 
 ####### HEATMAP ORGANIZED BY MARKERS
-CM_TMENs_ph <- as_tibble(cMf2,rownames=NA)%>%
+CM_TMENs_ph <- as_tibble(cMf,rownames=NA)%>%
      rownames_to_column(var="names")%>%
      separate(names,into=c("cell_type","marker"),sep=";")%>%#mutate(marker=paste0(marker,"+"))%>%
      pivot_longer(cols=c('a1','a2','a3',"a4","a1a2","a1a3","a1a4","a2a3","a2a4","a3a4"),names_to = "region",values_to="corr_val")%>%
@@ -642,7 +655,7 @@ dists2 <- dist(as.matrix(CM_TMENs_ph%>%dplyr::select(-c(marker,cell_type,idx))),
 hclustPhen <- hclust(dists2,method="ward") 
 #plot(as.dendrogram(hclustPhen))
 
-cMf.copy <- cMf2
+cMf.copy <- cMf
 rownames(cMf.copy)<- unname(unlist(sapply(rownames(cMf.copy),function(x){paste0(strsplit(x,";")[[1]][2],";",strsplit(x,";")[[1]][1])})))#sub('(\\w|\\.|\\_|\\ / |+);(\\w|.|_| / |+)', '\\2;\\1', rownames(cMf))#sub('([^;]);([^;])', '\\2;\\1^', rownames(cMf))
 # 
 cMf_ordered <- cMf.copy%>%as_tibble(rownames=NA)%>%rownames_to_column(var="names")%>%separate(col="names",into=c("marker","cell_type"),sep=";")%>%group_by(marker)%>%arrange(marker)%>%mutate(names=paste0(marker,";",cell_type))%>%column_to_rownames(var="names")%>%dplyr::select(-c(cell_type,marker))
@@ -665,8 +678,8 @@ library(RColorBrewer)
 library(pheatmap)
 
 ## Get cell types that are associated with a tmen/interface
-cts <- unique(pull(as_tibble(cMf2,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),cell_type))
-markersCorr <- unique(pull(as_tibble(cMf2,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),marker))
+cts <- unique(pull(as_tibble(cMf,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),cell_type))
+markersCorr <- unique(pull(as_tibble(cMf,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),marker))
 
 
 ### Classify correlations by cell type
@@ -751,12 +764,12 @@ If so, is it a continuum or do we have clusters ?
 library(pheatmap)
 library(RColorBrewer)
 library(ggplot2)
-CM_TMENs.pca <- dudi.pca(cMf2[,c('a1','a2','a3',"a4","a1a2","a1a3","a1a4","a2a3","a2a4","a3a4")],center=FALSE, scale=TRUE,scannf=FALSE,nf=3)
+CM_TMENs.pca <- dudi.pca(cMf[,c('a1','a2','a3',"a4","a1a2","a1a3","a1a4","a2a3","a2a4","a3a4")],center=FALSE, scale=TRUE,scannf=FALSE,nf=3)
 fviz_eig(CM_TMENs.pca)
 fviz_pca_var(CM_TMENs.pca,col.var = "red",repel=TRUE)
 fviz_pca_var(CM_TMENs.pca,axes=c(1,3),col.var = "red",repel=TRUE)
 fviz_pca_ind(CM_TMENs.pca)
-CM <- cMf2%>%as_tibble(rownames=NA)%>%rownames_to_column(var="names")%>%separate(col=names, into=c("cell_type","marker"),sep=";")%>%dplyr::select(c(cell_type,marker))
+CM <- cMf%>%as_tibble(rownames=NA)%>%rownames_to_column(var="names")%>%separate(col=names, into=c("cell_type","marker"),sep=";")%>%dplyr::select(c(cell_type,marker))
 
 # CM_TMENs.pca$co[,1:3] <- sweep(CM_TMENs.pca$co[,1:3], 2, CM_TMENs.pca$eig[1:3]^0.8, FUN='/')
 # CM_TMENs.pca$li[,1:3] <- sweep(CM_TMENs.pca$li[,1:3], 2, CM_TMENs.pca$eig[1:3], FUN='/')
@@ -807,7 +820,7 @@ PCA on correlations between cells protein expression and TMENs justify to reduce
 The third Principal Component explains 12 % of the total variance. TLS-cancer as well as TLS niche positively associates with the PC3.
 
 ```{r plotsa2a3,echo=TRUE}
-corr_cm <-as_tibble(cMf2,rownames=NA)%>%rownames_to_column(var="names")%>%separate(col=names, into=c("cell_type","marker"),sep=";")%>%filter(!(cell_type %in% c("DC / Mono", "Mono / Neu","Other immune")))%>%mutate(marker=ifelse(marker%in%c("phospho.S6","Beta.catenin","HLA_Class_1"),marker,"other"))#%>%group_by(marker)%>%mutate(randA2 = ifelse(marker=="other",rnorm(),))
+corr_cm <-as_tibble(cMf,rownames=NA)%>%rownames_to_column(var="names")%>%separate(col=names, into=c("cell_type","marker"),sep=";")%>%filter(!(cell_type %in% c("DC / Mono", "Mono / Neu","Other immune")))%>%mutate(marker=ifelse(marker%in%c("phospho.S6","Beta.catenin","HLA_Class_1"),marker,"other"))#%>%group_by(marker)%>%mutate(randA2 = ifelse(marker=="other",rnorm(),))
 library(RColorBrewer)
 #library(tune)
 colorCount = length(unique(corr_cm$marker))
@@ -833,9 +846,9 @@ To understand with cores/interfaces of TMENs associate (positively or negatively
 ```{r SScors}
 #install.packages("ggrepel")
 library(ggrepel)
-coreCorr <- cMf2[,c('a1','a2','a3',"a4")]
-interCorr <- cMf2[,c("a1a2","a1a3","a1a4","a2a3","a2a4","a3a4")]
-SS <- apply(cMf2[,c('a1','a2','a3',"a4","a1a2","a1a3","a1a4","a2a3","a2a4","a3a4")],2, function(x) sum(x)^2)#var(x) #sum(x-mean(x))^2
+coreCorr <- cMf[,c('a1','a2','a3',"a4")]
+interCorr <- cMf[,c("a1a2","a1a3","a1a4","a2a3","a2a4","a3a4")]
+SS <- apply(cMf[,c('a1','a2','a3',"a4","a1a2","a1a3","a1a4","a2a3","a2a4","a3a4")],2, function(x) sum(x)^2)#var(x) #sum(x-mean(x))^2
 sort(SS)
 names(SS) <- str_replace_all(names(SS), c("a2a3"="inflammatory x cancer",
                                                            "a1a3" = "TLS x cancer",
