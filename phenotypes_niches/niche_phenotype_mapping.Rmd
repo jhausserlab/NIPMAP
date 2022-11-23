@@ -28,9 +28,8 @@ gc()
 rm(list=ls())
 library(tidyverse)
 library(plotly)
-library(reticulate)
+#library(reticulate)
 library(ade4)
-library(reticulate)
 library(htmltools)
 library(factoextra)
 library('Ternary')
@@ -105,6 +104,7 @@ FuncMarkers <- append(str_replace_all(FuncMarkers,c("HLA-DR"="HLA.DR","PD-L1" = 
 
 
 
+
 #### Hierarchical clustering of cell types by functional markers
 
 ```{r hclustCT,eval=TRUE}
@@ -160,20 +160,21 @@ hclust_cellTypes <- function(){
   cells.markers <- group_split(CellsFunctMarkers.df%>%rownames_to_column(var="id")%>%group_by(cell_type))
   #print(cells.markers)
   
-  list_heatmaps <-lapply(cells.markers, FUN = function(x) {
+  list_heatmaps <- lapply(cells.markers, FUN = function(x) {
     #print(unique(x$cell_type))
     ct <- unique(x$cell_type)
+    print(ct)
     x <- x%>%column_to_rownames(var="id")
     cm.mat <- x%>%dplyr::select(-c(cell_type,cell_id,patient_id))%>%ZscoreScale()%>%t()
     print(dim(cm.mat))
-    print(rownames(x))
+    #print(rownames(x))
     CM.dist <- dist(cm.mat,method="euclidian")
     Cells.hclust <- hclust(CM.dist,method = "ward.D")
     #print(table(cutree(Cells.hclust, k = 10)))
     ##Cluster ids assigned to each cell
     sub_grp <-  data.frame(cell_id=rownames(x),cluster=cutree(Cells.hclust, k =10),row.names=NULL)#(cell_id=seq(1,nrow(x),1),cluster=cutree(Cells.hclust, k = 10),row.names=NULL)
     #cm.mat[,'cluster'] <- sub_grp
-    write_csv(sub_grp%>%separate(cell_id,into=c("cell_type","cell_id","patient_id"),sep="_"),paste0("./outputs/",ct,"_hclustIDs.csv"))
+    write_csv(sub_grp%>%separate(cell_id,into=c("cell_type","label","SampleID"),sep="_"),paste0("./outputs/",ct,"_hclustIDs.csv"))
     clustMarkers.zscore <- cm.mat %>%as_tibble()%>%mutate(cell_id=rownames(x))%>%#as_tibble(rownames=NA)%>%rownames_to_column(var="cell_id")%>%
       left_join(.,sub_grp, by="cell_id")%>%
       pivot_longer(cols = FuncMarkers, names_to="marker",values_to = "value")%>%
@@ -242,7 +243,9 @@ ggplot(sitesCellsCM%>%filter(marker=='Keratin6'),aes(y=value, group=cell_type,fi
 ggplot(sitesCellsCM%>%filter(marker=='Beta.catenin'),aes(x=TOT_cell_dens,y=value))+
   geom_point(alpha=.02)+
   geom_density_2d()
+
 ```
+
 
 ## TMENS as a new way to describe single-cell local environment 
 
@@ -355,8 +358,20 @@ ggplot(data=MarkersCellsTMENS.reduc%>%filter(cell_type=="NK"& marker=="CD138"),a
 ## Many extreme outliers 
 # spearman correlations instead
 NeutroPDL1 <- MarkersCellsTMENS.reduc%>%filter(cell_type=="Neutrophils"& marker=="PD.L1")%>%pull(value)
+hist(NeutroPDL1,breaks = 100,xlim=c(0,3))
+
+boxplot(NeutroPDL1)
+summary(NeutroPDL1)
 shapiro.test(NeutroPDL1)
 qqnorm(NeutroPDL1, pch = 1, frame = FALSE)
+NeuPDL1.tmen  <- MarkersCellsTMENS.reduc%>%
+  filter(cell_type=="Neutrophils"& marker=="PD.L1")%>%
+  mutate(inflxcancer=inflamm*cancer)%>%
+  mutate(intf = ifelse(inflxcancer<0.1,0,1))%>%
+  mutate(pdl1= ifelse(value<1,0,1))
+hist(pull(NeuPDL1.tmen,inflxcancer),breaks=50)
+tab1 <-table(NeuPDL1.tmen%>%dplyr::select(c(intf,pdl1)))
+fisher.test(tab1) #### Non-significant contigency table ==> the count of PDL1+ Neutrophils is independent from interface positivity
 #qqline(NeutroPDL1, col = "steelblue", lwd = 2)
 
 # ggplot(data=MarkersCellsTMENS1%>%filter(cell_type=="Neutrophils"& marker=="PD.L1"),aes(y=value))+
@@ -409,6 +424,22 @@ library(ggpubr)
 MarkersCellsTMENS1 <- MarkersCellsTMENS%>%dplyr::rename(TLS=arch1)%>%
   dplyr::rename(inflamm = arch2)%>%dplyr::rename(fibrotic=arch4)%>%
   dplyr::rename(cancer=arch3)
+
+## TODO Make function of scatter plots of markers expression in cell types and niche weights 
+
+# scatter_plot_ctM <- function(cellType, marker, ){
+#   ggplot(data=MarkersCellsTMENS1%>%filter(cell_type=="CD8-T"& marker=="Beta.catenin"),aes(x=cancer*fibrotic,y=value))+
+#   geom_point(alpha=.01)+
+#   geom_density_2d()+
+#   #scale_x_continuous(trans="log")+
+#   stat_cor(method="spearman",cor.coef.name="rho",label.x=0.18)+
+#   stat_cor(method="pearson",cor.coef.name="R",label.x=0.15)+
+#   ggtitle("Beta catenin in CD8T cellls & cancer-fibr interface")
+#   
+# }
+
+
+
 ####POSITIVE CONTROLS
 ## HLA CLASS I IN KERATIN-POSITIVE TUMORS
 ggplot(data=MarkersTMENs.kerPos,aes(x=inflamm*cancer,y=HLA_Class_1))+
@@ -470,6 +501,296 @@ ggplot(data=randsToPlot,aes(x=tmen_prop,y=value))+
 
 ## Linear relationship between markers and TMENS ?
 
+
+### Multivariate linear analysis of cell phenotypes-TMENs associations
+
+```{r linReg1, eval=FALSE,echo=TRUE}
+library(broom)
+#niches <- c("a1","a2","a3","a4","a1a2","a1a3","a1a4","a2a3","a2a4","a3a4")
+
+MarkersCellsTMENs.byNiche <- MarkersCellsTMENS2%>%
+  filter(marker %in% FuncMarkers)%>%
+  pivot_wider(names_from="marker",values_from="value")%>%pivot_longer(cols = c("arch1","arch2","arch3","arch4","a1a2","a1a3","a1a4","a2a3","a2a4","a3a4","a1a2a3","a1a2a4","a1a3a4","a2a3a4","a1a2a3a4"),names_to="niches",values_to="alpha")%>%
+  filter(cell_type %in% c('CD8-T' , 'B', 'NK', 'Keratin-positive tumor', 'Tumor','CD4-T', 'Mesenchymal-like', 'Macrophages', 'Endothelial', 'Tregs', 'DC','Neutrophils'))%>%
+  filter(niches %in%  c("arch1","arch2","arch3","arch4","a1a2","a1a3","a1a4","a2a3","a2a4","a3a4"))%>%
+  mutate(id = paste(patient_id,site_id,cell_type,niches,sep="_"))%>%
+  column_to_rownames(var="id")
+
+## Get cells counts
+nbCells <-  tmens_cells2%>%group_by(cell_type_site)%>%summarise(count=n())%>%dplyr::rename(cell_type=cell_type_site)#%>%pull(count)#MarkersCellsTMENS2%>%group_by(cell_type)%>%summarise(nb=n())
+
+### Split table of cells niches into sub df by cell type and niche(core + interfaces)
+NichesCellPhen <- group_split(left_join(MarkersCellsTMENs.byNiche,nbCells,by="cell_type")%>%group_by(niches,cell_type))
+## GET NUMBER of cells
+## #lapply(NichesCellPhen, function(x){nrow(x)})
+
+## Fit linear regression, to make it 
+### compute t stat * sqrt(nb of cells)
+lmfit.stats <- lapply(NichesCellPhen ,function(x) {
+  #nichesNames<-append(nichesNames,unique(pull(x,niches)))
+  #cellT<-append(cellT,unique(pull(x,cell_type)))
+  x<- x%>%mutate(id = paste(patient_id,site_id,cell_type,niches,sep="_"))%>%
+  column_to_rownames(var="id")
+  #print(x$count)
+  #print(unique(pull(x,niches)))
+  LinReg <-lm(alpha ~ Beta.catenin + CD138 + CD45RO + CD63 + FoxP3 + H3K27me3 + H3K9ac +  HLA.DR + HLA_Class_1 + IDO + Keratin17 + Keratin6 + Ki67 + Lag3 + p53 + PD.L1 + PD1 + phospho.S6, data = x) 
+  tidy(LinReg)%>%mutate(term=paste(unique(pull(x,cell_type)),unique(pull(x,count)),term,sep=";"))%>%mutate(niche=rep(unique(x$niches)))#tidy(lm(alpha ~ Beta.catenin + CD138 + CD45RO 
+  })
+
+### Get predicted proportions of inflammatory niche of DCs 
+#Predlm.DCa2 <- predict.lm(lm(alpha ~ Beta.catenin + CD138 + CD45RO + CD63 + FoxP3 + H3K27me3 + H3K9ac +  HLA.DR + HLA_Class_1 + IDO + Keratin17 + Keratin6 + Ki67 + Lag3 + p53 + PD.L1 + PD1 + phospho.S6, data =MarkersCellsTMENs.byNiche%>%
+#                               filter(cell_type=="DC" & niches=="arch2")))#mutate(patient_id=str_split(id,"_")[[1]])
+
+# boxplot(Predlm.DCa2)
+# hist(Predlm.DCa2)
+# 
+#PredDCa2.df <- data.frame(id=names(Predlm.DCa2), value = Predlm.DCa2,row.names = NULL)%>%mutate(inflammatory_niche_pred = ifelse(value>=.5,1,0))%>%
+#   separate(col=id,into= c("SampleID","label","cell_type","arch"),sep="_",convert=TRUE)
+ 
+# write_csv(PredDCa2.df,"./outputs/predictedlm_alfa_a2_DC.csv")
+
+## Remove intercept estimate from linear regression
+## + correct t stat for cells counts
+library(tidyverse)
+dfStats <- lmfit.stats%>%reduce(full_join, by = c("term","niche","estimate","std.error","statistic","p.value"))
+dfStats2 <- dfStats[!grepl("(Intercept)",dfStats$term),]#%>%separate(term, c("cell_type","count", "marker"),sep=";", remove=FALSE)%>%mutate(count = parse_number(count))#%>%
+  #mutate(stat_hat = statistic/ sqrt(count))%>%dplyr::select(-c(cell_type, count, marker))
+
+
+head(dfStats2)
+dfStats%>%pull(term)%>%unique
+
+View(dfStats2)#%>%filter(niche=="a2a3"))
+
+```
+
+
+```{r FDRt,fig.width=12,fig.height=6, eval=FALSE, echo=TRUE}
+
+mat.tstat <- as.matrix(dfStats2%>%dplyr::select(-c(estimate,std.error,p.value))%>%pivot_wider(names_from = "niche",values_from="statistic")%>%column_to_rownames(var="term"))
+
+mat.pval <- as.matrix(dfStats2%>%dplyr::select(-c(estimate,std.error,statistic))%>%pivot_wider(names_from = "niche",values_from="p.value")%>%column_to_rownames(var="term"))
+
+## Check NA values are from the same rows from both p value and t stat matrices
+rownames(mat.pval[rowSums(is.na(mat.pval)) > 0,]) ==rownames(mat.tstat[rowSums(is.na(mat.tstat))> 0,])
+
+mat.tstat2 <- mat.tstat[rowSums(is.na(mat.tstat))==0,]#as_tibble(mat.tstat,rownames=NA)%>%drop_na()%>%as.matrix(rownames=TRUE)
+
+mat.pval2 <-  mat.pval[rowSums(is.na(mat.pval))==0,]#as_tibble(mat.pval,rownames=NA)%>%drop_na()%>%as.matrix(rownames=TRUE)
+
+## FDR correction for p-value
+library(fdrtool)
+fdrCorr <- fdrtool(mat.pval2%>% as.numeric(), #%>% as.matrix
+            statistic = "pvalue")
+  
+CMtmens.qval<- 
+    fdrCorr$lfdr %>% 
+    matrix(nrow=nrow(mat.pval2), ncol=ncol(mat.pval2),
+           dimnames = list(rownames(mat.pval2), colnames(mat.pval2)))
+
+## Set to 0 non-significant estimates
+mat.tstat2[CMtmens.qval>0.01]=0
+## Check estimates that are non-significant for none of the niches
+mat.tstat2[rowSums(mat.tstat2==0)==ncol(mat.tstat2),]
+
+## Filter matrix of t stats ==> remove rows that are all non-signif, keep with at least 1 non signif association with a tmen
+filtered.tstat <- mat.tstat2[rowSums(mat.tstat2==0)<ncol(mat.tstat2),]#CMtmens.qval<0.01 & 
+## Select max t-stat per cell phenotype
+maxNiches <- apply(filtered.tstat,1,max)
+plot(sort(maxNiches))
+
+as.vector(filtered.tstat)%>%summary
+filtered.tstat2 <- filtered.tstat[names(sort(maxNiches,decreasing=TRUE)[1:110]),]#[names(maxNiches[maxNiches>3]),]#[names(sort(maxNiches)[1:75]),]
+#plot(sort(apply(filtered.tstat2,2,max)))
+
+filtered.tstat2[filtered.tstat2>5] = 5
+filtered.tstat2[filtered.tstat2<(-5)] = -5
+pheatmap(filtered.tstat2%>%t)
+
+
+```
+
+
+
+```{r heatmapLM, eval=FALSE,echo=TRUE}
+### heatmap TEST
+library(pheatmap)
+pheatmap(filtered.tstat2%>%t)
+#pheatmap(filtered.tstat[maxMatch.t==TRUE,]%>%t)
+
+figWidth <- nrow(filtered.tstat2%>%t)*300/267#nrow(filtered.tstat[maxMatch.t==TRUE,]) * 30/267
+
+pdf("./figs/t_statMatrix.pdf", height=6, width=ifelse(figWidth<6, 6, figWidth+2));
+ pheatmap(filtered.tstat2%>%t);# (filtered.tstat[maxMatch.t==TRUE,]%>%t)
+dev.off()
+
+rownames(filtered.tstat2) <- str_replace_all(rownames(filtered.tstat2),"(?<=;)[:digit:]{2,6};","")
+
+#library(RColorBrewer)
+library(pheatmap)
+cts <- unique(pull(as_tibble(filtered.tstat2,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),cell_type))
+
+markers2 <- unique(pull(as_tibble(filtered.tstat2,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),marker))
+
+CMt_ct <- as_tibble(filtered.tstat2,rownames=NA)%>%
+     rownames_to_column(var="names")%>%
+     separate(names,into=c("cell_type","marker"),sep=";")%>%
+     pivot_longer(cols=c('arch1','arch2','arch3',"arch4","a1a2","a1a3","a1a4","a2a3","a2a4","a3a4"),names_to = "region",values_to="corr_val")%>%
+    mutate(idx =match(cell_type, cts))%>%
+    group_by(cell_type)%>%
+    mutate(corr_val = corr_val+ (idx-1)*10)%>%
+    pivot_wider(names_from="region", values_from="corr_val")%>%
+    mutate(names = paste(cell_type,marker,sep=";"))%>%
+    column_to_rownames(var="names")#%>%dplyr::select(-c(cell_type,idx))
+
+dists <- dist(as.matrix(CMt_ct%>%dplyr::select(-c(cell_type,marker,idx))),method="euclidean")
+hclustCells <- hclust(dists,method="ward.D") 
+#plot(as.dendrogram(hclustCells))
+
+
+## Annotations colors = length of cell types
+cellTypes <- data.frame(cell_type =pull(CMt_ct ,cell_type))
+Markers<- pull(CMt_ct ,marker)
+
+colorCount = length(unique(pull(CMt_ct ,cell_type)))
+getPalette = colorRampPalette(RColorBrewer::brewer.pal(9, "Set1"))
+getPalette(colorCount)
+# List with colors for each annotation.
+CTcolors <- list(cell_type = getPalette(colorCount))
+names(CTcolors$cell_type) <- unique(pull(CMt_ct ,cell_type))
+rownames(cellTypes) <- rownames(CMt_ct)
+#rownames(Markers) <-rownames(CM_TMENs_ct)
+pdf("./figs/tMat_byCells.pdf",height=7, width=ifelse(figWidth<6, 6, figWidth+4))
+pheatmap(t(filtered.tstat2),cluster_cols = hclustCells,cluster_rows = FALSE,annotation_col=cellTypes,annotation_colors= CTcolors,labels_col = Markers,border_color = "grey")#
+dev.off()
+
+
+```
+
+
+
+```{r ROC, eval=FALSE,echo=TRUE}
+
+#install.packages("pROC")
+library(pROC)
+# DC in inflammatory
+# Neutrophils in inflammatory
+# Tregs in cancer
+# NK in fibrotic
+
+# DCs in inflammatory niches: 1,3,6
+## Sensitivity: cluster 1 
+
+# Neutrophils in inflamm: clusters 6 and 9 
+# NK in fibrotic: cluster 9 
+# Tregs in cancer niche: cluster 9
+CellsNiches <- c("arch2","arch2","arch3","arch4")
+names(CellsNiches) <- c("DC","Neutrophils","Tregs","NK")
+
+## Clusters IDs of each cell type that maps to cell phenotypes (of NIPMAP)
+a <-c(1,2)
+ 
+clustersCells <- c("DC"=c(1,3,6),"Neutrophils"=c(6,9),"Tregs"=c(9),"NK"=c(9))
+clustersCells <- c("DC"=c(1,2,3,4,5,6,7,8,9,10),"Neutrophils"=c(1,2,3,4,5,6,7,8,9,10),"Tregs"=c(1,2,3,4,5,6,7,8,9,10),"NK"=c(1,2,3,4,5,6,7,8,9,10))
+
+clustCells <- list("DC"=c(1,3,6),"Neutrophils"=c(6,9),"Tregs"=c(9),"NK"=c(9))
+clustCells <- list("DC"=c(1,2,3,4,5,6,7,8,9,10),"Neutrophils"=c(1,2,3,4,5,6,7,8,9,10),"Tregs"=c(1,2,3,4,5,6,7,8,9,10),"NK"=c(1,2,3,4,5,6,7,8,9,10))
+# SensSpe <- matrix(NA, nrow=length(names(CellsNiches)),ncol=3)
+# colnames(SensSpe) <-c("cell_type","niche","cluster")
+# SensSpe[,""]
+SensSpe <- as_tibble(cbind(clustersCells),rownames=NA)%>%
+  rownames_to_column(var="cell_type")%>%
+  mutate(cell_type = str_replace_all(cell_type, "[:digit:]",""))%>%
+  dplyr::rename(clust= clustersCells)%>%
+  mutate(sensitivity=NA)%>%mutate(specificity=NA)
+
+rocCells <- c("DC"="arch2","Neutrophils"="arch2","NK"="arch4","Tregs"="arch3")#("DC"="arch2")
+
+ROCplots <- lapply(names(rocCells), function(x){
+  ct <- x
+  ar <- rocCells[x]
+  print(ct)
+  print(ar)
+  S1 <- c()
+  S2 <- c()
+  ## GET hclusters of cell type
+  hclusts.cells <- read.csv(paste0("./outputs/",ct,"_hclustIDs.csv"))%>%mutate(value=1)%>%pivot_wider(id_cols=c("cell_type","label","SampleID"),names_from="cluster",values_from="value",values_fill=0)
+  
+  ### GET observed nniche weight and set thresh to niche positivity to .5
+  hclustsNiches.cells <- left_join(hclusts.cells%>%dplyr::rename(patient_id = SampleID)%>%dplyr::rename(site_id = label),tmens_cells2%>%dplyr::rename(cell_type = cell_type_site),by = c("patient_id","cell_type","site_id"))%>%
+    mutate(AOI = get(ar))%>%
+  drop_na(AOI)%>%
+  mutate(archPos = ifelse(AOI>=.5,1,0))## We define cells that belong or not to archetype if their niche wieght is >.5
+  ### Get predicted proportions of inflammatory niche of DCs 
+  Predlm <- predict.lm(lm(alpha ~ Beta.catenin + CD138 + CD45RO + CD63 + FoxP3 + H3K27me3 + H3K9ac +  HLA.DR + HLA_Class_1 + IDO + Keratin17 + Keratin6 + Ki67 + Lag3 + p53 + PD.L1 + PD1 + phospho.S6, data =MarkersCellsTMENs.byNiche%>%
+                              filter(cell_type==ct & niches==ar)))#mutate(patient_id=str_split(id,"_")[[1]])
+
+  Pred.df <- data.frame(id=names(Predlm), value = Predlm,row.names = NULL)%>%mutate(niche_pred = ifelse(value>=.5,1,0))%>%
+  separate(col=id,into= c("SampleID","label","cell_type","arch"),sep="_",convert=TRUE)
+  
+  NichesPredClust <- left_join(hclustsNiches.cells, Pred.df%>%dplyr::rename(patient_id=SampleID)%>%dplyr::rename(site_id=label),by=c("patient_id","cell_type","site_id"))
+  ## Compute sensitivity, specificity of each cluster
+  #clustCells <- pull(SensSpe, clustersCells)
+  for(i in as.vector(clustCells[[ct]])){
+    #print("ok")
+    print(ct)
+    print(i)
+    clustCT <- hclustsNiches.cells%>%mutate(cell_type==ct)
+    #print(clustCT[,c(i,"archPos")])
+    counts <-table(clustCT[,c(i,"archPos")])
+    print(counts)
+    print(fisher.test(counts))
+    sens <- counts['1','1']/sum(counts[,'1'])
+    #print(sens)
+    S1<- append(S1, sens)
+    spe <- counts['0','0']/sum(counts[,'0'])
+    S2 <- append(S2, spe)
+    print(spe)
+    #print(SensSpe[SensSpe$cell_type==ct & SensSpe$clust==i,])
+    #SensSpe[SensSpe$cell_type==ct & SensSpe$clust==i,"sensitivity"]<-  counts['1','1']/sum(counts[,'1'])#sensitivity
+    #SensSpe[SensSpe$cell_type==ct & SensSpe$clust==i,"specificity"]<- counts['0','0']/sum(counts[,'0'])#specificity
+  }
+  pdf(paste0("./figs/",ct,"_",ar,"ROC.pdf"));
+  plot(NichesPredClust%>%roc(response=archPos,predictor=value),main=ct);
+  points(S2,S1,pch=19, col="red");#(spe,sens,pch=19,col="red")
+  #text(spe,sens,col="red",labels=i)
+  legend(0.2,.2,legend=c("NIPMAP","hclust"),fill=c("black","red"));
+  dev.off()
+})
+
+#print(ROClots)
+# plot(ROCplots$DC)
+# points(c(0.5),c(0.5))
+####
+# DCs in inflammatory niches: 1,3,6
+## Sensitivity: cluster 1 
+
+# Neutrophils in inflamm: clusters 6 and 9 
+# NK in fibrotic: cluster 9 
+# Tregs in cancer niche: cluster 9
+
+
+####### TO CLEAN !#########
+# hclusts.DC <- read.csv("./outputs/DC_hclustIDs.csv")%>%mutate(value=1)%>%pivot_wider(id_cols=c("cell_type","label","SampleID"),names_from="cluster",values_from="value",values_fill=0)
+# 
+# hclustsNiches.DC <- left_join(hclusts.DC%>%dplyr::rename(patient_id = SampleID)%>%dplyr::rename(site_id = label),tmens_cells2%>%dplyr::rename(cell_type = cell_type_site),by = c("patient_id","cell_type","site_id"))%>%
+#   drop_na(arch1,arch2,arch3,arch4)%>%
+#   mutate(a1 = ifelse(arch1>=.5,1,0))%>%
+#   mutate(a2 = ifelse(arch2>=.5,1,0))%>%
+#   mutate(a3 = ifelse(arch3>=.5,1,0))%>%
+#   mutate(a4 = ifelse(arch4>=.5,1,0))
+# NichesPredClust.DC <- left_join(hclustsNiches.DC, PredDCa2.df%>%dplyr::rename(patient_id=SampleID)%>%dplyr::rename(site_id=label),by=c("patient_id","cell_type","site_id"))
+# 
+# table(hclustsNiches.DC[,c("1","a2")])
+### ROC curve 
+#plot(NichesPredClust.DC%>%roc(response=a2,predictor=value))
+#hclustsNiches.DC%>%mutate(a1 = ifelse(arch1>=.5,1,0))%>%mutate(a2=ifelse(arch2>=.5,1,0))%>%mutate(a3=ifelse(arch3>=.5,1,0))%>%mutate(a4=ifelse(arch4>=.5,1,0))
+
+
+
+```
+
+
 ### Assessing phenotypes-TMENs with spearman correlations
 
 ```{r plots1,eval=TRUE,warning=FALSE,echo=TRUE}
@@ -487,13 +808,15 @@ write_csv(cMf%>%as_tibble(rownames=NA)%>%rownames_to_column(var="cell_marker"), 
 figWidth <- nrow(cMf) * 30/267
 #pheatmap(cMf%>%t)
 
+#### Correct bleed-voer ==> remove cell Keratin6+ cell phenotypes inf cancer and inflamm x cancer
+## Remove beta-catenin+ cell phenotypes: Beta-catenin is a non-specific marker involved ina wide range of pathways including cell communication and potentially immunosupression
+cPh.toRemove<- cMf[which((grepl("Keratin6",rownames(cMf))& (cMf[,"a3"]>=.3| cMf[,"a2a3"]>=.3)) |(grepl("Beta.catenin",rownames(cMf))& (cMf[,"a3"]>=.3| cMf[,"a2a3"]>=.3))),]
+cMf <-cMf[which(!(rownames(cMf) %in% rownames(cPh.toRemove))),]
 pheatmap(cMf%>%t)
 pdf("./figs/cMf.pdf", height=8, width=ifelse(figWidth<6, 6, figWidth+2)); pheatmap(cMf%>%t); dev.off()
 ######## VISUALIZATION ################
-
 # figWidth <- nrow(cMf) * 30/267
 # pdf("cMf_original.pdf", height=10, width=21); pheatmap(cMf %>% t,cluster_rows=FALSE,cluster_cols=FALSE); dev.off()
-# 
 
 #pdf("./figs/cMf_reduced.pdf", height=8, width=ifelse(figWidth<6, 6, figWidth+2)); pheatmap(cMf %>% t); dev.off()
 
@@ -588,7 +911,6 @@ tabCellPhen3 <- tabCellPhen2%>%
 #### TEST
 #tabCellPhen3%>%rowwise()%>%mutate(ct = ifelse(grepl("\n",cellPh,fixed=TRUE)==FALSE,paste(setdiff(as.vector(cellPh),str_split(cells,"\n")[[1]]),collapse="\n"),ifelse(grepl("\n",cells,fixed=TRUE)==FALSE,paste(setdiff(str_split(cellPh,"\n")[[1]], as.vector(cells)),collapse="\n"),paste(setdiff(str_split(cellPh,"\n")[[1]],str_split(cells,"\n")[[1]]),collapse="\n"))))
 
-
 ### Display and save table in pdf
  # th1 <- ttheme_minimal(colhead=list(bg_params=list(col="black",fill = "white")),
  #                       core=list(bg_params = list(fill = 'white', col="black")))
@@ -613,7 +935,7 @@ library("RColorBrewer")
 cts <- unique(pull(as_tibble(cMf,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),cell_type))
 markersCorr <- unique(pull(as_tibble(cMf,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),marker))
 
-######### HEATMAP ORGANIZED BY CELL TYPES
+######### HEATMAP ORGANIZED BY CELL TYPES ###########
 CM_TMENs_ct <- as_tibble(cMf,rownames=NA)%>%
      rownames_to_column(var="names")%>%
      separate(names,into=c("cell_type","marker"),sep=";")%>%#mutate(marker=paste0(marker,"+"))%>%
@@ -626,7 +948,7 @@ hclustCells <- hclust(dists,method="ward")
 #plot(as.dendrogram(hclustCells))
 cellTypes <- data.frame(cell_type =pull(CM_TMENs_ct ,cell_type))
 Markers<- pull(CM_TMENs_ct ,marker)
-#### Annotations colors = length of cell types
+## Annotations colors = length of cell types
 colorCount = length(CELLTYPES)
 getPalette = colorRampPalette(brewer.pal(9, "Set1"))
 getPalette(colorCount)
@@ -635,11 +957,11 @@ CTcolors <- list(cell_type = getPalette(colorCount))
 names(CTcolors$cell_type) <- CELLTYPES
 rownames(cellTypes) <- rownames(CM_TMENs_ct)
 #rownames(Markers) <-rownames(CM_TMENs_ct)
-pdf("./figs/cM_byCells2.pdf",height=8, width=ifelse(figWidth<6, 6, figWidth+2))
+pdf("./figs/cM_byCells3.pdf",height=8, width=ifelse(figWidth<6, 6, figWidth+2))
 pheatmap(t(cMf),cluster_cols = hclustCells,cluster_rows = FALSE,annotation_col=cellTypes,annotation_colors= CTcolors,labels_col = Markers)#
 dev.off()
 
-####### HEATMAP ORGANIZED BY MARKERS
+########### HEATMAP ORGANIZED BY MARKERS ###########
 CM_TMENs_ph <- as_tibble(cMf,rownames=NA)%>%
      rownames_to_column(var="names")%>%
      separate(names,into=c("cell_type","marker"),sep=";")%>%#mutate(marker=paste0(marker,"+"))%>%
@@ -729,28 +1051,7 @@ list_heatmapsCT <- lapply(ct_df,FUN = function(x){
   dev.off()
   
 })
-#%>%filter(marker!="H3K9ac_H3K27me3")
 
-# i=0
-# for (p in list_heatmapsCT){
-#   i<- i+1
-#   pdf(paste0("./figs/",strsplit(rownames(x)[1],';')[[1]][1],".pdf"),width=4);p;dev.off()
-# }
-
-
-# map(ct_df,.f = function(x) pheatmap(as.matrix(x%>%mutate(names= paste(cell_type,marker),.keep="unused")%>%column_to_rownames(var="names")),cluster_rows = TRUE,cluster_cols = FALSE))
-# #pheatmap(as.matrix(ct_df%>%mutate(names= paste(cell_type,marker),.keep="unused")%>%column_to_rownames(var="names")),cluster_rows = TRUE,cluster_cols = FALSE)
-# 
-# pheatmap(as.matrix(ct_df%>%mutate(names= paste(cell_type,marker),.keep="unused")%>%column_to_rownames(var="names")))
-# rm(list_heatmapsCT)
-# pdf("./figs/corMatrix_ct.pdf",height=8,width=ifelse(figWidth<6, 6, figWidth+2)); pheatmap(t(as.matrix(cMf)),annotation_col =data.frame (cell_type =factor(pull(as_tibble(cMf,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),cell_type), levels = cts,labels = CELLTYPES) )); dev.off()
-
-
-##### CELL TYPE  hclust
-# annot =data.frame(cell_type =factor(pull(as_tibble(cMf,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),cell_type), levels = cts,labels = CELLTYPES),marker = factor(pull(as_tibble(cMf,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),marker),levels = markersCorr,labels = markersCorr)) 
-# 
-# rownames(annot) <- colnames(t(cMf))
-# pheatmap(t(as.matrix(cMf)),annotation_col =annot,cluster_cols = FALSE,cluster_rows=FALSE,show_colnames = FALSE)
 
 ```
 
@@ -985,8 +1286,6 @@ combCT <- corMatrix%>%as_tibble(rownames=NA)%>%rownames_to_column(var="names")%>
 
 
 ```{r plot2, eval=FALSE,echo=FALSE}
-
-
 ############## TO CLEAN #############
 # library(geometry)
 # 
@@ -1211,5 +1510,5 @@ To find $\alpha$, we solved the equation with quadratic programming using *qpsol
 **Correlations between cell phenotypes and environment.**
 
 Having the cells and their environment ($\alpha$ for each cell), we collected the expression of protein markers cell type-wise. We selected only markers that were classified as "functional" according to [this paper](https://doi.org/10.1038/s42003-021-02361-1) (Patwa et al., Nature 2021). Cell phenotypes were defined as the expression of a marker in a cell type. We computed Spearman correlations between cell phenotypes and TMENs. We included the interfaces between TMENs as the product of different combinations of TMENs: TLS x cancer, cancer x fibrotic, cancer x inflammation, TLS x fibrotic, TLS x inflammatory, fibrotic x inflammatory, TLS x inflammatory x fibrotic, TLS x cancer x fibrotic, inflammatory x fibrotic x cancer, TLS x inflammatory x cancer, TLS x inflammatory x fibrotic x cancer.
-Spearman correlation test was performed with a False Discovery Rate correction of p values. We selected only significant q values ($\alpha = 0.01$) and the cell phenotypes whose correlation coefficient was higher than $|0.3|$ for at least one of the environments (core TMENs and interfaces). High range interfaces between TMENs ($> 2$) were excluded as they were less informative than 2-range interfaces. In total, we kept 82 correlations between cell phenotypes and 10 core and interfaces of TMENs. The analysis was conducted in R. 
+Spearman correlation test was performed with a False Discovery Rate correction of p values. We selected only significant q values ($\alpha = 0.01$) and the cell phenotypes whose correlation coefficient was higher than $0.3$ for at least one of the environments (core TMENs and interfaces). High range interfaces between TMENs ($> 2$) were excluded as they were less informative than 2-range interfaces. In total, we kept 75 correlations between cell phenotypes and 10 core and interfaces of TMENs. To correct for bleed-over, Keratin6-positive cell phenotypes that were associated with cancer and cancer-inflammatory niches interface were removed from the analysis. We filtered out beta-catenin-positive cell phenotypes as the marker used in the antibody panel was not specific to any form of the protein. These supplemental corrections led to 59 space-driven cell phenotypes. The analysis was conducted in R. 
 

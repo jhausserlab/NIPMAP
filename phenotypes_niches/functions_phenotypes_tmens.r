@@ -204,7 +204,7 @@ correlations_tmens_CM <- function(MarkersCellsTMENs,cellTypes, markers, qThresh=
     rownames_to_column(var="names")%>%
     #separate(names,into=c("cell_type","marker"),sep=";")%>%
     drop_na()
-  
+  write_csv(corCMtmens,"./outputs/rawCorMatrix.csv")
   ### CORRECTIONS P VALUE FDR
   # library(fdrtool)
   # dim(corCMtmens.pval)
