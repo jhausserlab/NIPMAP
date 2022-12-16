@@ -167,7 +167,8 @@ def plot_cells_positions(data, cell_types, segment_image=False, segmentation_typ
     
     @param cell_types: {list} of str, cell type labels in the dataset
     @param segment_image: {boolean}, if True, color image from results of AA, if False, plot only cells (Default=False)
-    @param segmentation_type:{str} ssegment pixels of images and color them as TMENs proportions (default='hard')
+    @param segmentation_type:{str} segment pixels of images and color them as TMENs proportions (default='hard')
+    @param color_vector:{list} list of colors in RGB format (0 to 255). Default if matplotlib colormap 'Dark2'.
     @param counting_type:{str} counting type of cells within the sites:'abs' for absolute, 'log' fro log normalization and 'gaussian' for gaussian density (Default='abs')
     @param h:{int} height of image in pixels (Default=800)
     @param w:{int} width of image in pixels (Default=800)
@@ -212,7 +213,7 @@ def plot_cells_positions(data, cell_types, segment_image=False, segmentation_typ
     plt.ylim(0, h)
     if path_fig!=None:
         plt.savefig(path_fig,format="svg")
-    return plt
+    return None #plt
 
 
 def plot_cells_markers_tmens(patient_id,cell_types,path_data, data_markers_path,cell_type, marker,symbols,col=None,segment_image=False,

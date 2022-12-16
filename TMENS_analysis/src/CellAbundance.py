@@ -12,7 +12,7 @@ def generate_abundance_matrix(cell_types, patient_ids, n_site, radius, method, s
             p in patient_ids]
 
 
-def join_abundance_matrices(cell_abundances_list):
+def join_abundance_matrices(cell_abundances_list,center_sites_cells=False):
     sites = []
     patients_ids = []
     gradients = []
@@ -22,8 +22,10 @@ def join_abundance_matrices(cell_abundances_list):
         patients_ids.extend([ca.patient_id] * len(ca.abundance_matrix))
         cell_sites_ids.extend(ca.sites_cell_ids)
         gradients.extend(ca.gradient)
-
-    return np.array(sites), np.array(patients_ids), np.array(cell_sites_ids), np.array(gradients)
+    if center_sites_cells ==False:
+      return np.array(sites), np.array(patients_ids),np.array(cell_sites_ids), np.array(gradients)
+    else:
+      return np.array(sites), np.array(patients_ids),pd.DataFrame(cell_sites_ids,columns=["site_id","cell_type_site"]), np.array(gradients)
 
 
 class CellAbundance:
@@ -149,7 +151,7 @@ class CellAbundance:
                              centers[c_idx])
                      for c_idx in range(x_centers.shape[0])}
         else:
-            print(self.border)
+            #print(self.border)
             
             if self.border==False:
                 # Filter cells that are in the border of the image
