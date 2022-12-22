@@ -95,6 +95,7 @@ cell_markers <- cell_markers%>%
 stateMarkers <- read.csv("./data/proteins_by_frame.csv")
 FuncMarkers <- stateMarkers%>%filter(Purpose =="Functional")%>%pull(Biomarker)
 
+#names of archetypes found by AA
 niches <- unlist(lapply(as.vector(seq(1:NBNICHES)),function(x){paste0("arch",x)}))
 #FuncMarkers <- append(str_replace_all(FuncMarkers,c("HLA-DR"="HLA.DR","PD-L1" = "PD.L1","phospho-S6" = "phospho.S6","Beta catenin" = "Beta.catenin")),"H3K9ac_H3K27me3")
 
@@ -109,15 +110,11 @@ niches <- unlist(lapply(as.vector(seq(1:NBNICHES)),function(x){paste0("arch",x)}
 ### FUNCTION ###
 hclust_cellTypes(dfCellsMarkers = cell_markers,cellTypes = c("DC", "NK", "Neutrophils", "Tregs","Macrophages"),nClusts=10,markers=FuncMarkers)
 
-
 ```
 
 
 
 ```{r tmensCells}
-#use read_csv and write_rds
-#tmens_cells <- read.csv("../data_BB/archetypes_sites_centered_cells_gaussian.csv")%>%filter(cell_type_site!="Unidentified")#remove Unidentified cells from analysis  archetypes_sites_centered_cells_gaussian.csv
-
 ##.csv file containing the TMENs proportion of cells
 tmens_cells2 <- read.csv("../TMENS_analysis/output/archetypes_sites_centered_cells_gaussian2.csv")%>%filter(cell_type_site!="Unidentified")
 #rowSums(tmens_cells[,c("archetype1","archetype2","archetype3","archetype4")])
@@ -152,7 +149,7 @@ ggplot(sitesCellsCM%>%filter(marker=='Beta catenin'),aes(x=TOT_cell_dens,y=value
 #MarkersCells.var <- left_join(selectedMarkers, markersPerCell,by= c("cell_type","marker"))
 ### Markers expr for all cell types from all sites
 markersPerCell <- cell_markers%>%pivot_longer(cols = append(MARKERS,"H3K9ac_H3K27me3") ,names_to = "marker", values_to= "value")
-#FIXME computing interfaces: use combn to allow for more interfaces and more ncihes (see Ziqi's suggestion code)
+#FIXME computing interfaces: use combn to allow more interfaces for # niches>4 (see Ziqi's suggestion code)
 
 if (file.exists("./outputs/MarkersCellsTMENs.rds")){
   MarkersCellsTMENS <- readRDS("./outputs/MarkersCellsTMENs.rds")
@@ -310,7 +307,7 @@ lmStats <- lm_niches_phen(markersCells.niches=MarkersCellsTMENS2,markers=FuncMar
 
 #### FDR correction over estimates' p-values 
 
-```{r FDRt,fig.width=12,fig.height=6, eval=FALSE, echo=TRUE}
+```{r FDRt,fig.width=12,fig.height=6, eval=TRUE, echo=TRUE}
 
 filtered.tstat <- fdr_lm_niches(lmStats=lmStats,qvalTresh=0.01)
 
@@ -330,7 +327,7 @@ pheatmap(filtered.tstat2%>%t)
 
 
 
-```{r heatmapLM, eval=FALSE,echo=TRUE}
+```{r heatmapLM, eval=TRUE,echo=TRUE}
 ### heatmap TEST
 library(pheatmap)
 pheatmap(filtered.tstat2%>%t)
@@ -386,7 +383,7 @@ dev.off()
 
 
 
-```{r ROC, eval=FALSE,echo=TRUE}
+```{r ROC, eval=TRUE,echo=TRUE}
 #install.packages("pROC")
 
 ### FUNCTION ###
@@ -398,9 +395,8 @@ clustCells <- list("DC"= c(1,2,3,4,5,6,7,8,9,10),
                    "NK"= c(1,2,3,4,5,6,7,8,9,10))
 
 plot_roc_niches_cells(CT = CTroc,clustFiles = fileExt,clustIDs = clustCells, 
-                      nichesNames = niches,markers = FuncMarkers,
-                      MarkersCells.niches = MarkersCellsTMENs.byNiche)
-
+                      nichesNames = niches,markers = FuncMarkers, cellsNiches= tmens_cells2,
+                      MarkersCells.niches = MarkersCellsTMENS2)#MarkersCellsTMENs.byNiche
 
 ```
 
@@ -443,18 +439,19 @@ compute correlations between niches and cell phenotypes
 #a <- MarkersCellsTMENS2%>%filter(marker %in% FuncMarkers)%>%
 #  #select(c(cell_type,marker,value,arch1,arch2,arch3,arch4,a1a2,a1a3,a1a4,a2a3,a2a4,a3a4,a1a2a3,a1a2a4,a1a3a4,a2a3a4,a1a2a3a4))%>%
 #  mutate(id=paste(cell_type,marker,sep=";"))
-coreIntf2<-c("arch1","arch2","arch3","arch4","a1a2","a1a3","a1a4","a2a3","a2a4","a3a4")#,"a1a2a3","a1a2a4","a1a3a4","a2a3a4","a1a2a3a4")
+coreIntf2<-c("a1","a2","a3","a4","a1a2","a1a3","a1a4","a2a3","a2a4","a3a4")#,"a1a2a3","a1a2a4","a1a3a4","a2a3a4","a1a2a3a4")
 
 #start_time <- Sys.time()
 #corrMeth <- "spearman"# method to compute correlations. We recommend to use spearman unless your dataset respects pearson assumptions
+MarkersCellsNiches <- MarkersCellsTMENS2%>%dplyr::rename(a1=arch1)%>%dplyr::rename(a2 = arch2)%>%dplyr::rename(a3 = arch3)%>%dplyr::rename(a4 = arch4)
 
-cMf <-correlation_niches_CM(markersCells.niches=MarkersCellsTMENS2,Markers=FuncMarkers,corrMeth="spearman",coreIntf=coreIntf2)
+cMf <-correlation_niches_CM(markersCells.niches=MarkersCellsNiches,Markers=FuncMarkers,corrMeth="spearman",coreIntf=coreIntf2)#(markersCells.niches=MarkersCellsTMENS2,Markers=FuncMarkers,corrMeth="spearman",coreIntf=coreIntf2)
 
-write_csv(cMf%>%as_tibble(rownames=NA)%>%rownames_to_column(var="cell_marker"), "./CM_corr_niches_thresh0.3.csv")
+write_csv(cMf%>%as_tibble(rownames=NA)%>%rownames_to_column(var="cell_marker"), "./outputs/CM_corr_niches_thresh0.3.csv")
 figWidth <- nrow(cMf) * 30/267
 
-Krt.filt <- names(which(cMf[rownames(cMf)[which(grepl("Keratin6",rownames(cMf),fixed=TRUE))],"arch3"]>0.3))
-BCat.filt <- names(which(cMf[rownames(cMf)[which(grepl("Beta catenin",rownames(cMf),fixed=TRUE))],"arch3"]>0.2))
+Krt.filt <- names(which(cMf[rownames(cMf)[which(grepl("Keratin6",rownames(cMf),fixed=TRUE))],"a3"]>0.3))
+BCat.filt <- names(which(cMf[rownames(cMf)[which(grepl("Beta catenin",rownames(cMf),fixed=TRUE))],"a3"]>0.2))
 
 cMf2 <- cMf[!rownames(cMf)%in%BCat.filt& !rownames(cMf)%in% Krt.filt,]
 pheatmap(cMf2%>%t)
@@ -476,9 +473,12 @@ library(fontLiberation)
 #FIXME consistency in names of archetypes: arch1, arch2,3,4, or a1,a2,a3 etc...
 #FIXME use another input dataset: no .rds file from another path file ! 
 
-
-archetypesSitesKeren <- readRDS("/scratch/anissa.el/ImmuneStates/data_BB/archetypesSitesKeren.rds")
-cellAbSites <- read_csv("/scratch/anissa.el/ImmuneStates/data_BB/abundance_matrix_gaussian.csv")
+#Archetype weights of randomly generated sites over TNBC patients images
+archetypes_sites <- read.csv("./data/archetypes_matrix_gaussian.csv", header = TRUE, sep = ",")
+saveRDS(archetypes_sites,"./data/archetypesSitesKeren.rds")
+archetypesSitesKeren <- readRDS("./data/archetypesSitesKeren.rds")
+#Cell abundance of sites
+cellAbSites <- read_csv("./data/abundance_matrix_gaussian.csv")
 
 nichesCellAb <- archsCellAb%>%mutate(archetype=str_replace_all(archetype,c("ARCH1"="TLS","ARCH2"="inflammatory","ARCH3"="cancer","ARCH4"="fibrotic")))%>%column_to_rownames(var="archetype")%>%t()%>%as_tibble(rownames=NA)%>%rownames_to_column(var="cell_type")
 nichesCA.sort <- nichesCellAb%>%pivot_longer(cols = c("TLS","inflammatory","cancer","fibrotic"),names_to="niche",values_to="cell_density")%>%group_by(niche)%>%arrange(desc(cell_density))
@@ -486,8 +486,7 @@ nichesCA.sort <- nichesCellAb%>%pivot_longer(cols = c("TLS","inflammatory","canc
 
 archsSitesCellAb <- left_join(archetypesSitesKeren, cellAbSites,by=c("site_id","patient_id"))%>%pivot_longer(cols=append(CELLTYPES,"Unidentified"),names_to="cell_type",values_to= "cell_density")%>%ungroup()
 
-#get_cell_type_enriched_arch(cellAb.df=archsSitesCellAb,archetype="archetype4",thresh=0.99)
-
+### Get cell types enriched in each niche (take top 1% sites closest to niche)
 archs.CT <- get_CT_enriched_all_archs(archetypesSitesKeren,cellAbSites,thresh = 0.99)%>%group_by(niche)%>%filter(!(cell_type %in% c("DC / Mono", "CD3-T", "Mono / Neu", "Other immune","Unidentified")))%>%mutate(cell_type = paste(unique(cell_type),collapse="\n"))%>%distinct(niche,cell_type)
 #names(archs.CT) <- set_tmens_names(names(archs.CT))
 
@@ -523,8 +522,8 @@ tabTMENs2 <- tabTMENs2%>% filter(corr_val >=0.3)%>%filter(!(grepl("cancer",niche
     # IF there is an association between CM and one region ==> common region is the latter
   # group again by cell type, marker, and by this common region
   # select the maximum correlation value rho
-  # Get the correlations among core/interfaces for a given cell _type/marker that are the highest
-  # Ex: rho (Beta-cat+ Tregs, cancer) < rho( Beta-cat+ Tregs, cancer x fibrotic) 
+  # Get correlations among core/interfaces for a given cell type/marker that are the highest
+  # Ex: rho (Beta-cat+ Tregs; cancer) < rho( Beta-cat+ Tregs; cancer x fibrotic) 
   # ==> select rho( Beta-cat+ Tregs, cancer x fibrotic)
 namesIntf <- paste0(rep("type",InftOrder),as.character(as.vector(seq(1,InftOrder))))
 
@@ -587,7 +586,7 @@ tabCellPhen3 <- tabCellPhen2%>%
 library(pheatmap)
 # cts <- unique(pull(as_tibble(cMf2,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),cell_type))
 # 
-# markersCorr <- unique(pull(as_tibble(cMf2,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),marker))
+ markersCorr <- unique(pull(as_tibble(cMf2,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),marker))
 
 plot_heatmap_CT(cMf2,coreIntf2) #c('a1','a2','a3',"a4","a1a2","a1a3","a1a4","a2a3","a2a4","a3a4")
 
@@ -603,13 +602,12 @@ plot_heatmap_markers(cMf2,coreIntf2) #c('a1','a2','a3',"a4","a1a2","a1a3","a1a4"
 #### Niche-phentoype mapping per cell type 
 
 ```{r cellsTMENs,eval=TRUE}
-library(RColorBrewer)
+#library(RColorBrewer)
 library(pheatmap)
 
 ## Get cell types that are associated with a tmen/interface
 cts <- unique(pull(as_tibble(cMf2,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),cell_type))
 markersCorr <- unique(pull(as_tibble(cMf2,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),marker))
-
 
 #### NEW VERSION 
 # We proceed cell type wise and do hierarchical clustering of the markers to group the phenotypes together
@@ -658,7 +656,7 @@ plot_nipmap_cellTypes(corrMatrix.raw=corrCM)
 Can we find cross-cells phenotypes that are associated to niches ? Are they associated to core niches or do they arise at the interface ?
 If so, is it a continuum or do we have clusters ?
 
-```{r pcaCor, fig.height = 15,fig.width=15,echo=TRUE}
+```{r pcaCor, eval=FALSE,fig.height = 15,fig.width=15,echo=TRUE}
 #FIXME remove this part ? Useless
 ###PCA on correlation matrix
 library(pheatmap)
@@ -711,13 +709,7 @@ fig1 <- plot_ly(x = CM_TMENs.pca$li[,1],
 
 ```
 
-(( However,  niche negatively associates with PC3, showing that this interface mostly anti-correlates with the existing phenotypes in the TME. PC3 is not very informative.))
 
-
-PCA on correlations between cells protein expression and TMENs justify to reduce the dimension from 15 to 2 PCs  as they explain 77 % of the variance. Fibrotic niche and TLS covary together along the first Principal Component. While the cancer niche correlates with the PC2, the inflammatory niche and its interfaces including fibrotic and TLS niches anti-correlates with both principal components. interfaces between cancer niche and inflammatory niches negatively correlate with the first principal component. This shows that some local environment vary together and might unravel hierarchical specific phenotypes.
-
-
-The third Principal Component explains 12 % of the total variance. TLS-cancer as well as TLS niche positively associates with the PC3.
 
 ```{r plotsa2a3,echo=TRUE}
 corr_cm <-as_tibble(cMf2,rownames=NA)%>%rownames_to_column(var="names")%>%separate(col=names, into=c("cell_type","marker"),sep=";")%>%filter(!(cell_type %in% c("DC / Mono", "Mono / Neu","Other immune")))%>%mutate(marker=ifelse(marker%in%c("phospho-S6","Beta catenin","HLA_Class_1"),marker,"other"))#%>%group_by(marker)%>%mutate(randA2 = ifelse(marker=="other",rnorm(),))
