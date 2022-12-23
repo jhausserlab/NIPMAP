@@ -31,7 +31,7 @@ gc()
 library(tidyverse)
 library(ade4)
 library(factoextra)
-library(readxl)
+#library(readxl)
 library(reshape2)
 library(plotly)
 library(igraph)
@@ -40,7 +40,7 @@ library(ggpubr)
 library(ggplot2)
 library(ggrepel)
 #library(devtools)
-library(processx)
+#library(processx)
 
 ```
 
@@ -77,7 +77,7 @@ saveRDS(MetaData,"./data/metadataBC.rds")
 This is the composition of BC samples : 54 luminal A, 71 luminal B, six luminal B-HER2+, one HER2+, and six TN tumors (144 in total).
 
 ```{r data, echo=TRUE}
-CellsProp <- read_excel("./data/mmc5.xlsx",col_names=TRUE,skip=2)
+CellsProp <- readxl::read_excel("./data/mmc5.xlsx",col_names=TRUE,skip=2)
 
 #colnames(CellsProp)
 CellsPropBC <- CellsProp%>%filter(`LiveCells [%]`>50)#CellsProp%>%filter(Tissue=="Tumor")%>%filter(`LiveCells [%]`>50)

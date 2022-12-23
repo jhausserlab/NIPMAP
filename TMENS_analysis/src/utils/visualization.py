@@ -6,6 +6,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.patches as mpatches
 from scipy.spatial import ConvexHull
 import mpl_toolkits.mplot3d as a3
+import matplotlib as mpl
 import matplotlib.colors
 import numpy as np
 import seaborn as sns
@@ -121,7 +122,7 @@ def get_segmentation_matrix(data, cell_types, pca_obj, archetype_obj, color_fun,
     mesh = np.array(np.meshgrid(range(len(x_span)-1), range(len(y_span)-1)))
     combinations = list(mesh.T.reshape(-1, 2)) # creating all grid points
     circle_out_area = {}
-
+    print(archetype_obj.alfa.shape[0]-1)
     total_site_area = np.pi * radius ** 2
     for grid_point in combinations:
         site, area_outside = site_generation(x, y, t, x_span, y_span, radius, grid_point, h, w, circle_out_area)
@@ -143,7 +144,7 @@ def get_segmentation_matrix(data, cell_types, pca_obj, archetype_obj, color_fun,
             counts = np.zeros(len(cell_types))
         #print(pca_obj.n_features_,pca_obj.n_samples_,pca_obj.n_components_)
         new_pc = pca_obj.transform(counts.reshape(1, -1))
-        _, alfa = archetype_obj.transform(new_pc[:, :3])
+        _, alfa = archetype_obj.transform(new_pc[:, :archetype_obj.alfa.shape[0]-1])#transform(new_pc[:, :3])
         # using the alfa given by the archetype model for the given square
         x_min = x_span[grid_point[0]]
         x_max = np.minimum(x_span[grid_point[0]+1], h)
@@ -160,13 +161,14 @@ def get_segmentation_matrix(data, cell_types, pca_obj, archetype_obj, color_fun,
     return m
 
 
-def plot_cells_positions(data, cell_types, segment_image=False, segmentation_type='hard', counting_type='abs', h=800, w=800, granularity=25, radius=25, pca_obj=None, AA_obj=None, to_plot='all',path_fig=None):
+def plot_cells_positions(data, cell_types, segment_image=False, segmentation_type='hard', color_vector=None,counting_type='abs', h=800, w=800, granularity=25, radius=25, pca_obj=None, AA_obj=None, to_plot='all',path_fig=None):
     '''
     plots cells positions in MIBI image of TNBC + saves it in a .svg image
     
     @param cell_types: {list} of str, cell type labels in the dataset
     @param segment_image: {boolean}, if True, color image from results of AA, if False, plot only cells (Default=False)
-    @param segmentation_type:{str} ssegment pixels of images and color them as TMENs proportions (default='hard')
+    @param segmentation_type:{str} segment pixels of images and color them as TMENs proportions (default='hard')
+    @param color_vector:{list} list of colors in RGB format (0 to 255). Default if matplotlib colormap 'Dark2'.
     @param counting_type:{str} counting type of cells within the sites:'abs' for absolute, 'log' fro log normalization and 'gaussian' for gaussian density (Default='abs')
     @param h:{int} height of image in pixels (Default=800)
     @param w:{int} width of image in pixels (Default=800)
@@ -185,14 +187,21 @@ def plot_cells_positions(data, cell_types, segment_image=False, segmentation_typ
     if segment_image is True:
         if pca_obj is None or AA_obj is None:
             raise ValueError("To segment the image pca and archetypes objects are needed")
-        color_vector =  np.array([[255, 0, 223],[255,0,0],[70,203,236],[0,0,0]])#np.array([[255, 0, 0], [0, 153, 51], [0, 0, 255], [255, 255, 0]])
+        
+        if color_vector is None:
+            colormap = mpl.cm.Dark2.colors
+            
+            color_vector=np.array(colormap[0:AA_obj.alfa.shape[0]])*255
+            print(color_vector)
+        else:
+            color_vector =  np.array([[255, 0, 223],[255,0,0],[70,203,236],[0,0,0]])#np.array([[255, 0, 0], [0, 153, 51], [0, 0, 255], [255, 255, 0]])
         if segmentation_type == 'hard': #color pixel by 1 of the colors defining TMENs (discrete)
             color_fun = partial(alfa2color, color_vector)
 
         else: #color image by continuous spectrum of colors, depending on granularity 
             color_fun = partial(color_mapper, color_vector.T)
             
-        z = get_segmentation_matrix(data, cell_types, pca_obj, AA_obj, color_fun, counting_type=counting_type, radius=radius, granularity=granularity, h=h, w=w)
+        z = get_segmentation_matrix(data, cell_types, pca_obj, AA_obj, color_fun, counting_type=counting_type, radius=radius, granularity=granularity, h=h, w=w)#get_segmentation_matrix(data, cell_types, pca_obj, AA_obj, color_fun, counting_type=counting_type, radius=radius, granularity=granularity, h=h, w=w)
         plt.imshow(z, origin='lower')
 
     for (name, group), col in zip(groups, colors):
@@ -204,9 +213,10 @@ def plot_cells_positions(data, cell_types, segment_image=False, segmentation_typ
     plt.ylim(0, h)
     if path_fig!=None:
         plt.savefig(path_fig,format="svg")
-    return plt
+    return None #plt
 
-def plot_cells_markers_tmens(patient_id,cell_types,path_data, data_markers_path,cell_type, marker,symbols,segment_image=False,
+
+def plot_cells_markers_tmens(patient_id,cell_types,path_data, data_markers_path,cell_type, marker,symbols,col=None,segment_image=False,
                              segmentation_type="hard", counting_type="gaussian",h=800,w=800,granularity=20,radius=25,
                              pca_obj=None,AA_obj=None, to_plot=None,path_fig=None, intOutQuant=0):
     '''
@@ -215,9 +225,234 @@ def plot_cells_markers_tmens(patient_id,cell_types,path_data, data_markers_path,
     @param cell_types: {list} of str, cell type labels in the dataset
     @param path_data: {string} path of data of patient (cells positions and cell types in an image)
     @param data_markers_path:{string} path to csv file containing markers expressions for each cells in all images
-    @param cell_type:{string} cell type we choose to analyze
+    @param cell_type:{string} cell type to display
     @param marker:{string} marker expressed in a cell type
     @param symbols:{list} of symbols for each marker to plot
+    @param col:{string} color of a symbol to distinguish with the other symbol
+    @param segment_image: {boolean}, if True, color image from results of AA, if False, plot only cells (Default=False)
+    @param segmentation_type:{str} ssegment pixels of images and color them as TMENs proportions (default='hard')
+    @param counting_type:{str} counting type of cells within the sites:'abs' for absolute, 'log' fro log normalization and 'gaussian' for gaussian density (Default='abs')
+    @param h:{int} height of image in pixels (Default=800)
+    @param w:{int} width of image in pixels (Default=800)
+    @param radius: {int} radius of sites generated in images in micrometer (Default=100)
+    @param granularity: {int} granularity of colors (Default=25)
+    @param pca_obj: {PCA obj} object of PCA on sites generated in the images (Default=None)
+    @param AA_obj: {AA object} object of Archetype Analysis
+    @param to_plot:{str} plot all images or not (Default='all')
+    
+    @return: plot
+    '''    
+    data = pd.read_csv(path_data+"/patient{}_cell_positions.csv".format(patient_id))
+   # data = data.loc[data["cell_type"] == cell_type]
+    groups = data.groupby('cell_type')
+    print(type(marker)==str)
+    df_markers = pd.read_csv(data_markers_path)
+    plt.figure(figsize=(8, 8))
+    if segment_image is True:
+        if pca_obj is None or AA_obj is None:
+                raise ValueError("To segment the image pca and archetypes objects are needed")
+        color_vector =  np.array([[255, 0, 223],[255,0,0],[70,203,236],[0,0,0]])#np.array([[255, 0, 0], [0, 153, 51], [0, 0, 255], [255, 255, 0]])
+        if segmentation_type == 'hard': #color pixel by 1 of the colors defining TMENs (discrete)
+                color_fun = partial(alfa2color, color_vector)
+
+        else: #color image by continuous spectrum of colors, depending on granularity 
+            color_fun = partial(color_mapper, color_vector.T)
+
+        z = get_segmentation_matrix(data, cell_types, pca_obj, AA_obj, color_fun, counting_type=counting_type, radius=radius, granularity=granularity, h=h, w=w)
+        data = data.loc[data["cell_type"] == cell_type]
+        df_markers = df_markers.loc[df_markers["SampleID"] == patient_id]
+        df_markers.rename(columns = {"cellLabelInImage":"label"},inplace=True)
+        data_CM = pd.merge(data,df_markers,on = "label",how = "left")
+        print(data.shape)
+        #print(data_CM)
+        plt.imshow(z, origin='lower')#isns.imgplot(z)
+        #cm = plt.cm.get_cmap("YlGn")#('RdYlBu')
+        #cm = plt.cm.get_cmap("summer")#('RdYlBu') #fails on DC Keratin6
+        #cm = plt.cm.get_cmap("viridis")#('RdYlBu') #fails on DC Keratin6
+        #cm = plt.cm.get_cmap("bone")#('RdYlBu') #fails on DC Keratin6 becuase high Ker6 DCs diseapear in cancer niche
+        cm = plt.cm.get_cmap("pink")#('RdYlBu')
+        #cm = plt.cm.get_cmap("hot")#('RdYlBu') #works
+        #cm = plt.cm.get_cmap("copper")#('RdYlBu') #ok, but DC Ker6 not so visible in cancer
+        if type(marker)==str:
+            print("ok")
+            maxIntensity = data_CM[marker].quantile(1-intOutQuant)
+            data_CM.loc[data_CM[marker] > maxIntensity,marker ] = maxIntensity
+            plt.scatter(data_CM['x'], data_CM['y'], marker="o", s=14, c=data_CM[marker],cmap=cm)
+            plt.legend(bbox_to_anchor=(1.0, 1), loc='upper left')
+            plt.colorbar()
+        else:
+            #print(data_CM["Keratin6"].tolist())
+            plt.scatter(data_CM['x'], data_CM['y'], marker="o",facecolors="none", s=90, edgecolors="white",alpha=.1)
+            for m,s in zip(marker,symbols):##
+                #print(m)
+                namePhen = m+'_phen'
+                data_CM[namePhen]="o" # for each marker, if cells are positive to m, set a symbol and plot it
+                data_CM.loc[data_CM[m]>0,namePhen] = s
+                #if m=="CD45RO":
+                #    #print(data_CM[namePhen])
+                for i in range(len(data_CM[namePhen].tolist())):
+                    if m=="Keratin6"and data_CM[m+'_phen'][i]==s:
+                        #print(data_CM[namePhen].tolist())
+                        #print(m,s)
+                        plt.scatter(data_CM['x'][i],data_CM['y'][i],marker="o",s=100,facecolors='none',edgecolors=col,linewidths=3,label=m,alpha=.8)
+                    else:
+                        plt.scatter(data_CM['x'][i],data_CM['y'][i],marker=data_CM[namePhen].tolist()[i],s=90,facecolors='none',edgecolors="white",linewidths=1,label=m,alpha=.9)
+                #sns.scatterplot(data_CM['x'],data_CM['y'],markers=data_CM[namePhen].tolist(),s=14,color=".2")#
+        # if cells are positive to multiple markers, stack the same points with different symbols in the plot       
+            
+        recs = []
+        plt.legend(recs,marker, loc='upper left')#plt.legend(bbox_to_anchor=(1.0, 1), loc='upper left')
+    plt.xlim(0, w)
+    plt.ylim(0, h)
+    if path_fig!=None:
+        plt.savefig(path_fig,format="svg")
+    
+    
+    return plt
+
+def plot_cells_TI_border(data, cell_types, patientID=1,h=800,w=800,
+                              data_niches_path ='../../output/archetypes_sites_centered_cells_gaussian2.csv',
+                              intf=["arch2","arch3"],normalize=False,quant=0.95,path_fig=None):
+    plt.figure(figsize=(8, 8))
+    df_niches = pd.read_csv(data_niches_path)
+    #print(df_niches["arch2"])
+    if normalize==True:
+        ### Set fibrotic nice weight to 0
+        df_niches.loc[df_niches["arch4"]!=0,"arch4"]=0
+        ## Renormalize to 1
+        df_niches["arch1"]=df_niches.apply(lambda row: row["arch1"]/(row["arch1"] + row["arch2"] + row["arch3"]),axis=1)
+        df_niches["arch2"]=df_niches.apply(lambda row: row["arch2"]/(row["arch1"] + row["arch2"] + row["arch3"]),axis=1)
+        df_niches["arch3"]=df_niches.apply(lambda row: row["arch3"]/(row["arch1"] + row["arch2"] + row["arch3"]),axis=1)
+        #print(df_niches["arch2"]) 
+    
+    groups = data.groupby('cell_type')
+    cells_cols = {cell_types[i]:colors[i] for i in range(len(cell_types))}
+    data.rename(columns = {"label":"site_id"},inplace=True)
+    #print(data)
+    data_niches = pd.merge(data,df_niches,on="site_id",how="left")
+    data_niches=data_niches.loc[data_niches["patient_id"]==patientID]
+    
+    if len(intf)==2:
+        data_niches["interface"]= data_niches.apply(lambda row: row.arch2 * row.arch3,axis=1)
+        #print(data_niches["interface"].describe())
+    else:
+        data_niches["interface"]=data_niches[intf]
+        #print(data_niches["interface"].describe())
+        
+    if normalize==False and quant!=0:  
+        #print("Ok")
+        maxWeight = data_niches["interface"].quantile(quant)
+        print(maxWeight)
+        data_niches.loc[data_niches["interface"]> maxWeight,"interface"] = maxWeight
+    
+    for (name, group), col in zip(groups, colors):
+        plt.scatter(group['x'], group['y'], marker="o", s=10, label=name,facecolors='none',edgecolors=cells_cols[name])
+
+    plt.scatter(data_niches['x'], data_niches['y'], marker="o", s=5,
+                c=data_niches["interface"],cmap=plt.cm.get_cmap("Greys"))
+
+    plt.legend(bbox_to_anchor=(1.0, 1), loc='upper left')
+    plt.xlim(0, w)
+    plt.ylim(0, h)
+    plt.colorbar()
+    if path_fig!=None:
+        plt.savefig(path_fig,format="svg")
+    return plt
+
+def plot_cells_alfa_tmens(patient_id,cell_types,path_data, data_markers_path,cell_type, path_pred_alfas,segment_image=False,
+                             segmentation_type="hard", counting_type="gaussian",h=800,w=800,granularity=20,radius=25,
+                             pca_obj=None,AA_obj=None, to_plot=None,path_fig=None):
+    '''
+    plots cells positions in MIBI image of TNBC overlayed with TMENs colors + saves it in a .svg image
+    @param patient_id:{integer} id of the image patient (number here)
+    @param cell_types: {list} of str, cell type labels in the dataset
+    @param path_data: {string} path of data of patient (cells positions and cell types in an image)
+    @param data_markers_path:{string} path to csv file containing markers expressions for each cells in all images
+    @param cell_type:{string} cell type to display
+    @param path_pred_alfas:{string} paht to csv file with predicted values of niche alfa of cell type of interest
+    @param segment_image: {boolean}, if True, color image from results of AA, if False, plot only cells (Default=False)
+    @param segmentation_type:{str} ssegment pixels of images and color them as TMENs proportions (default='hard')
+    @param counting_type:{str} counting type of cells within the sites:'abs' for absolute, 'log' fro log normalization and 'gaussian' for gaussian density (Default='abs')
+    @param h:{int} height of image in pixels (Default=800)
+    @param w:{int} width of image in pixels (Default=800)
+    @param radius: {int} radius of sites generated in images in micrometer (Default=100)
+    @param granularity: {int} granularity of colors (Default=25)
+    @param pca_obj: {PCA obj} object of PCA on sites generated in the images (Default=None)
+    @param AA_obj: {AA object} object of Archetype Analysis
+    @param to_plot:{str} plot all images or not (Default='all')
+    
+    @return: plot
+    '''    
+    data = pd.read_csv(path_data+"/patient{}_cell_positions.csv".format(patient_id))
+   # data = data.loc[data["cell_type"] == cell_type]
+    groups = data.groupby('cell_type')
+    pred_alfas = pd.read_csv(path_pred_alfas)
+    df_markers = pd.read_csv(data_markers_path)
+    plt.figure(figsize=(8, 8))
+    if segment_image is True:
+        if pca_obj is None or AA_obj is None:
+                raise ValueError("To segment the image pca and archetypes objects are needed")
+        color_vector =  np.array([[255, 0, 223],[255,0,0],[70,203,236],[0,0,0]])#np.array([[255, 0, 0], [0, 153, 51], [0, 0, 255], [255, 255, 0]])
+        if segmentation_type == 'hard': #color pixel by 1 of the colors defining TMENs (discrete)
+                color_fun = partial(alfa2color, color_vector)
+
+        else: #color image by continuous spectrum of colors, depending on granularity 
+            color_fun = partial(color_mapper, color_vector.T)
+
+        z = get_segmentation_matrix(data, cell_types, pca_obj, AA_obj, color_fun, counting_type=counting_type, radius=radius, granularity=granularity, h=h, w=w)
+        data = data.loc[data["cell_type"] == cell_type]
+        df_markers = df_markers.loc[df_markers["SampleID"] == patient_id]
+        df_markers.rename(columns = {"cellLabelInImage":"label"},inplace=True)
+        data_CM = pd.merge(data,df_markers,on = "label",how = "left")
+        data_CM_pred = pd.merge(data_CM,pred_alfas,on=["SampleID","label"],how="left")
+        
+        
+        #print(data_CM)
+        plt.imshow(z, origin='lower')#isns.imgplot(z)
+        #cm = plt.cm.get_cmap("YlGn")#('RdYlBu')
+        #cm = plt.cm.get_cmap("summer")#('RdYlBu') #fails on DC Keratin6
+        #cm = plt.cm.get_cmap("viridis")#('RdYlBu') #fails on DC Keratin6
+        #cm = plt.cm.get_cmap("bone")#('RdYlBu') #fails on DC Keratin6 becuase high Ker6 DCs diseapear in cancer niche
+        #cm = plt.cm.get_cmap("pink")
+        cm = matplotlib.colors.ListedColormap(["white","black"])
+        cm2 = plt.cm.get_cmap("pink")#plt.cm.get_cmap("Greys")    
+        gps_niches = data_CM_pred.groupby("inflammatory_niche_pred")
+        alfas= list(gps_niches.groups)
+        print(alfas)
+        colors=["white","black"]
+        cols = {alfas[i]:colors[i] for i in range(len(alfas))}
+        plt.scatter(data_CM_pred['x'], data_CM_pred['y'], marker="o", s=50, c=data_CM_pred["value"],cmap=cm2,label="infl niche weight")
+        #for (name, gp) in gps_niches:
+        #    plt.scatter(gp['x'], gp['y'], marker="o", s=14, c = cols[name],label=name)
+        plt.legend(bbox_to_anchor=(1.0, 1), loc='upper left')
+        #maxIntensity = data_CM[marker].quantile(1-intOutQuant)
+        #data_CM.loc[data_CM[marker] > maxIntensity,marker ] = maxIntensity
+        #plt.scatter(data_CM_pred['x'], data_CM_pred['y'], marker="o", s=14, c=data_CM_pred["inflammatory_niche_pred"],cmap=cm,label='inflammatory niche weight')
+
+    plt.xlim(0, w)
+    plt.ylim(0, h)
+    plt.colorbar()
+    if path_fig!=None:
+        plt.savefig(path_fig,format="svg")
+    
+    
+    return plt
+
+
+def plot_cells_hclust_tmens(patient_id,cell_types,path_data, data_markers_path,cell_type,hclust_ids,clustIDs ,cols_clusts,segment_image=False,
+                             segmentation_type="hard", counting_type="gaussian",h=800,w=800,granularity=20,radius=25,
+                             pca_obj=None,AA_obj=None, to_plot=None,path_fig=None, intOutQuant=0):
+    '''
+    plots cells positions in MIBI image of TNBC overlayed with TMENs colors + saves it in a .svg image
+    @param patient_id:{integer} id of the image patient (number here)
+    @param cell_types: {list} of str, cell type labels in the dataset
+    @param path_data: {string} path of data of patient (cells positions and cell types in an image)
+    @param data_markers_path:{string} path to csv file containing markers expressions for each cells in all images
+    @param cell_type:{string} cell type to display
+    @param hclust_ids:{string} path to the .csv files with dataframe of cells and the cluster number assigned (from hclust) 
+    @param clustIDs:{list} list of int of clusters IDs to visualize in colors
+    @param cols_clusts:{list} list of colors for each cluster. Size = size(clustIDs)+1 ,the last color is the one for the
+                                other cluster IDs
     @param segment_image: {boolean}, if True, color image from results of AA, if False, plot only cells (Default=False)
     @param segmentation_type:{str} ssegment pixels of images and color them as TMENs proportions (default='hard')
     @param counting_type:{str} counting type of cells within the sites:'abs' for absolute, 'log' fro log normalization and 'gaussian' for gaussian density (Default='abs')
@@ -251,40 +486,34 @@ def plot_cells_markers_tmens(patient_id,cell_types,path_data, data_markers_path,
         df_markers = df_markers.loc[df_markers["SampleID"] == patient_id]
         df_markers.rename(columns = {"cellLabelInImage":"label"},inplace=True)
         data_CM = pd.merge(data,df_markers,on = "label",how = "left")
-        
+        # Get the hclust ids for each cell
+        clusters = pd.read_csv(hclust_ids)
+        data_CM_clusts = pd.merge(data_CM, clusters, on = ["SampleID","label"],how="left")
         #print(data_CM)
-        plt.imshow(z, origin='lower')#isns.imgplot(z)
-        #cm = plt.cm.get_cmap("YlGn")#('RdYlBu')
-        #cm = plt.cm.get_cmap("summer")#('RdYlBu') #fails on DC Keratin6
-        #cm = plt.cm.get_cmap("viridis")#('RdYlBu') #fails on DC Keratin6
-        #cm = plt.cm.get_cmap("bone")#('RdYlBu') #fails on DC Keratin6 becuase high Ker6 DCs diseapear in cancer niche
-        cm = plt.cm.get_cmap("pink")#('RdYlBu')
-        #cm = plt.cm.get_cmap("hot")#('RdYlBu') #works
-        #cm = plt.cm.get_cmap("copper")#('RdYlBu') #ok, but DC Ker6 not so visible in cancer
-        if type(marker)=="str":
-            maxIntensity = data_CM[marker].quantile(1-intOutQuant)
-            data_CM.loc[data_CM[marker] > maxIntensity,marker ] = maxIntensity
-            plt.scatter(data_CM['x'], data_CM['y'], marker="o", s=14, c=data_CM[marker],cmap=cm)
-            plt.legend(bbox_to_anchor=(1.0, 1), loc='upper left')
-            plt.colorbar()
-        else:
-            plt.scatter(data_CM['x'], data_CM['y'], marker="o",facecolors="none", s=70, edgecolors="white")
-            for m,s in zip(marker,symbols):##
-                print(m)
-                namePhen = m+'_phen'
-                data_CM[namePhen]="o" # for each marker, if cells are positive to m, set a symbol and plot it
-                data_CM.loc[data_CM[m]>0,namePhen] = s
-                if m=="CD45RO":
-                    print(data_CM[namePhen])
-                for i in range(len(data_CM[namePhen].tolist())):
-                    if m=="Keratin6":
-                        plt.scatter(data_CM['x'][i],data_CM['y'][i],marker="o",s=75,facecolors='none',edgecolors="green",linewidths=3)
-                    else:
-                        plt.scatter(data_CM['x'][i],data_CM['y'][i],marker=data_CM[namePhen].tolist()[i],s=70,facecolors='none',edgecolors="white",linewidths=1)
-                #sns.scatterplot(data_CM['x'],data_CM['y'],markers=data_CM[namePhen].tolist(),s=14,color=".2")#
-        # if cells are positive to multiple markers, stack the same points with different symbols in the plot       
-            
-
+        plt.imshow(z, alpha=.4,origin='lower')
+        #cm = plt.cm.get_cmap("pink")
+        ### Change lcusts labels
+        data_CM_clusts.loc[~data_CM_clusts["cluster"].isin(clustIDs),"cluster"]="others"
+        
+        hclustID = list(range(10))#list(set(data_CM_clusts["cluster"].tolist()))
+        #colors = np.where(hclustID==6,"g",np.where(hclustID==3,"pink",np.where(hclustID==1,"brown","grey")))
+        #labs = np.where(hclustID==6,6,np.where(hclustID==3,3,np.where(hclustID==1,1,"others")))
+        
+        #colors=["pink","white","green","grey"]#plt.get_cmap('Accent')
+        print(len(colors))
+        print(hclustID)
+        #matplotlib.colors.ListedColormap(["pink","white","green","grey"])
+        #sns.scatter('x', 'y',data=data_CM_clusts,hue="cluster",alpha=.7)
+        groups = data_CM_clusts.groupby("cluster")
+        #listNames = 
+        
+        hclustID = list(groups.groups)
+        print(hclustID)
+        cols = {hclustID[i]:cols_clusts[i] for i in range(len(hclustID))}
+        
+        for (name, gp) in groups:
+            plt.scatter(gp['x'],gp['y'], marker="o", s=80,label=name,c=cols[name],alpha=.9)
+        plt.legend(bbox_to_anchor=(1.0, 1), loc='upper left')
     
     plt.xlim(0, w)
     plt.ylim(0, h)
@@ -317,9 +546,9 @@ def plot_all_tumors_cell_positions(patient_ids, cell_types, segment_image=False,
     cells_cols = {cell_types[i]:colors[i] for i in range(len(cell_types))}#dict(zip(cell_types, colors)) 
     #key: cell type
     #Value: color
-    print(len(cells_cols.keys()))
+    #print(len(cells_cols.keys()))
     for i, patientID in enumerate(patient_ids):
-        print("Processing patient ID: {}".format(patientID))
+        #print("Processing patient ID: {}".format(patientID))
         plt.subplot(8, 5, i+1)
         data = pd.read_csv("{}/patient{}_cell_positions.csv".format(root_path, patientID))
         groups = data.groupby('cell_type')
@@ -328,6 +557,9 @@ def plot_all_tumors_cell_positions(patient_ids, cell_types, segment_image=False,
             if pca_obj is None or AA_obj is None:
                 raise ValueError("To segment the image pca and archetypes objects are needed")
             color_vector = np.array([[255, 0, 223],[255,0,0],[70,203,236],[0,0,0]])#np.array([[255, 0, 0], [0, 153, 51], [0, 0, 255], [255, 255, 0]])
+            if color_vector is None:
+                colormap = mpl.cm.Dark2.colors
+                
             if segmentation_type == 'hard': #color pixel by 1 of the colors defining TMENs (discrete)
                 color_fun = partial(alfa2color, color_vector)
                 
@@ -350,7 +582,7 @@ def plot_all_tumors_cell_positions(patient_ids, cell_types, segment_image=False,
 #        for (name, group), col in zip(groups, colors):
 #            if to_plot == 'all' or name in to_plot:
 #                plt.scatter(group['x'], group['y'], marker="o", s=5, label=name, c=col)
-    plt.savefig("./all_patients_cells2.svg",format="svg")
+    plt.savefig("../../output/figs/all_patients_cells.svg",format="svg")
     plt.show()
 
 
@@ -688,7 +920,7 @@ def tumor_misfit_barplot(tumor_id, errors):
     plt.show()
 
 
-def archetypes_bar_plot(cell_number_archetypes, cell_types, colors, y_axis='count', radius=100,path_fig=None):
+def archetypes_bar_plot(cell_number_archetypes, cell_types, colors, y_axis='count', radius=50,path_fig=None):
     if y_axis not in ['log', 'count', 'density']:
         raise ValueError("Wrong parameter: y_axis paramenter must be log, count or density")
     font = {'size'   : 14}
@@ -697,8 +929,12 @@ def archetypes_bar_plot(cell_number_archetypes, cell_types, colors, y_axis='coun
     y_pos = 3*np.arange(len(cell_number_archetypes[0]))
     ax = fig.add_axes([0, 0, 1, 1])
     width = 0.50
-
+    ## Get the colors
+   
+    
     data = cell_number_archetypes
+    nbArch= data.shape[0]
+    
     if y_axis == 'log':
         data = [np.log(d) for d in cell_number_archetypes]
     elif y_axis == 'density':
@@ -706,25 +942,30 @@ def archetypes_bar_plot(cell_number_archetypes, cell_types, colors, y_axis='coun
 
     #print(y_pos)
     x = (len(cell_number_archetypes)//2) + len(cell_number_archetypes)%2
-    #print()
+    #print(x)
     nbs = [4,2,1,3]
     #3-->1, 1-->4, 2-->2 , 4-->3
     #print(list(range(-x, x)))
     #print(data)
-    for d, c, idx, nb in zip(data, colors, list(range(-x, x)),nbs):
-        ax.bar(y_pos + idx * width, data[nb-1], color=colors[nb-1], width=width, label="Arch "+str(nb))#ax.bar(y_pos + idx * width, d, color=c, width=width, label="Arch "+str(nb))
-
+    if colors==None:
+        colormap = mpl.cm.Dark2.colors 
+        for d, idx, col in zip(data,list(range(-x, x)),colormap): #zip(data, colors, list(range(-x, x)),nbs):
+            ax.bar(y_pos + idx * width, d, color=col, width=width, label="Arch "+str(idx+3))
+    else:
+        for d,c, idx, nb in zip(data, colors, list(range(-x, x)),nbs):
+            ax.bar(y_pos + idx * width, data[nb-1], color=colors[nb-1], width=width, label="Arch "+str(nb))#ax.bar(y_pos + idx * width, d, color=c, width=width, label="Arch "+str(nb))
+    
 
     #ax.bar(y_pos - 2*width, data[0], color=colors[0], width=width, label="Arch 1")
     #ax.bar(y_pos - width, data[1], color=colors[1], width=width, label="Arch 2")
     #ax.bar(y_pos, data[2], color=colors[2], width=width, label="Arch 3")
     #ax.bar(y_pos + width, data[3], color=colors[3], width=width, label="Arch 4")
 
-    plt.xlabel('Cells Type')
+    plt.xlabel('cell type')
     if y_axis == 'log':
         plt.ylabel('log(#cells)')
     elif y_axis == 'density':
-        plt.ylabel('density [#cells / 100 um^2]')
+        plt.ylabel('density [#cells per density area]')#'density [#cells / 100 um^2]'
     else:
         plt.ylabel('#cells')
 
