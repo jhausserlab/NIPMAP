@@ -214,7 +214,7 @@ lm_niches_phen <- function(markersCells.niches=MarkersCellsTMENS2,markers=FuncMa
   NichesCellPhen <- group_split(MarkersCellsTMENs.byNiche%>%group_by(niches,cell_type))
   
   ## Fit linear regression
-  lmform <- paste0("`", FuncMarkers, "`", collapse = " + ")# make linear regression formula
+  lmform <- paste0("`", markers, "`", collapse = " + ")# make linear regression formula
   formula1 <- as.formula(paste0("alpha~",lmform))
   lmfit.stats <- lapply(NichesCellPhen ,function(x){
     #nichesNames<-append(nichesNames,unique(pull(x,niches)))
@@ -264,10 +264,30 @@ fdr_lm_niches <- function(lmStats,qvalTresh=0.01){
 }
 
 
-## Plot ROC curves of niches classification
-plot_roc_niches_cells <- function(CT,clustFiles,clustIDs, nichesNames,markers,MarkersCells.niches){
-  lmform<- paste0("`", markers, "`", collapse = " + ")# linear regression of niche weight over functional markers expressions
+##Plot ROC curves of niche classification for cell types
+#clustFiles: name of .csv hclusts files
+# CT: cell types to plot
+# markers: functional markers= FuncMarkers
+# clustIDs: list of number of clusters(obtained from hclust) for each cell type(names of elements: cell type)
+# MarkersCells.niches: markers epxression of all cells + their niches weights
+# nicheNames: str vector of archetypes names
+# cellsNiches: cells niches weights
+plot_roc_niches_cells <- function(CT,clustFiles,clustIDs, nichesNames,markers,cellsNiches,MarkersCells.niches){
+  # lmform<- paste0("`", markers, "`", collapse = " + ")# linear regression of niche weight over functional markers expressions
+  # formula1 <- as.formula(paste0("alpha~",lmform))
+  lmform <- paste0("`", markers, "`", collapse = " + ")# make linear regression formula
   formula1 <- as.formula(paste0("alpha~",lmform))
+  #print(lmform)
+  #print(formula1)
+  MarkersCellsTMENs.byNiche <- MarkersCells.niches%>%
+    filter(marker %in% markers)%>%
+    pivot_wider(names_from="marker",values_from="value")%>%
+    pivot_longer(cols = coreIntfNiches,names_to="niches",values_to="alpha")%>%
+    filter(cell_type %in% CT)%>%
+    filter(niches %in%  coreIntfNiches)%>%
+    mutate(id = paste(patient_id,site_id,cell_type,niches,sep="_"))%>%
+    column_to_rownames(var="id")
+  
   ROCplots <- lapply(CT, function(x){
     ct <- x
     for (n in nichesNames){
@@ -281,15 +301,14 @@ plot_roc_niches_cells <- function(CT,clustFiles,clustIDs, nichesNames,markers,Ma
       hclusts.cells <- read.csv(paste0("./outputs/",ct,fileExt))%>%mutate(value=1)%>%pivot_wider(id_cols=c("cell_type","label","SampleID"),names_from="cluster",values_from="value",values_fill=0)
       
       ### GET observed nniche weight and set thresh to niche positivity to .5
-      hclustsNiches.cells <- left_join(hclusts.cells%>%dplyr::rename(patient_id = SampleID)%>%dplyr::rename(site_id = label),tmens_cells2%>%dplyr::rename(cell_type = cell_type_site),by = c("patient_id","cell_type","site_id"))%>%
+      hclustsNiches.cells <- left_join(hclusts.cells%>%dplyr::rename(patient_id = SampleID)%>%dplyr::rename(site_id = label),cellsNiches%>%dplyr::rename(cell_type = cell_type_site),by = c("patient_id","cell_type","site_id"))%>%
         mutate(AOI = get(ar))%>%
         drop_na(AOI)%>%
         mutate(archPos = ifelse(AOI>=.5,1,0))## We define cells that belong or not to archetype if their niche wieght is >.5
       ### Get predicted proportions of inflammatory niche of DCs 
       
-      Predlm <- predict.lm(lm(formula1, data =MarkersCells.niches%>%
+      Predlm <- predict.lm(lm(formula1, data =MarkersCellsTMENs.byNiche%>%
                                 filter(cell_type==ct & niches==ar)))#mutate(patient_id=str_split(id,"_")[[1]])
-      
       Pred.df <- data.frame(id=names(Predlm), value = Predlm,row.names = NULL)%>%mutate(niche_pred = ifelse(value>=.5,1,0))%>%
         separate(col=id,into= c("SampleID","label","cell_type","arch"),sep="_",convert=TRUE)
       
@@ -533,6 +552,7 @@ plot_heatmap_CT<-function(CM.mat = cMf2,nichesIntf){
 
 ########### HEATMAP ORGANIZED BY MARKERS ###########
 plot_heatmap_markers <- function(CM.mat=cMf2,nichesIntf){
+  markersCorr <- unique(pull(as_tibble(CM.mat,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),marker))
   CM_TMENs_ph <- as_tibble(CM.mat,rownames=NA)%>%
     rownames_to_column(var="names")%>%
     separate(names,into=c("cell_type","marker"),sep=";")%>%#mutate(marker=paste0(marker,"+"))%>%
@@ -623,190 +643,7 @@ get_CT_enriched_all_archs<- function(archsSites =archetypesSitesKeren, cellAbund
   return(archetypes_cts.all)#(archetypes.ct)
 }
 
-##Plot ROC curves of niche classification for cell types
-#hclusts files
-# formula lm of cells' niche weight over functional markers: formula1
-# cell types: CTroc
-# niches names: niches
-# functional markers: FuncMarkers
-# cells expression of markers + niches weights: MarkersCellsTMENs.byNiche
-## Cells to plot ROC curve
-# CT: vector of names of cell types for which to plot ROC curves
-# clustIDs: list of number of clusters(obtained from hclust) for each cell type(names of elements: cell type)
-# MarkersCells.niches: 
-# nicheNames: str vector of archetypes names
 
 
-plot_roc_niches_cells <- function(CT,clustFiles,clustIDs, nichesNames,markers,MarkersCells.niches){
-  lmform<- paste0("`", markers, "`", collapse = " + ")# linear regression of niche weight over functional markers expressions
-  formula1 <- as.formula(paste0("alpha~",lmform))
-  ROCplots <- lapply(CT, function(x){
-    ct <- x
-    for (n in nichesNames){
-      ar <- n
-      print(ar)
-      #ar <- rocCells[x]
-      print(ct)
-      #print(ar)
-      S1 <- c()
-      S2 <- c()
-      ## GET hclusters of cell type
-      hclusts.cells <- read.csv(paste0("./outputs/",ct,fileExt))%>%mutate(value=1)%>%pivot_wider(id_cols=c("cell_type","label","SampleID"),names_from="cluster",values_from="value",values_fill=0)
-      
-      ### GET observed nniche weight and set thresh to niche positivity to .5
-      hclustsNiches.cells <- left_join(hclusts.cells%>%dplyr::rename(patient_id = SampleID)%>%dplyr::rename(site_id = label),tmens_cells2%>%dplyr::rename(cell_type = cell_type_site),by = c("patient_id","cell_type","site_id"))%>%
-        mutate(AOI = get(ar))%>%
-        drop_na(AOI)%>%
-        mutate(archPos = ifelse(AOI>=.5,1,0))## We define cells that belong or not to archetype if their niche wieght is >.5
-      ### Get predicted proportions of inflammatory niche of DCs 
-      
-      Predlm <- predict.lm(lm(formula1, data =MarkersCells.niches%>%
-                                filter(cell_type==ct & niches==ar)))#mutate(patient_id=str_split(id,"_")[[1]])
-      
-      Pred.df <- data.frame(id=names(Predlm), value = Predlm,row.names = NULL)%>%mutate(niche_pred = ifelse(value>=.5,1,0))%>%
-        separate(col=id,into= c("SampleID","label","cell_type","arch"),sep="_",convert=TRUE)
-      
-      NichesPredClust <- left_join(hclustsNiches.cells, Pred.df%>%dplyr::rename(patient_id=SampleID)%>%dplyr::rename(site_id=label),by=c("patient_id","cell_type","site_id"))
-      ## Compute sensitivity, specificity of each cluster
-      #clustCells <- pull(SensSpe, clustersCells)
-      for(i in as.vector(clustIDs[[ct]])){
-        #print("ok")
-        #print(ct)
-        #print(i)
-        clustCT <- hclustsNiches.cells%>%mutate(cell_type==ct)
-        #print(clustCT[,c(i,"archPos")])
-        counts <-table(clustCT[,c(i,"archPos")])
-        #print(counts)
-        #print(fisher.test(counts))
-        sens <- counts['1','1']/sum(counts[,'1'])
-        #print(sens)
-        S1<- append(S1, sens)
-        spe <- counts['0','0']/sum(counts[,'0'])
-        S2 <- append(S2, spe)
-        #print(SensSpe[SensSpe$cell_type==ct & SensSpe$clust==i,])
-        #SensSpe[SensSpe$cell_type==ct & SensSpe$clust==i,"sensitivity"]<-  counts['1','1']/sum(counts[,'1'])#sensitivity
-        #SensSpe[SensSpe$cell_type==ct & SensSpe$clust==i,"specificity"]<- counts['0','0']/sum(counts[,'0'])#specificity
-      }
-      print(auc(NichesPredClust%>%roc(response=archPos,predictor=value)))
-      pdf(paste0("./figs/",ct,"_",ar,"ROC.pdf"),height=4,width=4);
-      plot(NichesPredClust%>%roc(response=archPos,predictor=value),main=paste(ct,"in",ar));
-      points(S2,S1,pch=19, col="red");#(spe,sens,pch=19,col="red")
-      text(S2+.01,S1+.01,col="red",labels=as.vector(clustIDs[[ct]]))
-      #legend(0.2,.2,legend=c("NIPMAP","hclust"),fill=c("black","red"));
-      dev.off()
-    }
-  })
-}
-
-
-
-
-# correlations_tmens_CM <- function(MarkersCellsTMENs,cellTypes=CELLTYPES, markers=FuncMarkers, CMtmensPos, qThresh=1/100, corThresh=0.3){
-#   corMatrix.pval <-
-#     matrix(nrow = length(CELLTYPES)*length(FuncMarkers), ncol=4+6+4+1,
-#            dimnames = 
-#              list(c(),
-#                   c('a1','a2','a3',"a4","a1a2","a1a3","a1a4","a2a3","a2a4", 
-#                     "a3a4","a1a2a3","a1a2a4","a1a3a4","a2a3a4","a1a2a3a4"))
-#     )
-#   corMatrix <- corMatrix.pval
-#   cmNames <- c()
-#   id = 1
-#   ct = cellTypes[1]
-#   for(ct in cellTypes){
-#     #cat(sprintf("%s\n", ct))
-#     for(m in markers){
-#       data <- get_tmens_coord_marker(MarkersCellsTMENs,ct,m) 
-#       X <- data %>%dplyr::select(c(value))
-#       A1 <- data %>%dplyr::select(c(arch1,arch2,arch3,arch4))
-#       A2 <- data %>%dplyr::select(c(a1a2,a1a3,a1a4,a2a3,a2a4,a3a4))
-#       A3 <- data %>%dplyr::select(c(a1a2a3,a1a2a4,a1a3a4,a2a3a4))
-#       #print(A1)
-#       cmNames[id] <- paste0(ct,";",m)
-#       corMatrix.pval[id,'a1'] <- cor.test(X%>%pull(value),A1%>%pull(arch1),method="spearman",exact=FALSE)$p.value
-#       corMatrix.pval[id,'a2'] <- cor.test(X%>%pull(value),A1%>%pull(arch2),method="spearman",exact=FALSE)$p.value
-#       corMatrix.pval[id,'a3'] <- cor.test(X%>%pull(value),A1%>%pull(arch3),method="spearman",exact=FALSE)$p.value
-#       corMatrix.pval[id,"a4"] <- cor.test(X%>%pull(value),A1%>%pull(arch4),method="spearman",exact=FALSE)$p.value
-#       
-#       corMatrix[id,'a1'] <- cor.test(X%>%pull(value),A1%>%pull(arch1),method="spearman",exact=FALSE)$estimate
-#       corMatrix[id,'a2'] <- cor.test(X%>%pull(value),A1%>%pull(arch2),method="spearman",exact=FALSE)$estimate
-#       corMatrix[id,'a3'] <- cor.test(X%>%pull(value),A1%>%pull(arch3),method="spearman",exact=FALSE)$estimate
-#       corMatrix[id,"a4"] <- cor.test(X%>%pull(value),A1%>%pull(arch4),method="spearman",exact=FALSE)$estimate
-#       #### A2 correlations ####
-#       corMatrix.pval[id,"a1a2"] <- cor.test(X%>%pull(value),A2%>%pull(a1a2),method="spearman",exact=FALSE)$p.value
-#       corMatrix.pval[id,"a1a3"] <- cor.test(X%>%pull(value),A2%>%pull(a1a3),method="spearman",exact=FALSE)$p.value
-#       corMatrix.pval[id,"a1a4"] <- cor.test(X%>%pull(value),A2%>%pull(a1a4),method="spearman",exact=FALSE)$p.value
-#       corMatrix.pval[id,"a2a3"] <- cor.test(X%>%pull(value),A2%>%pull(a2a3),method="spearman",exact=FALSE)$p.value
-#       corMatrix.pval[id,"a2a4"] <- cor.test(X%>%pull(value),A2%>%pull(a2a4),method="spearman",exact=FALSE)$p.value
-#       corMatrix.pval[id,"a3a4"] <- cor.test(X%>%pull(value),A2%>%pull(a3a4),method="spearman",exact=FALSE)$p.value
-#       
-#       corMatrix[id,"a1a2"] <- cor.test(X%>%pull(value),A2%>%pull(a1a2),method="spearman",exact=FALSE)$estimate
-#       corMatrix[id,"a1a3"] <- cor.test(X%>%pull(value),A2%>%pull(a1a3),method="spearman",exact=FALSE)$estimate
-#       corMatrix[id,"a1a4"] <- cor.test(X%>%pull(value),A2%>%pull(a1a4),method="spearman",exact=FALSE)$estimate
-#       corMatrix[id,"a2a3"] <- cor.test(X%>%pull(value),A2%>%pull(a2a3),method="spearman",exact=FALSE)$estimate
-#       corMatrix[id,"a2a4"] <- cor.test(X%>%pull(value),A2%>%pull(a2a4),method="spearman",exact=FALSE)$estimate
-#       corMatrix[id,"a3a4"] <- cor.test(X%>%pull(value),A2%>%pull(a3a4),method="spearman",exact=FALSE)$estimate
-#       #### A3 correlations ####
-#       corMatrix.pval[id,"a1a2a3"] <- cor.test(X%>%pull(value),A3%>%pull(a1a2a3),method="spearman",exact=FALSE)$p.value
-#       corMatrix.pval[id,"a1a2a4"] <- cor.test(X%>%pull(value),A3%>%pull(a1a2a4),method="spearman",exact=FALSE)$p.value
-#       corMatrix.pval[id,"a1a3a4"] <- cor.test(X%>%pull(value),A3%>%pull(a1a3a4),method="spearman",exact=FALSE)$p.value
-#       corMatrix.pval[id,"a2a3a4"] <- cor.test(X%>%pull(value),A3%>%pull(a2a3a4),method="spearman",exact=FALSE)$p.value
-#       
-#       corMatrix[id,"a1a2a3"] <- cor.test(X%>%pull(value),A3%>%pull(a1a2a3),method="spearman",exact=FALSE)$estimate
-#       corMatrix[id,"a1a2a4"] <- cor.test(X%>%pull(value),A3%>%pull(a1a2a4),method="spearman",exact=FALSE)$estimate
-#       corMatrix[id,"a1a3a4"] <- cor.test(X%>%pull(value),A3%>%pull(a1a3a4),method="spearman",exact=FALSE)$estimate
-#       corMatrix[id,"a2a3a4"] <- cor.test(X%>%pull(value),A3%>%pull(a2a3a4),method="spearman",exact=FALSE)$estimate
-#       
-#       corMatrix[id,"a1a2a3a4"] <-
-#         cor.test(X%>%pull(value),data%>%pull(a1a2a3a4),method="spearman",exact=FALSE)$estimate
-#       corMatrix.pval[id,"a1a2a3a4"] <-
-#         cor.test(X%>%pull(value),data%>%pull(a1a2a3a4),method="spearman",exact=FALSE)$p.value
-#       
-#       id = id+1
-#     }
-#   }
-#   rownames(corMatrix) <- cmNames
-#   rownames(corMatrix.pval) <- cmNames
-#   
-#   corCMtmens.pval <-corMatrix.pval%>%as_tibble(rownames=NA)%>%
-#     rownames_to_column(var="names")%>%
-#     #separate(names,into=c("cell_type","marker"),sep=";")%>%
-#     drop_na()
-#   
-#   corCMtmens <-corMatrix%>%as_tibble(rownames=NA)%>%
-#     rownames_to_column(var="names")%>%
-#     #separate(names,into=c("cell_type","marker"),sep=";")%>%
-#     drop_na()
-#   
-#   ### CORRECTIONS P VALUE FDR
-#   library(fdrtool)
-#   dim(corCMtmens.pval)
-#   corCMtmens.pval.mat = corCMtmens.pval %>% column_to_rownames(var='names')
-#   fdrOut = 
-#     fdrtool(corCMtmens.pval.mat %>% as.matrix %>% as.numeric(), 
-#             statistic = "pvalue")
-#   corCMtmens.qval = 
-#     fdrOut$lfdr %>% 
-#     matrix(nrow=nrow(corCMtmens.pval.mat), ncol=ncol(corCMtmens.pval.mat),
-#            dimnames = list(rownames(corCMtmens.pval.mat), colnames(corCMtmens.pval.mat)))
-#   # dim(corCMtmens.qval)
-#   # dim(corCMtmens.pval.mat)
-#   # plot(corCMtmens.qval %>% as.matrix %>% as.numeric(), corCMtmens.pval.mat %>% as.matrix %>% as.numeric(), xlim=c(0,.1), ylim=c(0,.1))
-#   
-#   
-#   ## Qval and correlations thresholds
-#   qThreshold <- 1/100
-#   corThreshold <- .3
-#   corThreshold2 <- .2
-#   filterMat <- corCMtmens.qval<qThresh & abs(corMatrix[rownames(corCMtmens.qval),])>corThresh
-#   
-#   mean(apply(filterMat, 1, sum) > 0)
-#   ## 90% of the marker are associated to at least one TMENs or interface!
-#   
-#   cMf <- corMatrix[names(which(apply(filterMat, 1, sum) > 0)),]
-#   #write_csv(cMf%>%as_tibble(rownames=NA)%>%rownames_to_column(var="cell_marker"), "./CM_corr_tmens_thresh0.3.csv")
-#   
-#   return(cMf)
-# }
 
 
