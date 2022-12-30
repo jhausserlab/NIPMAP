@@ -83,7 +83,7 @@ cell_markers <- cell_markers %>% relocate(Background, .after = cellLabelInImage)
 
 cell_markers <- cell_markers%>%
   mutate(cell_type = ifelse(Group == 'Immune', cell_type<- immuneGroup,cell_type <- Group))%>%
-  dplyr::select(-(tumorYN:immuneGroup))%>%filter(cell_type!="Unidentified")
+  dplyr::select(-c(tumorYN,tumorCluster,Group,immuneGroup))%>%filter(cell_type!="Unidentified")
 
 cell_markers <- cell_markers%>%
   dplyr::rename(patient_id = SampleID)%>%
@@ -468,15 +468,15 @@ library(gridExtra)
 #install.packages("fontLiberation")
 library(fontLiberation)
 
-#TODO make function to create table of cell phenotypes
-#TODO add different orders of interfaces
-#FIXME consistency in names of archetypes: arch1, arch2,3,4, or a1,a2,a3 etc...
-#FIXME use another input dataset: no .rds file from another path file ! 
+### NAMES of NICHES and INTERFACES
+InftOrder <- 2
+archNames <- c("a1" = "TLS","a2" = "inflammatory","a3" = "cancer","a4" = "fibrotic")
+#TODO add different orders of interfaces.
 
 #Archetype weights of randomly generated sites over TNBC patients images
 archetypes_sites <- read.csv("./data/archetypes_matrix_gaussian.csv", header = TRUE, sep = ",")
 saveRDS(archetypes_sites,"./data/archetypesSitesKeren.rds")
-archetypesSitesKeren <- readRDS("./data/archetypesSitesKeren.rds")
+archetypesSitesKeren <- readRDS("./data/archetypesSitesKeren.rds")%>%dplyr::rename(a1=archetype1)%>%dplyr::rename(a2=archetype2)%>%dplyr::rename(a3=archetype3)%>%dplyr::rename(a4=archetype4)
 #Cell abundance of sites
 cellAbSites <- read_csv("./data/abundance_matrix_gaussian.csv")
 
@@ -487,12 +487,12 @@ nichesCA.sort <- nichesCellAb%>%pivot_longer(cols = c("TLS","inflammatory","canc
 archsSitesCellAb <- left_join(archetypesSitesKeren, cellAbSites,by=c("site_id","patient_id"))%>%pivot_longer(cols=append(CELLTYPES,"Unidentified"),names_to="cell_type",values_to= "cell_density")%>%ungroup()
 
 ### Get cell types enriched in each niche (take top 1% sites closest to niche)
-archs.CT <- get_CT_enriched_all_archs(archetypesSitesKeren,cellAbSites,thresh = 0.99)%>%group_by(niche)%>%filter(!(cell_type %in% c("DC / Mono", "CD3-T", "Mono / Neu", "Other immune","Unidentified")))%>%mutate(cell_type = paste(unique(cell_type),collapse="\n"))%>%distinct(niche,cell_type)
+#archsSitesCellAb <- left_join(archsSites, cellAbundSites,by=c("site_id","patient_id"))%>%pivot_longer(cols=append(CELLTYPES,"Unidentified"),names_to="cell_type",values_to= "cell_density")%>%ungroup()
+
+archs.CT <- get_CT_enriched_all_archs(archsSitesCellAb,archNames,thresh = 0.99)%>%group_by(niche)%>%filter(!(cell_type %in% c("DC / Mono", "CD3-T", "Mono / Neu", "Other immune","Unidentified")))%>%mutate(cell_type = paste(unique(cell_type),collapse="\n"))%>%distinct(niche,cell_type)
 #names(archs.CT) <- set_tmens_names(names(archs.CT))
 
-### NAMES of NICHES and INTERFACES
-InftOrder <- 2
-archNames <- c("a1" = "TLS","a2" = "inflammatory","a3" = "cancer","a4" = "fibrotic")
+
 
 tabTMENs2 <- as_tibble(cMf,rownames=NA)%>%
   rownames_to_column(var="names")%>%
@@ -563,17 +563,13 @@ tabCellPhen3 <- tabCellPhen2%>%
   arrange(niche)
 
 ### Display and save table in pdf
- # th1 <- ttheme_minimal(colhead=list(bg_params=list(col="black",fill = "white")),
- #                       core=list(bg_params = list(fill = 'white', col="black")))
-   th1 <- ttheme_default()#colhead=list(bg_params=list(fontfamily="liberation")),
-  #                      core=list(bg_params = list(fontfamily="liberation")))
- 
- g1 <- tableGrob(tabCellPhen3,rows=NULL,theme = th1)#(tabCellPhen2%>%mutate(region=str_replace_all(region," x NA","")),rows=NULL,theme = th1)
+th1 <- ttheme_default()
+g1 <- tableGrob(tabCellPhen3,rows=NULL,theme = th1)#(tabCellPhen2%>%mutate(region=str_replace_all(region," x NA","")),rows=NULL,theme = th1)
                  #gpar.corefill = gpar(fill = "white", col = "grey95"))
- grid.newpage()
- grid.draw(g1)
- ggsave("./figs/tab_tmens.pdf",g1,width=7,height=10)
- #rm(g1)
+grid.newpage()
+grid.draw(g1)
+ggsave("./figs/tab_tmens.pdf",g1,width=7,height=10)
+#rm(g1)
  
 
 ```

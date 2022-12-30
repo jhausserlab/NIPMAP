@@ -478,7 +478,7 @@ correlations_tmens_CM <- function(MarkersCellsTMENs,cellTypes, markers, qThresh=
 # coreIntf: str vector of niches and interfaces to assess correlations (archetypes names from markersCells.niches)
 # qThresh: double, cut-off of q value for FDR correction of p values in correlation test
 # corThresh: double, cut-off to select high correlation
-correlation_niches_CM <- function(markersCells.niches=MarkersCellsTMENS2,Markers=FuncMarkers,corrMeth="spearman",coreIntf=coreIntf2,qThresh=1/100,corThresh=0.3){
+correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman",coreIntf,qThresh=1/100,corThresh=0.3){
   CM.gps <- markersCells.niches%>%filter(marker %in% Markers)%>%
     mutate(id=paste(cell_type,marker,sep=";"))%>%
     group_by(cell_type, marker)%>%split(f= as.factor(.$id))
@@ -520,15 +520,16 @@ correlation_niches_CM <- function(markersCells.niches=MarkersCellsTMENS2,Markers
 
 #########---- HEATMAP ORGANIZED BY CELL TYPES ----###########
 # nichsIntf: string vector of archetypes and interfacs as named in correlation matrix
-plot_heatmap_CT<-function(CM.mat = cMf2,nichesIntf){
+plot_heatmap_CT<-function(CM.mat = cMf2,nichesIntf,figPath="./figs/cM_byCells3.pdf"){
   cts <- unique(pull(as_tibble(CM.mat,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),cell_type))
+  print(cts)
   CM_TMENs_ct <- as_tibble(CM.mat,rownames=NA)%>%
     rownames_to_column(var="names")%>%
     separate(names,into=c("cell_type","marker"),sep=";")%>%#mutate(marker=paste0(marker,"+"))%>%
     pivot_longer(cols=nichesIntf,names_to = "region",values_to="corr_val")%>%
     mutate(idx =match(cell_type, cts))%>%
     group_by(cell_type)%>%mutate(corr_val = corr_val+ (idx-1)*10)%>%pivot_wider(names_from="region", values_from="corr_val")%>%mutate(names = paste(cell_type,marker,sep=";"))%>%column_to_rownames(var="names")#%>%dplyr::select(-c(cell_type,idx))
-  
+  print(head(CM_TMENs_ct))
   dists <- dist(as.matrix(CM_TMENs_ct%>%dplyr::select(-c(cell_type,marker,idx))),method="euclidean")
   hclustCells <- hclust(dists,method="ward.D") 
   #plot(as.dendrogram(hclustCells))
@@ -543,15 +544,14 @@ plot_heatmap_CT<-function(CM.mat = cMf2,nichesIntf){
   names(CTcolors$cell_type) <- CELLTYPES
   rownames(cellTypes) <- rownames(CM_TMENs_ct)
   #rownames(Markers) <-rownames(CM_TMENs_ct)
-  pdf("./figs/cM_byCells3.pdf",height=8, width=ifelse(figWidth<6, 6, figWidth+2))
+  figWidth <- nrow(CM.mat) * 30/267
+  pdf(figPath,height=8, width=ifelse(figWidth<6, 6, figWidth+2))
   pheatmap(t(CM.mat),cluster_cols = hclustCells,cluster_rows = FALSE,annotation_col=cellTypes,annotation_colors= CTcolors,labels_col = Markers)#
   dev.off()
 }
 
-
-
-########### HEATMAP ORGANIZED BY MARKERS ###########
-plot_heatmap_markers <- function(CM.mat=cMf2,nichesIntf){
+#########---- HEATMAP ORGANIZED BY MARKERS ----###########
+plot_heatmap_markers <- function(CM.mat=cMf2,nichesIntf,figPath="./figs/cM_byMarkers2.pdf"){
   markersCorr <- unique(pull(as_tibble(CM.mat,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),marker))
   CM_TMENs_ph <- as_tibble(CM.mat,rownames=NA)%>%
     rownames_to_column(var="names")%>%
@@ -578,8 +578,8 @@ plot_heatmap_markers <- function(CM.mat=cMf2,nichesIntf){
   rownames(cMf.copy) <- unname(unlist(sapply(rownames(cMf.copy),function(x){paste0(strsplit(x,";")[[1]][2],";",strsplit(x,";")[[1]][1])})))#sub('(\\w|\\.|\\_|\\ / |+);(\\w|.|_| / |+)', '\\2;\\1', rownames(cMf))#sub('([^;]);([^;])', '\\2;\\1^', rownames(cMf))
   # 
   cMf_ordered <- cMf.copy%>%as_tibble(rownames=NA)%>%rownames_to_column(var="names")%>%separate(col="names",into=c("marker","cell_type"),sep=";")%>%group_by(marker)%>%arrange(marker)%>%mutate(names=paste0(marker,";",cell_type))%>%column_to_rownames(var="names")%>%dplyr::select(-c(cell_type,marker))
-  
-  pdf("./figs/cM_byMarkers2.pdf",height=8, width=ifelse(figWidth<6, 6, figWidth+2))
+  figWidth <- nrow(CM.mat) * 30/267
+  pdf(figPath,height=8, width=ifelse(figWidth<6, 6, figWidth+2))
   pheatmap(as.matrix(cMf_ordered%>%t),cluster_cols = hclustPhen,cluster_rows = FALSE,annotation_col = Markers2,labels_col = cellTypes2,annotation_colors=CTcolors)
   dev.off()
 }
@@ -587,13 +587,17 @@ plot_heatmap_markers <- function(CM.mat=cMf2,nichesIntf){
 
 
 #### Enriched cell types in each site 
-# choose the 5% sites closest to the archetype
+# choose the 1% sites closest to the archetype
 # compute the SD for each cell type
-# compare the average density  d1 of a cell type from the top 5% closest sites with the av denisty of cell type from the rest of the sites d2
-# if d1 > d2+ 1* SD ==> the cell type is representative  of the archetype
+# compare the average density  d1 of a cell type from the top 1% closest sites with the av denisty of cell type from the rest of the sites d2
+# if d1 > d2+ k* SD ==> the cell type is representative  of the archetype
 # do the same for the other archetypes
-
-get_cell_type_enriched_arch <- function(cellAb.df=archsSitesCellAb,archetype="",k=1,thresh=0.99){
+#  @param cellAb.df: df of cell abundance of archetypes
+# @param archetype: str of nae of archetype
+# @param k: int, value to multiply standard deviation of cell type abundance
+# @param thresh: double, threshold value to select top sites(between 0 and 1)
+# @return Archs.CT: df of niches and their enriched cell types
+get_cell_type_enriched_arch <- function(cellAb.df,archetype,k=1,thresh=0.99){
   
   # sitesNiche <- cellAb.df %>%filter(.data[[archetype]]>= cutOff)
   # print(dim(sitesNiche))
@@ -604,13 +608,7 @@ get_cell_type_enriched_arch <- function(cellAb.df=archsSitesCellAb,archetype="",
     group_by(cell_type)%>%
     summarise(meanCT=mean(cell_density),sdCT = sd(cell_density))%>%
     arrange(desc(meanCT))#%>% ## arrange by decreasing order of cell density ==> most abundant cell types of this niche
-    #column_to_rownames(var="cell_type")
-  #print(summaryA)
-  #sites_notA <- anti_join(cellAb.df ,sites_a,by = c("site_id","patient_id"))
-  #print(sites_notA)
-  #summaryNA <- sites_notA%>%group_by(cell_type)%>%summarise(meanCT=mean(cell_density),sdCT = sd(cell_density))%>%column_to_rownames(var="cell_type")
-  #print(summaryNA)
-  #Arch.CT <-  data.frame(region = c(), cell_type)#c()
+
   summaryA2 <- summaryA%>%column_to_rownames(var="cell_type")
   cts <- c()
   for(c in summaryA%>%pull(cell_type)){ #(c in CELLTYPES)
@@ -628,20 +626,153 @@ get_cell_type_enriched_arch <- function(cellAb.df=archsSitesCellAb,archetype="",
 
 ### GET CELL TYPES FROM ALL ARCHEYTPES
 # get cell types enriched in each archetype/TMEN
-get_CT_enriched_all_archs<- function(archsSites =archetypesSitesKeren, cellAbundSites = cellAbSites,thresh=0.99){
-  archs <- colnames(archetypesSitesKeren)[grepl("arch", colnames(archetypesSitesKeren))]# vector of archetypes
+# get_CT_enriched_all_archs <- function(archsSites, cellAbundSites,thresh=0.99){
+#   archs <- colnames(archsSites)[grepl("a", colnames(archsSites))]# vector of archetypes
+#   # list of cell types enriched in each archetype
+#   #archetypes.ct <- list() 
+#   #names(archetypes.ct) <- archs
+#   archetypes_cts.all <- data.frame(niche=NULL, cell_type=NULL)
+#   archsSitesCellAb <- left_join(archsSites, cellAbundSites,by=c("site_id","patient_id"))%>%pivot_longer(cols=append(CELLTYPES,"Unidentified"),names_to="cell_type",values_to= "cell_density")%>%ungroup()
+#   for (a in archs){
+#     res <- get_cell_type_enriched_arch(cellAb.df=archsSitesCellAb,archetype=a)
+#     archetypes_cts.all<- rbind(archetypes_cts.all,res)#archetypes.ct[[a]] <-res
+#   }
+#   archetypes_cts.all$niche <-  set_tmens_names(archetypes_cts.all$niche)
+#   return(archetypes_cts.all)#(archetypes.ct)
+# }
+
+# @param archsSitesCellAb: df with niches weights (from a1 to a1 in columns)+ column of cell_type and cell_density
+# @param archNames: named vector where names are archetypes indexes (a1 to an) and values are the explicit names of niches
+# @param thresh  thresh to select the closest sites to a niche
+get_CT_enriched_all_archs <- function(archsSitesCellAb,archNames,thresh=0.99){
   # list of cell types enriched in each archetype
   #archetypes.ct <- list() 
   #names(archetypes.ct) <- archs
+  archs <- names(archNames)
   archetypes_cts.all <- data.frame(niche=NULL, cell_type=NULL)
-  archsSitesCellAb <- left_join(archsSites, cellAbundSites,by=c("site_id","patient_id"))%>%pivot_longer(cols=append(CELLTYPES,"Unidentified"),names_to="cell_type",values_to= "cell_density")%>%ungroup()
   for (a in archs){
     res <- get_cell_type_enriched_arch(cellAb.df=archsSitesCellAb,archetype=a)
     archetypes_cts.all<- rbind(archetypes_cts.all,res)#archetypes.ct[[a]] <-res
   }
-  archetypes_cts.all$niche <-  set_tmens_names(archetypes_cts.all$niche)
+  archetypes_cts.all$niche <-  str_replace_all(archetypes_cts.all$niche,archNames)#set_tmens_names(archetypes_cts.all$niche)
   return(archetypes_cts.all)#(archetypes.ct)
 }
+
+
+#FIXME unitary tests + exception/error handling
+# Plots cell type profile of niches found by Archetype Analysis
+# @param sitesCA: df of sites(rows) cell types(columns) abundance
+# @param Arch: ArchetypalAnalysis object after AA on PCA onf sites cell abundance
+# @param pcaObj: PCA object of sites cell abundance
+# @return barplot of archetypes cell type composition ==> niches
+NichesCellProfile <- function(sitesCA = sites,Arch = AA,pcaObj = pca_obj){
+  NichesCellProf <- get_niches_cell_abund(sitesCellAb = sitesCA,pcaSites = pcaObj,ArchObj = Arch,nComp = as.integer(NBNICHES-1))
+  colnames(NichesCellProf) <- CELLTYPES
+  rownames(NichesCellProf) <- paste0("arch",seq(1,NBNICHES))
+  
+  NichesCellProp <- NichesCellProf%>%as_tibble(rownames = NA)%>%
+    rownames_to_column(var="archetype")%>%
+    pivot_longer(cols=all_of(CELLTYPES),names_to="cell_type",values_to = "cell_density")
+  
+  barplot1 <- ggplot(data = NichesCellProp, aes(x = cell_type, y = cell_density,fill = archetype)) +
+    geom_bar(stat = "identity",position = position_dodge(),width = 0.6) + 
+    theme(axis.text.x = element_text(angle = 90, vjust = .2))+
+    scale_fill_manual(values = COLARCHS)+
+    xlab ("") + ylab("cell density")
+  #barplot1
+  ggsave("./barplotNiches.pdf",barplot1,height=3,width=4)
+  return(barplot1)
+}
+
+
+#FIXME unitary tests + exception/error handling
+# Creates table of cell phenotypes/cell types associated with niches and interfaces between two niches
+# @param CM: matrix of correlation between cell phenotypes(rows) and niches/interfaces(columns)
+# @param NichesCT: dataframe of cell types enriched in each niche columns: niche, cell_type
+# @param NichesNames: named vector of archetypes(names) and niches names(value)
+# @return tabCellPhen3: dataframe of cell phenotypes of each niche/interface
+#test str_detect(names(c("a1"="TLS","a3"="cancer","a2"="inflammatory","a!"=0)),"^a[:digit:]")
+TableNichesPhenotypes <- function(CM,NichesCT,Niches.names,pathFigs){
+  intfNames <-apply(combn(Niches.names,2),2,function(x) {paste0(x,collapse = " x ")})
+  names(intfNames) <-apply(combn(names(Niches.names),2),2,function(x) {paste0(x,collapse = "")})
+  
+  tabTMENs2 <- as_tibble(CM,rownames=NA)%>%
+    rownames_to_column(var="names")%>%
+    separate(names,into=c("cell_type","marker"),sep=";")%>%
+    mutate(marker=paste0(marker,"+"))%>%
+    pivot_longer(cols=all_of(coreIntf2),names_to = "niche",values_to="corr_val")#%>%
+  #mutate(region =)%>%#(region = set_tmens_names(region))%>%
+  tabTMENs2$niche <- str_replace_all(pull(tabTMENs2,niche),intfNames)
+  tabTMENs2$niche <- str_replace_all(pull(tabTMENs2,niche),Niches.names)
+  
+  tabTMENs2 <- tabTMENs2%>% filter(corr_val >=0.3)%>%
+    #filter(!(grepl("cancer",niche,fixed=TRUE) & (marker%in% c("Keratin6+","Beta catenin+"))))%>%
+    left_join(.,nichesCA.sort, by=c("cell_type","niche"))%>%group_by(niche)%>%
+    arrange(desc(cell_density))%>%dplyr::select(-c(cell_density))#### Select correlations that are >0.35 + remove correlations that arise from bleed over of structural proteins in cancer and interfaces with cancer.
+  
+  ######### Compare correlations from core VS from interfaces
+  # group by cell type, marker
+  #find rows with a common determinant: a niche
+  # split region into two (for 2- interfaces)
+  # find intersect between two subregions ==> common TMEN
+  # OR find the niche that has the highest occurence in a subregion (core and interfacees) across same CM VStmens associations
+  # OR the same but for the second subregion
+  # IF there is an association between CM and one region ==> common region is the latter
+  # group again by cell type, marker, and by this common region
+  # select the maximum correlation value rho
+  # Get correlations among core/interfaces for a given cell type/marker that are the highest
+  # Ex: rho (Beta-cat+ Tregs; cancer) < rho( Beta-cat+ Tregs; cancer x fibrotic) 
+  # ==> select rho( Beta-cat+ Tregs, cancer x fibrotic)
+  #namesIntf <- paste0(rep("type",InftOrder),as.character(as.vector(seq(1,InftOrder))))
+  
+  tabCellPhen <- tabTMENs2%>%
+    separate(col=niche, into = c("type1","type2"),sep="x")%>%
+    group_by(cell_type,marker)%>%
+    mutate(len= length(type1))%>%
+    mutate(inter_region=ifelse(len==1,type1,
+                               ifelse(head(sort(table(type1),decreasing=TRUE),1)>1, names(head(sort(table(type1),decreasing=TRUE),1)),
+                                      ifelse(head(sort(table(type2),decreasing=TRUE),1)>1,  names(head(sort(table(type2),decreasing=TRUE),1)),
+                                             ifelse(length(intersect(type1,type2))==0,paste(type1,type2,sep=" x "),intersect(type1,type2) )))))%>%
+    group_by(cell_type, marker,inter_region)%>%filter(corr_val==max(corr_val))
+  
+  tabCellPhen2 <- tabCellPhen %>%
+    mutate(niche = paste(type1,type2,sep=" x "))%>%
+    #full_join(.,archs.CT,by=("region"))%>%
+    mutate(niche=str_replace_all(niche," x NA",""))%>%
+    filter(!(cell_type %in% c("DC / Mono", "CD3-T", "Mono / Neu", "Other immune"))) %>%
+    group_by(niche)%>%mutate(cells = paste(unique(cell_type),collapse='\n'))%>%
+    group_by(niche,cell_type)%>% 
+    mutate(cell_phenotype= paste0(paste(marker, collapse = " "),cell_type)) %>%
+    ungroup()%>%
+    group_by(niche)%>%
+    mutate(cell_phenotype=paste(unique(cell_phenotype),collapse="\n")) %>%
+    distinct(niche, .keep_all = TRUE)%>%
+    arrange(niche)%>%dplyr::select(niche, cells,cell_phenotype)
+  
+  tabCellPhen3 <- tabCellPhen2%>%
+    mutate(cellPh =ifelse(niche %in% pull(NichesCT,niche),paste(NichesCT[NichesCT$niche==niche ,"cell_type"],collapse="\n"),""))%>%
+    rowwise()%>%
+    mutate(ct = ifelse(grepl("\n",cellPh,fixed=TRUE)==FALSE,paste(setdiff(as.vector(cellPh),str_split(cells,"\n")[[1]]),collapse="\n"),ifelse(grepl("\n",cells,fixed=TRUE)==FALSE,paste(setdiff(str_split(cellPh,"\n")[[1]], as.vector(cells)),collapse="\n"),paste(setdiff(str_split(cellPh,"\n")[[1]],str_split(cells,"\n")[[1]]),collapse="\n"))))%>%
+    mutate(cell_phenotype = paste(cell_phenotype,ct,sep="\n"),.keep="unused")%>%
+    dplyr::select(-c(cells, cellPh))%>%#mutate(sign  = "+")
+    #distinct(region, .keep_all = TRUE)%>%
+    arrange(niche)
+  
+  ### Display and save table in pdf
+  th1 <- ttheme_default()
+  g1 <- tableGrob(tabCellPhen3,rows=NULL,theme = th1)#(tabCellPhen2%>%mutate(region=str_replace_all(region," x NA","")),rows=NULL,theme = th1)
+  #gpar.corefill = gpar(fill = "white", col = "grey95"))
+  grid.newpage()
+  grid.draw(g1)
+  ggsave(paste0(pathFigs,"/tabNichePhen.pdf"),g1,width=7,height=10)
+  
+  return(tabCellPhen3)
+  
+}
+
+
+
+
 
 
 
