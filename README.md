@@ -25,6 +25,7 @@ NIche Phenotype MAPping (NIPMAP) analysis from spatial multiplex data: Multiplex
     pckgs <- c("tidyverse","ggplot2","ade4","factoextra","plotly","igraph","reshape2","ggrepel","viridis","fdrtool","pheatmap","cluster","broom","pROC","ggpubr","devtools","ggridges")
     install.packages(pckgs)
     ```
+    **//!\\ CAUTION** reticulate library version 1.22 should be downloaded, not the latest !! 
 
 ## FILES
 
@@ -72,14 +73,18 @@ NIche Phenotype MAPping (NIPMAP) analysis from spatial multiplex data: Multiplex
 | 
 └───/src
     |	CellAbundance.py
-    |   Cell.py
-    |   CellsImage.py
-    |   mPCA.py
     └───/utils
         |   archetypes.py
         |   equations.py
         |   visualization.py
 ```
+## Quick start
+Run script called nipmap.r with your own data folloing the parameters setting and pre-processing to get these outputs:
+* Generation of sites cell abundance (+ radius size selection)
+* PCA and Archetype Analysis
+* Niche identification
+* Niche segmentation of images
+* Niche-phenotype mappping
 
 ## Reproducing analysis from El Marrahi et al.
 * **Niches identification**: Open /TMENS_analysis/notebooks/keren_building_blocks_analysis/archetype_analysis.ipynb and excute "3D Archetypes- All tumors- 4 archetypes", "Visualization and interpretation of archetypes" and "Export data from PCA and Archetype analysis" sections. Open in /TMENS_analysis/keren_building_blocks_analysis sites_patient_mapper.ipynb and execute each chunk and name .csv files
