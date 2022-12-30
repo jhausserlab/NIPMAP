@@ -1003,6 +1003,7 @@ def archetype_simple_plot(cell_number_archetypes, archetype_id, colors, cell_typ
 def get_explained_variance_matrix(X, Y, expl_var_ratio, cells_number=18):
     z = np.empty((X.shape[0], Y.shape[1]))
     for i, x in enumerate(X.T):
+        print(x)
         if x[0] != 0:
             z[:, i] = np.insert(expl_var_ratio[x[0]], 0, 0.0)
         else:
@@ -1071,14 +1072,16 @@ def radius_pc_all_variance(expl_var_cum_ratio, radius_lim = 100,nPC_lim = 3,save
     x = [0] + list(expl_var_cum_ratio.keys())
     y = np.arange(0, cells_number)
     X, Y = np.meshgrid(x, y)
+    expl_var_cum_ratio={int(i):k for i,k in expl_var_cum_ratio.items()}
     Z = get_explained_variance_matrix(X, Y, expl_var_cum_ratio, cells_number)
     im = plt.contourf(X, Y, Z)
-    plt.axvline(x = radius_lim, color = 'r', linestyle = '--')  #x = 100
-    plt.axhline(y = nPC_lim, color = 'r', linestyle = '--')  #y = 3
+    if radius_lim is not None and nPC_lim is not None:
+        plt.axvline(x = radius_lim, color = 'r', linestyle = '--')  #x = 100
+        plt.axhline(y = nPC_lim, color = 'r', linestyle = '--')  #y = 3
     plt.ylim(0, pca_limit)
 
-    plt.xlabel("Radius")
-    plt.ylabel("#PC")
+    plt.xlabel("radius in micrometers")
+    plt.ylabel("number of principal components")
 
     plt.colorbar()
     if save_fig==True:
