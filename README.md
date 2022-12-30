@@ -79,7 +79,9 @@ NIche Phenotype MAPping (NIPMAP) analysis from spatial multiplex data: Multiplex
         |   visualization.py
 ```
 ## Quick start
-Run script called nipmap.r with your own data folloing the parameters setting and pre-processing to get these outputs:
+The samples should have the shape of a square to generate sites and compute cell abundance. Prior to NIPMAP analysis,cell types must have been already identififes (NIPMAP doesn't do cell type identification) and the list of markers should include phenotypic markers, proteins/molecules that were not used ot identify the cells.
+
+Run script called nipmap.r with your own data following the parameters setting and pre-processing to get these outputs:
 * Generation of sites cell abundance (+ radius size selection)
 * PCA and Archetype Analysis
 * Niche identification
