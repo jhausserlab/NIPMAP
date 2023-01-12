@@ -265,7 +265,7 @@ def plot_cells_markers_tmens(patient_id,cell_types,path_data, data_markers_path,
         data_CM = pd.merge(data,df_markers,on = "label",how = "left")
         print(data.shape)
         #print(data_CM)
-        plt.imshow(z, origin='lower')#isns.imgplot(z)
+        plt.imshow(z, alpha=.5,origin='lower')#isns.imgplot(z)
         #cm = plt.cm.get_cmap("YlGn")#('RdYlBu')
         #cm = plt.cm.get_cmap("summer")#('RdYlBu') #fails on DC Keratin6
         #cm = plt.cm.get_cmap("viridis")#('RdYlBu') #fails on DC Keratin6
@@ -277,7 +277,7 @@ def plot_cells_markers_tmens(patient_id,cell_types,path_data, data_markers_path,
             print("ok")
             maxIntensity = data_CM[marker].quantile(1-intOutQuant)
             data_CM.loc[data_CM[marker] > maxIntensity,marker ] = maxIntensity
-            plt.scatter(data_CM['x'], data_CM['y'], marker="o", s=14, c=data_CM[marker],cmap=cm)
+            plt.scatter(data_CM['x'], data_CM['y'], marker="o", s=50, c=data_CM[marker],cmap=cm)
             plt.legend(bbox_to_anchor=(1.0, 1), loc='upper left')
             plt.colorbar()
         else:
