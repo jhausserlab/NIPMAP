@@ -27,6 +27,19 @@ NIche Phenotype MAPping (NIPMAP) analysis from spatial multiplex data: Multiplex
     ```
     **//!\\ CAUTION** reticulate library version 1.22 should be downloaded, not the latest !! 
 
+## Quick start
+The input is a CSV file where rows represent cells and columns represent cell_type, x position, y position, tissue_sample_of_origin, XXX. See XXX.csv for an example.
+
+Geometrically, the samples should have the shape of a rectangle to generate sites and compute cell abundance. Cell types must have been already identified prior to NIPMAP analysis: NIPMAP considers cell types as a given. The list of markers should include phenotypic markers, that is markers (proteins or other) that were not used to identify cell types.
+
+Run script called nipmap.r with your own data. Witin this script, adjust parameters (number of niches, size of sampling sites, number of sites, ...). 
+Running the analysis will produce the following outputs:
+* Generation of sites and cellular abundances within them (+ radius size selection)
+* PCA and Archetype Analysis
+* Niche identification
+* Niche segmentation of images
+* Niche-phenotype mappping
+
 ## FILES
 
 ```
@@ -78,15 +91,6 @@ NIche Phenotype MAPping (NIPMAP) analysis from spatial multiplex data: Multiplex
         |   equations.py
         |   visualization.py
 ```
-## Quick start
-The samples should have the shape of a square to generate sites and compute cell abundance. Prior to NIPMAP analysis,cell types must have been already identififes (NIPMAP doesn't do cell type identification) and the list of markers should include phenotypic markers, proteins/molecules that were not used ot identify the cells.
-
-Run script called nipmap.r with your own data following the parameters setting and pre-processing to get these outputs:
-* Generation of sites cell abundance (+ radius size selection)
-* PCA and Archetype Analysis
-* Niche identification
-* Niche segmentation of images
-* Niche-phenotype mappping
 
 ## Reproducing analysis from El Marrahi et al.
 * **Niches identification**: Open /TMENS_analysis/notebooks/keren_building_blocks_analysis/archetype_analysis.ipynb and excute "3D Archetypes- All tumors- 4 archetypes", "Visualization and interpretation of archetypes" and "Export data from PCA and Archetype analysis" sections. Open in /TMENS_analysis/keren_building_blocks_analysis sites_patient_mapper.ipynb and execute each chunk and name .csv files
