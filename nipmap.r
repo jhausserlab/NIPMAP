@@ -2,8 +2,6 @@
 ######### NIPMAP SCRIPT
 .libPaths("/scratch/anissa.el/R_old/x86_64-redhat-linux-gnu-library/4.0") ## add path to R libraries
 require(devtools)
-#install_version("reticulate", version = "1.22", repos = "http://cran.us.r-project.org")
-#install.packages("rjson")
 library(rjson)
 library(tidyverse)
 library(purrr)
@@ -21,12 +19,14 @@ reticulate::use_condaenv(condaenv = "building-blocks",
 ### SET WORKING DIRECTORY
 dirName <- dirname(rstudioapi::getSourceEditorContext()$path)
 setwd(dirName)
-
+source("./phenotypes_niches/functions_phenotypes_tmens.r")
 
 ########-------- SOURCE PYTHON SCRIPTS FROM /TMENS_analysis/src -------########
+viz <- reticulate::import_from_path("src.utils.visualization",path="./TMENS_analysis/")
 reticulate::source_python("/scratch/anissa.el/macro_micro_niches/macro_micro_niches2022/TMENS_analysis/src/utils/visualization.py")
-reticulate::source_python("/scratch/anissa.el/macro_micro_niches/macro_micro_niches2022/TMENS_analysis/src/CellAbundance.py")
+reticulate::source_python("/scratch/anissa.el/macro_micro_niches/macro_micro_niches2022/TMENS_analysis/src/utils/equations.py")
 reticulate::source_python("/scratch/anissa.el/macro_micro_niches/macro_micro_niches2022/TMENS_analysis/src/utils/archetypes.py")
+
 reticulate::py_run_string("from src.utils.visualization import plot_cells_positions,colors")
 
 ############# CONTROL PANEL - SET PARAMETERS #############
@@ -42,6 +42,8 @@ path_toFigs <- paste0(dirName,path_figs)
 RADIUS = 25
 NSITES = 100
 NBNICHES <- 4
+XSIZE = 800
+YSIZE = 800
 ROOT_DATA_PATH = "./TMENS_analysis/data/cell_positions_data" 
 ROOT_OUTPUT_PATH = "./TMENS_analysis/output"
 COLARCHS=c(rgb(255/255, 0/255, 223/255),rgb(255/255,0/255,0/255),rgb(70/255,203/255,236/255),rgb(0,0,0))# RGB code of colors for each archetype
@@ -54,7 +56,11 @@ radiusAnalysis <-function(saveFig=TRUE, pathFig=paste0(path_toFigs,"./plot_radiu
   radiusVec <- round(e^nbs)# range of radius values
   #Generate sites cell abundance of each radius value + PCA
   expl_var_ratio_gauss <- lapply(radiusVec,function(x){
-    gaussian_count_list = generate_abundance_matrix(CELLTYPES, as.integer(ImageIDs), as.integer(NSITES), as.integer(x), method=METHOD, snr=as.integer(3), root=ROOT_DATA_PATH)
+    gaussian_count_list = generate_abundance_matrix(CELLTYPES, as.integer(ImageIDs), as.integer(NSITES), 
+                                                    as.integer(x), method=METHOD, snr=as.integer(3), 
+                                                    root=ROOT_DATA_PATH,
+                                                    image_x_size=as.integer(XSIZE),
+                                                    image_x_size=as.integer(YSIZE))
     sites <- join_abundance_matrices(gaussian_count_list)[[1]]
     pca = PCA()
     pc = pca$fit_transform(sites)
@@ -62,7 +68,7 @@ radiusAnalysis <-function(saveFig=TRUE, pathFig=paste0(path_toFigs,"./plot_radiu
   })
   names(expl_var_ratio_gauss) <- radiusVec
   #plot variance explained by each PC for each radius value
-  plotRadius <- radius_pc_all_variance(reticulate::dict(expl_var_ratio_gauss),radius_lim=as.integer(RADIUS),nPC_lim=as.integer(NBNICHES-1),cells_number = as.integer(length(CELLTYPES)+1),save_fig = saveFig, path_fig = pathFig)
+  plotRadius <- viz$radius_pc_all_variance(reticulate::dict(expl_var_ratio_gauss),radius_lim=as.integer(RADIUS),nPC_lim=as.integer(NBNICHES-1),cells_number = as.integer(length(CELLTYPES)+1),save_fig = saveFig, path_fig = pathFig)
   return(plotRadius)
 }
 
@@ -72,7 +78,8 @@ radiusAnalysis(saveFig=TRUE, pathFig="./plot_radius.svg")
 ########------- GENERATE SITES WITH CELL ABUNDANCE FROM SPATIAL OMICS DATA -------######
 
 print('Generating sites with cell abundance...')
-CellAb_list <- generate_abundance_matrix(CELLTYPES, as.integer(ImageIDs), as.integer(NSITES),as.integer(RADIUS),method=METHOD, snr=as.integer(3),center_sites_cells=FALSE,root=ROOT_DATA_PATH)
+CellAb_list <- generate_abundance_matrix(CELLTYPES, as.integer(ImageIDs), as.integer(NSITES),as.integer(RADIUS),method=METHOD, snr=as.integer(3),image_x_size=as.integer(XSIZE),
+                                         image_x_size=as.integer(YSIZE),center_sites_cells=FALSE,root=ROOT_DATA_PATH)
 outCellAb <- join_abundance_matrices(CellAb_list)
 sites <- outCellAb[[1]]
 colnames(sites) <- CELLTYPES
@@ -117,6 +124,7 @@ pc_data<- np$array(pc_proj[,1:NBNICHES-1],dtype=np$float64)#np$array(unname(as.l
 AA$fit_transform(pc_data)#as.matrix(pc_proj[,1:NBNICHES]) #np$array(as.numeric(pc_proj[,1:NBNICHES-1]),dtype=np$float64)
 print(paste0(as.character(AA$n_archetypes),' niches found !'))
 
+
 # Display barplot of niches cell abundance
 NichesCellProfile(sitesCA = sites, Arch = AA, pcaObj = pca_obj)
 
@@ -145,7 +153,9 @@ for (i in ImageIDs){  #set here the Images IDs to plot
 
 ##########----- GENERATE SITES CENTERED ON CELLS AND THEIR NICHE WEIGHTS ----##########
 print("Computing cells' niche weights, the operation might take some time...")
-CellAbCC_list = generate_abundance_matrix(CELLTYPES, as.integer(ImageIDs), as.integer(NSITES),as.integer(RADIUS),method=METHOD, snr=3,center_sites_cells=TRUE,root=ROOT_DATA_PATH)
+CellAbCC_list = generate_abundance_matrix(CELLTYPES, as.integer(ImageIDs), as.integer(NSITES),as.integer(RADIUS),method=METHOD, 
+                                          snr=3,image_x_size=as.integer(XSIZE),
+                                          image_x_size=as.integer(YSIZE),center_sites_cells=TRUE,root=ROOT_DATA_PATH)
 outCellAbCC <- join_abundance_matrices(CellAbCC_list,center_sites_cells=TRUE)
 
 sitesCC <- outCellAbCC[[1]]

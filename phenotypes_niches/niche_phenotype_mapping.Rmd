@@ -486,6 +486,25 @@ nichesCA.sort <- nichesCellAb%>%pivot_longer(cols = c("TLS","inflammatory","canc
 
 archsSitesCellAb <- left_join(archetypesSitesKeren, cellAbSites,by=c("site_id","patient_id"))%>%pivot_longer(cols=append(CELLTYPES,"Unidentified"),names_to="cell_type",values_to= "cell_density")%>%ungroup()
 
+# nichesCellAb <- lapply(archsSitesCellAb%>%pivot_longer(cols=c("a1","a2","a3","a4"),names_to="archetype",values_to = "prop")%>%group_split(archetype),function(x){x%>%filter(prop>=quantile(prop,c(0.99)))})
+# # get cell abundance of sites that are the closest to the archetypes/niches
+# 
+# nichesCellAb2 <-do.call(rbind,nichesCellAb)
+nichesCellAb2 <- nichesCellAb
+nichesCellAb2[nichesCellAb2<0]<-0
+
+COLARCHS=c(rgb(255/255, 0/255, 223/255),rgb(255/255,0/255,0/255),rgb(70/255,203/255,236/255),rgb(0,0,0))
+
+bplot <- ggplot(nichesCellAb2%>%pivot_longer(cols=c("TLS","inflammatory","cancer","fibrotic"), names_to="niche",values_to="cell_density"),aes(x = cell_type, y = cell_density,fill = niche))+
+  geom_bar(stat = "identity",position = position_dodge(),width = 0.6)+
+  theme(axis.text.x = element_text(angle = 90, vjust = .2))+
+  scale_fill_manual(values = COLARCHS)+
+  xlab ("") + ylab("cell density")
+bplot
+
+ggsave("./figs/barplotNichesMIBI.pdf",bplot,height=3,width=4)
+
+
 ### Get cell types enriched in each niche (take top 1% sites closest to niche)
 #archsSitesCellAb <- left_join(archsSites, cellAbundSites,by=c("site_id","patient_id"))%>%pivot_longer(cols=append(CELLTYPES,"Unidentified"),names_to="cell_type",values_to= "cell_density")%>%ungroup()
 
