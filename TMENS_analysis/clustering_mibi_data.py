@@ -12,7 +12,7 @@ from sklearn.decomposition import PCA
 from sklearn.metrics import r2_score
 from scipy.spatial.distance import cdist,pdist
 import matplotlib.pyplot as plt
-sys.path.insert(1,'/scratch/anissa.el/macro_micro_niches/macro_micro_niches2022/TMENS_analysis/')
+#sys.path.insert(1,'/scratch/anissa.el/macro_micro_niches/macro_micro_niches2022/TMENS_analysis/')
 from src.CellAbundance import CellAbundance, join_abundance_matrices, generate_abundance_matrix
 from src.utils.archetypes import ArchetypalAnalysis
 from src.utils.visualization import plot_scatter_pca, plot_3Dscatter_pca, archetypes_bar_plot, archetype_simple_plot
@@ -29,7 +29,7 @@ CELL_TYPES = ['CD8-T', 'Other immune', 'DC / Mono', 'CD3-T', 'B', 'NK','Keratin-
 patient_ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41]
 N_SITE = 100
 RADIUS = 25
-ROOT_DATA_PATH = "/scratch/anissa.el/macro_micro_niches/macro_micro_niches2022/TMENS_analysis/data/cell_positions_data"
+ROOT_DATA_PATH = "./data/cell_positions_data"
 METHOD = "gaussian"
 SEED = 3
 NB_COMP = 17
@@ -99,7 +99,7 @@ def plot_EV(sites, n_archs, pca_pts, pca_obj):
   plt.ylabel("% variance explained")
   plt.xlabel("number of niches")
   plt.ylim(0, 100)
-  plt.savefig("./figs/EV_tmensVSkmeans.svg",format="svg")
+  plt.savefig("./output/figs/EV_tmensVSkmeans.svg",format="svg")
   plt.show()
   
   return None  #exp_var_tmens #(exp_var_tmens,exp_var_kmeans)
@@ -193,7 +193,7 @@ def plot_aic_niches_kmeans(sites,pca_pts,pca_obj,TSS):
   plt.ylabel("AIC")
   plt.xlabel("number of niches")
   #plt.ylim(0, 100)
-  plt.savefig("./figs/AIC_tmensVSkmeans4.png",format="png")
+  plt.savefig("./output/figs/AIC_tmensVSkmeans4.png",format="png")
   plt.show()
   return None
        
