@@ -19,7 +19,7 @@ rm(list=ls())
 library(tidyverse)
 library(ade4)
 library(factoextra)
-library(readxl)
+#library(readxl)
 library(reshape2)
 library(plotly)
 library(igraph)
@@ -28,7 +28,7 @@ library(ggpubr)
 library(ggplot2)
 library(ggrepel)
 library(devtools)
-library(processx)
+#library(processx)
 
 ```
 

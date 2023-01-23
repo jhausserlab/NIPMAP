@@ -163,7 +163,7 @@ def get_segmentation_matrix(data, cell_types, pca_obj, archetype_obj, color_fun,
     return m
 
 
-def plot_cells_positions(data, cell_types, segment_image=False, segmentation_type='hard', color_vector=None, counting_type='abs', h=800, w=800, granularity=25, radius=25, pca_obj=None, AA_obj=None, to_plot='all',path_fig=None):
+def plot_cells_positions(data, cell_types, segment_image=False, segmentation_type='hard', color_vector=None,counting_type='abs', h=800, w=800, granularity=25, radius=25, pca_obj=None, AA_obj=None, to_plot='all',path_fig=None):
     '''
     plots cells positions in MIBI image of TNBC + saves it in a .svg image
     

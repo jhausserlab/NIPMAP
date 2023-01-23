@@ -74,7 +74,7 @@ set_new_cells_proportions <- function(CellsProp.raw){
 ##
 create_incidence_matrix <- function(filename)
 {
-  GMatrix<- read_excel(filename,col_names=TRUE)%>%column_to_rownames(var="...1")
+  GMatrix<- readxl::read_excel(filename,col_names=TRUE)%>%column_to_rownames(var="...1")
   #Create incidence matrix
   GMatrix <- GMatrix%>%
     replace_na(replace=list("EndothelialCells"=0,"EpithelialCells"=0,
@@ -331,19 +331,7 @@ plot_obs_VS_pred_patient <- function(Y, B, R2, Omega,error = 0,log10Scale = FALS
   Y <- Y + error
   B <- B + error
   R2 <- R2 %>%rownames_to_column(var = "names")
-  # if(measure =="mean"){
-  #   meanR2 <- mean(R2$value)
-  #   
-  #   #Create subset of R2
-  #   #Select the patient whose R2 val is the closest to mean(R2) (its name + value)
-  #   avPatient <- R2[which(abs(R2$value-meanR2)==min(abs(R2$value-meanR2)))[1],]
-  # }
-  # else if(measure=="median"){
-  #   medianR2 <- median(R2$value)
-  #   #Create subset of R2
-  #   #Select the patient whose R2 val is the closest to median(R2) (its name + value)
-  #   avPatient <- R2[which(abs(R2$value-medianR2)==min(abs(R2$value-medianR2)))[1],]
-  # }
+
   colnames(Y) <- colnames(Y)%>%set_cells_names()#change cell labels for plot
   rownames(B) <- rownames(B)%>%set_cells_names()#change cell labels for plot
   plots <- list()
@@ -374,12 +362,7 @@ plot_obs_VS_pred_patient <- function(Y, B, R2, Omega,error = 0,log10Scale = FALS
       geom_abline(slope = 1, intercept = 0) + 
       xlab("% predicted tumor cellular composition")+
       ylab("% observed tumor cellular composition ")+
-    # if(log10Scale==TRUE){
-    #   plot <- plot + scale_x_continuous(trans='log10') +
-    #     scale_y_continuous(trans='log10')
-    #   #xlab("log10(%) predicted tumor cellular composition") +
-    #   #ylab("log10(%) observed tumor cellular composition ")
-    # }
+
     #stat_cor(method = "pearson", label.x = 3, label.y = 35)+
     annotate("text",x =5,y=40,label=avPatient$names)+
     annotate("text", x = 5, y = 33, label = label1)#expression(paste(italic(R)^2, " = ", format(r2, digits = 2)))

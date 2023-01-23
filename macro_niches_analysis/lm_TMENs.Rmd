@@ -22,7 +22,7 @@ gc()
 library(tidyverse)
 library(ade4)
 library(factoextra)
-library(readxl)
+#library(readxl)
 library(reshape2)
 library(plotly)
 #library(GGally)
@@ -602,42 +602,21 @@ fig3
 
 ```{r obsVSpred,echo=TRUE}
 
-# plot_obs_VS_pred_patient(Y = Ywagner, B = B2,Omega = Omega.inter, 
-#                           R2 = R2val.inter,error = 0,log10Scale = F,#error=err
-#                           measure = "mean",savePlot = FALSE,namePlot = "ObsVSPred_lm2")
 plot_obs_VS_pred_patient <- function(Y, B, R2, Omega,error = 0,log10Scale = FALSE,savePlot = FALSE,namePlot = " "){
   Y <- Y + error
   B <- B + error
   R2 <- R2 %>%rownames_to_column(var = "names")
-  print(head(R2))
-  # if(measure =="mean"){
-  #   meanR2 <- mean(R2$value)
-  #   
-  #   #Create subset of R2
-  #   #Select the patient whose R2 val is the closest to mean(R2) (its name + value)
-  #   avPatient <- R2[which(abs(R2$value-meanR2)==min(abs(R2$value-meanR2)))[1],]
-  # }
-  # else if(measure=="median"){
-  #   medianR2 <- median(R2$value)
-  #   #Create subset of R2
-  #   #Select the patient whose R2 val is the closest to median(R2) (its name + value)
-  #   avPatient <- R2[which(abs(R2$value-medianR2)==min(abs(R2$value-medianR2)))[1],]
-  # }
+
   colnames(Y) <- colnames(Y)%>%set_cells_names()#change cell labels for plot
   rownames(B) <- rownames(B)%>%set_cells_names()#change cell labels for plot
-  print(Y)
+  #print(Y)
   plots <- list()
   #names(plots) <- rownames(Y)
   names_patients <- rownames(Y)
   #for (i in rownames(Y)){
   plots <- lapply(names_patients, function(x){
     avPatient <- R2[x, ] #R2[which(R2$names == x),value]
-    #print(avPatient)
-    #print(x)
     namePlot=x
-    #print(t(B%*%t(Omega)[,avPatient$names]))
-    #print(Y[x,])
-    #print(B)
     #Create df of observed cell% (Y) and predicted cell % (B%*%t(Omega))
     ObsVSPred <- data.frame(Observed = as.vector(t(Y[x,])),#t(Y)[,avPatient$names],
                              Predicted=B%*%t(Omega)[,x])#t(B%*%t(Omega)[,avPatient$names]))
@@ -652,20 +631,13 @@ plot_obs_VS_pred_patient <- function(Y, B, R2, Omega,error = 0,log10Scale = FALS
     
     r2 <- round(as.numeric(avPatient$value),2)
     label1 <- as.expression(bquote(italic(r)^2== .(r2)))
-    print(label1)
+    #print(label1)
     p <- ggplot(data = ObsVSPred,aes(x = Predicted,y = Observed))+
       geom_point()+
       ggrepel::geom_text_repel(aes(label = cell_type),max.overlaps=13)+
       geom_abline(slope = 1, intercept = 0) + 
       xlab("% predicted tumor cellular composition")+
       ylab("% observed tumor cellular composition ")+
-    # if(log10Scale==TRUE){
-    #   plot <- plot + scale_x_continuous(trans='log10') +
-    #     scale_y_continuous(trans='log10')
-    #   #xlab("log10(%) predicted tumor cellular composition") +
-    #   #ylab("log10(%) observed tumor cellular composition ")
-    # }
-    #stat_cor(method = "pearson", label.x = 3, label.y = 35)+
     annotate("text",x =5,y=40,label=avPatient$names)+
     annotate("text", x = 5, y = 33, label = label1)#expression(paste(italic(R)^2, " = ", format(r2, digits = 2)))
     #plot
@@ -686,9 +658,10 @@ plots <-plot_obs_VS_pred_patient(Y = Ywagner, B = B2,Omega = Omega.inter,
 # for (i in names(plots)){
 #   ggsave(paste0("./figs/ObsVSPreds/ObsVSPred_",i,".pdf"),plots[[i]],height=4,width=5)
 # }
-lapply(plots,FUN =function(x) ggsave(paste0("./figs/ObsVSPreds/ObsVSPred_",x,".pdf"),x,height=4,width=5))
 
-map2(plots, names(plots),function(x, name){ggsave(paste0("./figs/ObsVSPreds/ObsVSPred_",name,".pdf"),x,height=4,width=5)})
+#lapply(names(plots),function(x) {ggsave(paste0("./figs/ObsVSPreds/ObsVSPred_",x,".pdf"),plots[[x]],height=4,width=5)})
+
+#map2(plots, names(plots),function(x, name){ggsave(paste0("./figs/ObsVSPreds/ObsVSPred_",name,".pdf"),x,height=4,width=5)})
 
 ```
 
