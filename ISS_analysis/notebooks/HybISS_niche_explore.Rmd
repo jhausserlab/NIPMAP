@@ -434,47 +434,6 @@ coreIntf2 <- c(inter_niche)
   dev.off()
 ```
 
-
-```{r, fig.height=6, fig.width=8, echo=FALSE, warning=FALSE, message=FALSE}
-  # Qval and correlations thresholds
-  qThresh <- 0.01
-  corThresh <- 0.3
-  filterMat <- corCMtmens.qval<qThresh & abs(corMatrix[rownames(corCMtmens.qval),])>corThresh
-  # mean(apply(filterMat, 1, sum) > 0)
-  ## 90% of the marker are associated to at least one TMENs or interface!
-  
-  cMf <- corMatrix[names(which(apply(filterMat, 1, sum) > 0)),]
-  #write_csv(cMf%>%as_tibble(rownames=NA)%>%rownames_to_column(var="cell_marker"), "./CM_corr_tmens_thresh0.3.csv")
-  # write_csv(cMf%>%as_tibble(rownames=NA)%>%rownames_to_column(var="cell_marker"), "./CM_corr_tmensREDUCED_thresh0.3.csv")
-  
-  cMf_fig <- cMf
-  colnames(cMf_fig) <- str_replace_all(colnames(cMf_fig), c("a2a3"="mesenchymalxsmooth muscle",
-                                                           "a1a3" = "epithelial x smooth muscle",
-                                                           "a1a2"= "epithelial x mesenchymal",
-                                                           "a1a4" = "epithelial x arterial",
-                                                           "a2a4" ="mesenchymal x arterial",
-                                                           "a3a4" = "smooth muscle x arterial",
-                                                           "a1a5" = "epithelial x ductal/alveolar", 
-                                                           "a2a5" = "mesenchymal x ductal/alveolar", 
-                                                           "a3a5" = "smooth muscle x ductal/alveolar", 
-                                                           "a4a5" = "arterial x ductal/alveolar"))
-  colnames(cMf_fig) <- str_replace_all(colnames(cMf_fig),c("a1" = "epithelial","a2" = "mesenchymal","a3" = "smooth muscle","a4" = "arterial", "a5"= "ductal/alveolar"))
-  
-  ct_df <-as_tibble(cMf_fig,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";")
-  annotation <- data.frame(as.factor(ct_df$cell_type)) %>% `colnames<-`("Cell Type")
-  row.names(annotation) <- rownames(cMf_fig)
-  
-  pheatmaps.obj <- pheatmap::pheatmap(cMf_fig%>%t(), 
-                     main = paste("qThresh=",qThresh, "corThresh=",corThresh), 
-                     cluster_cols = FALSE, 
-                     # cluster_rows = FALSE,
-                     # color = viridis(256), 
-                     border_color = NA, 
-                     annotation_col = annotation
-  )
-```
-
-
 ### Reporting results in table (TMENs core & interface x cell phenotypes)
 
 ```{r prepare table for reporting, warning=FALSE, echo=FALSE}
