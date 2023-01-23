@@ -6,9 +6,9 @@ from sklearn.neighbors import KDTree
 import matplotlib.pyplot as plt
 
 
-def generate_abundance_matrix(cell_types, patient_ids, n_site, radius, method, snr=1, root="../../output/",
+def generate_abundance_matrix(cell_types, patient_ids, n_site, radius, method, snr=1, root="../../output/",image_x_size=800, image_y_size=800,
                               random_seed=False,center_sites_cells=False,border=False):
-    return [CellAbundance(p, n_site, radius, cell_types, method=method, snr=snr, root=root, random_seed=random_seed,center_sites_cells=center_sites_cells,border=border) for
+    return [CellAbundance(p, n_site, radius, cell_types, method=method, snr=snr, root=root,image_x_size=image_x_size, image_y_size=image_y_size, random_seed=random_seed,center_sites_cells=center_sites_cells,border=border) for
             p in patient_ids]
 
 
