@@ -748,13 +748,13 @@ def archetypes_bar_plot(cell_number_archetypes, cell_types, colors, y_axis='coun
     #3-->1, 1-->4, 2-->2 , 4-->3
     #print(list(range(-x, x)))
     #print(data)
-    #if colors==None:
-    #    colormap = mpl.cm.Dark2.colors 
-    #    for d, idx, col in zip(data,list(range(-x, x)),colormap): #zip(data, colors, list(range(-x, x)),nbs):
-    #        ax.bar(y_pos + idx * width, d, color=col, width=width, label="Arch "+str(idx+3))
-    #else:
-    for d,c, idx, nb in zip(data, colors, list(range(-x, x)),nbs):
-        ax.bar(y_pos + idx * width, data[nb-1], color=colors[nb-1], width=width, label="Arch "+str(nb))#ax.bar(y_pos + idx * width, d, color=c, width=width, label="Arch "+str(nb))
+    if colors is None:
+        colormap = mpl.cm.Dark2.colors 
+        for d, idx, col in zip(data,list(range(-x, x)),colormap): #zip(data, colors, list(range(-x, x)),nbs):
+            ax.bar(y_pos + idx * width, d, color=col, width=width, label="Arch "+str(idx+3))
+    else:
+        for d,c, idx, nb in zip(data, colors, list(range(-x, x)),nbs):
+            ax.bar(y_pos + idx * width, data[nb-1], color=colors[nb-1], width=width, label="Arch "+str(nb))#ax.bar(y_pos + idx * width, d, color=c, width=width, label="Arch "+str(nb))
 
 
     #ax.bar(y_pos - 2*width, data[0], color=colors[0], width=width, label="Arch 1")

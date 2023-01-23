@@ -213,6 +213,7 @@ niche_cellcompo$variable[!(niche_cellcompo$variable %in% c(keep$cell_type)%>%as.
 
 cols = c("#FF00DF", "#0000DF", "#46CBEC", "#FF0000", "#000000")
 ## all niches
+niche_cellcompo[niche_cellcompo<0] <- 0
 
 ggplot(niche_cellcompo, aes(x=variable, y=value, fill=arche_list)) + 
   geom_bar(stat = 'identity', position = 'dodge') + 
@@ -221,8 +222,9 @@ ggplot(niche_cellcompo, aes(x=variable, y=value, fill=arche_list)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
   #scale_fill_npg()
   scale_fill_manual(values = cols)
-ggsave("../output/arche_barplot.pdf", width=7, height=5)
 
+ggsave("../output/arche_barplot.pdf", width=7, height=5)
+ggsave("../output/arche_barplot.svg", width=7, height=5)
 
 ## draw niches sepreately
 
