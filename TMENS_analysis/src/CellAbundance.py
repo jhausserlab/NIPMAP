@@ -203,7 +203,6 @@ class CellAbundance:
     def calculate_abundace_matrix(self):
         """
         calculates the sites abundance matrix, the counting is based on the argument passed in the constructor of the class
-
         :@return: {numpy array}(n_sites, #cell_types) matrix containing the abundance of cells for each site. In case of gaussian counting
         method selected, the gradient matrix is also returned.
         """

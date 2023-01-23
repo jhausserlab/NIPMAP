@@ -17,10 +17,13 @@ import matplotlib.patheffects as path_effects
 from src.CellAbundance import CellAbundance
 from src.utils.equations import alfa2rgb, alfa2color, color_mapper
 
-colors = ['#629563', '#044E75', '#CA8F04', '#645D0D',
-          '#43BC52', '#B25E89', '#2E3790', '#F118BE',
-          '#50974E', '#3273D6', '#0AF24B', '#A3F159',
-          '#933835', '#CEB134', '#226BCF', '#856218','#831CCB']
+colors = ['#629563', '#044E75', '#CA8F04', '#645D0D','#43BC52', 
+'#B25E89', '#2E3790', '#F118BE','#50974E', '#3273D6', 
+'#0AF24B', '#A3F159','#933835', '#CEB134', '#226BCF', 
+'#856218','#831CCB','#EEE8AA', '#FFA500', '#FFFF00', 
+'#7CFC00', '#9ACD32', '#32CD32', '#20B2AA','#00FFFF',
+'#191970', '#8A2BE2','#DDA0DD','#FF1493','#8B4513',
+'#B0C4DE','#CD853F','#9400D3','#0000FF']
 
 
 def is_in_square(x, y, x_min, x_max, y_min, y_max):
@@ -97,7 +100,6 @@ def xfrange(start, stop, step):
 def get_segmentation_matrix(data, cell_types, pca_obj, archetype_obj, color_fun, h=800, w=800, counting_type='abs', radius=100, granularity=25):
     """
     Calculate the segmentation matrix for a given dataset.
-
     @param data: csv containing the data of the sample
     @param cell_types: cell types vector
     @param pca_obj: the sklearn pca trained model
@@ -194,7 +196,7 @@ def plot_cells_positions(data, cell_types, segment_image=False, segmentation_typ
             color_vector=np.array(colormap[0:AA_obj.alfa.shape[0]])*255
             print(color_vector)
         else:
-            color_vector =  np.array([[255, 0, 223],[255,0,0],[70,203,236],[0,0,0]])#np.array([[255, 0, 0], [0, 153, 51], [0, 0, 255], [255, 255, 0]])
+            color_vector =  np.array(color_vector) #np.array([[255, 0, 0], [0, 153, 51], [0, 0, 255], [255, 255, 0]])
         if segmentation_type == 'hard': #color pixel by 1 of the colors defining TMENs (discrete)
             color_fun = partial(alfa2color, color_vector)
 
@@ -203,21 +205,26 @@ def plot_cells_positions(data, cell_types, segment_image=False, segmentation_typ
             
         z = get_segmentation_matrix(data, cell_types, pca_obj, AA_obj, color_fun, counting_type=counting_type, radius=radius, granularity=granularity, h=h, w=w)#get_segmentation_matrix(data, cell_types, pca_obj, AA_obj, color_fun, counting_type=counting_type, radius=radius, granularity=granularity, h=h, w=w)
         plt.imshow(z, origin='lower')
+        # Add legends for niches and the corresponding colors
+        nbs = list(range(1, AA_obj.alfa.shape[0]+1))
+        patches = [ mpatches.Patch(color=color_vector[i]/255, label="Niche {l}".format(l=nbs[i])) for i in range(len(color_vector)) ]
+        plt.legend(handles=patches, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0. )
 
     for (name, group), col in zip(groups, colors):
         if to_plot == 'all' or name in to_plot:
             plt.scatter(group['x'], group['y'], marker="o", s=5, label=name, c=cells_cols[name])
-
-    plt.legend(bbox_to_anchor=(1.0, 1), loc='upper left')
-    plt.xlim(0, w)
-    plt.ylim(0, h)
+            plt.legend(bbox_to_anchor=(1.0, 1), loc='upper left')
+            plt.xlim(0, w)
+            plt.ylim(0, h)
+    
     if path_fig!=None:
         plt.savefig(path_fig,format="svg")
     return None #plt
 
 
 def plot_cells_markers_tmens(patient_id,cell_types,path_data, data_markers_path,cell_type, marker,symbols,col=None,segment_image=False,
-                             segmentation_type="hard", counting_type="gaussian",h=800,w=800,granularity=20,radius=25,
+                             segmentation_type="hard", counting_type="gaussian", color_vector=[[255, 0, 223],[255, 0, 0],[70, 203, 236],[0, 0, 0]], 
+                             h=800,w=800,granularity=20,radius=25,
                              pca_obj=None,AA_obj=None, to_plot=None,path_fig=None, intOutQuant=0):
     '''
     plots cells positions in MIBI image of TNBC overlayed with TMENs colors + saves it in a .svg image
@@ -251,7 +258,15 @@ def plot_cells_markers_tmens(patient_id,cell_types,path_data, data_markers_path,
     if segment_image is True:
         if pca_obj is None or AA_obj is None:
                 raise ValueError("To segment the image pca and archetypes objects are needed")
-        color_vector =  np.array([[255, 0, 223],[255,0,0],[70,203,236],[0,0,0]])#np.array([[255, 0, 0], [0, 153, 51], [0, 0, 255], [255, 255, 0]])
+        
+        if color_vector is None:
+            colormap = mpl.cm.Dark2.colors
+            
+            color_vector=np.array(colormap[0:AA_obj.alfa.shape[0]])*255
+            print(color_vector)
+        else:
+            color_vector =  np.array(color_vector)
+        
         if segmentation_type == 'hard': #color pixel by 1 of the colors defining TMENs (discrete)
                 color_fun = partial(alfa2color, color_vector)
 
@@ -943,11 +958,11 @@ def archetypes_bar_plot(cell_number_archetypes, cell_types, colors, y_axis='coun
     #print(y_pos)
     x = (len(cell_number_archetypes)//2) + len(cell_number_archetypes)%2
     #print(x)
-    nbs = [4,2,1,3]
+    nbs = list(range(1, nbArch))
     #3-->1, 1-->4, 2-->2 , 4-->3
     #print(list(range(-x, x)))
     #print(data)
-    if colors==None:
+    if colors is None:
         colormap = mpl.cm.Dark2.colors 
         for d, idx, col in zip(data,list(range(-x, x)),colormap): #zip(data, colors, list(range(-x, x)),nbs):
             ax.bar(y_pos + idx * width, d, color=col, width=width, label="Arch "+str(idx+3))
@@ -1042,7 +1057,7 @@ def radius_pc_heatmap(expl_var_ratio):
     cumulative_var_exp_matrix = np.flip(np.vstack(list(expl_var_ratio.values())).T, 0)
     pcs_number = list(reversed(range(1, cumulative_var_exp_matrix.shape[0]+1)))
 
-    fig, ax = plt.subplots(figsize=(12, 12))
+    fig, ax = plt.subplots(figsize=(20, 20))
     im = ax.imshow(cumulative_var_exp_matrix)
 
     ax.set_xticks(np.arange(len(radius)))
@@ -1110,4 +1125,3 @@ def plot_eigenvalues(poisson_ev, ev,path_fig=None):
     if path_fig !=None:
         plt.savefig(path_fig,format="svg")
     plt.show()
-

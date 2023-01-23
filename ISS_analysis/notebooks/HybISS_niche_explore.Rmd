@@ -1,0 +1,568 @@
+---
+title: "HybISS_niche_explore"
+author: "kangzq"
+date: "2022-11-10"
+output: 
+  html_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+getwd()
+```
+
+
+### Loading libraries and data
+
+```{r libs, include=FALSE}
+gc()
+rm(list=ls())
+.libPaths("/home/common/R")
+
+library(rjson)
+library(tidyverse)
+library(plotly)
+library(ade4)
+library(matrixStats)
+library(factoextra)
+library('Ternary')
+library(pheatmap)
+library(cowplot)
+library(data.table)
+
+library(grid)
+library(gridExtra)
+library(fontLiberation)
+
+library(pheatmap)
+library(RColorBrewer)
+library(viridis)
+library(ggplot2)
+library(ggpubr)
+library(ggsci)
+
+library(ggrepel)
+
+source("./functions_phenotypes_tmens.r")
+source("./face_projection.R")
+dirName <- dirname(rstudioapi::getSourceEditorContext()$path )
+setwd(dirName)#setwd(dir = "/scratch/anissa.el/ImmuneStates/phenot_tmens")
+
+```
+
+### Constant variables for ISS analysis
+
+```{r constant variables}
+
+CELLTYPES=c('secretory', 'epithelial', 'proliferating smooth muscle', 'lymphatic endothelial', 'arterial', 
+'mesenchymal', 'ciliated epithelial', 'neuronal', 'pericyte', 'ASM', 
+'fibroblast', 'megakaryocyte', 'proximal progenitor', 'endothelial', 'neuroendocrine', 
+'chondroblast', 'airway smooth muscle', 'Dendritic', 'macrophage', 'myeloid', 
+'mesothelial', 'monocyte', 'capillary', 'ILC3', 'B-cell', 
+'erythrocyte', 'myeloid progenitor', 'dendritic', 'mast/basophil', 'venous', 
+'neutrophil', 'ILC2', 'lymphoid progenitor', 'natural killer')
+
+NBCELLTYPES = length(CELLTYPES)
+MARKERS <- read_rds("../data/ISS_marker_list.rds")
+METHOD ="gaussian"
+
+ROOT_OUTPUT_PATH="../output/"
+```
+
+So far, we explored NIPMAP in the context of spatial mass cytometry data from tumor tissues. But NIPAMP is applicable to single-cell spatial multiplex imaging data. To illustrate this, we explore healthy tissues during develop profiled by in situ RNA sequencing (ISS). Instead of having cell positions (x,y), the local environment will be described as a vector with the proportions of TMENs of a site centered on each cell. We will study then the expression of markers within different cell types in the function of the local environment. 
+
+* Cores and interfaces drive phenotypes
+* Phenotypes can associate with multiple niches in different ways
+* Spatial niches
+* Phenotypes
+
+### Face projection and cellular barplot for 5 niches
+
+- Why? We want to know if each archetype is supported by sites. For each archetype, Is there at least one face where there are some sites close to this  archetype? Or at least, are sites arranged in a way that suggests an archetype in alignment.
+
+```{r, include=FALSE}
+ImageIDs=c(1)
+
+NSITES=as.character(20000)
+RADIUS=as.character(25)
+NBNICHES = as.character(5)
+
+ROOT_DATA_PATH="../data/"
+RESULT_DATA_PATH=paste(ROOT_DATA_PATH,"niche",NBNICHES,"_radius",RADIUS,"_patientid[",ImageIDs,"]/") %>% str_replace_all(" ","")
+#RESULT_DATA_PATH=paste(ROOT_DATA_PATH,"niche",NBNICHES,"_radius",RADIUS,"_patientid[4,5,6]/") %>% str_replace_all(" ","")
+```
+
+
+```{r Tidy mRNA count matrix, include=FALSE}
+
+if (file.exists(paste(ROOT_DATA_PATH,"cellData_",ImageIDs,".csv") %>% str_replace_all(" ", ""))){
+  
+  cell_markers <- read.csv(paste(ROOT_DATA_PATH, "cellData_",ImageIDs,".csv") %>% str_replace_all(" ", ""))
+  cell_markers$cell_type <- replace(cell_markers$cell_type, cell_markers$cell_type == "Erythroblast/RBC", "Erythroblast.RBC")
+  
+}else{
+  
+  cellMarkers <- read.csv("/scratch/ziqi.kang/HIFI_TMENs_analysis/My_cell_positions_data/ISS_dataset/Cell_type_deep_clusters/PCW13/S1T1_mALL_complex_celltypes_formatted.csv")
+   # keep column 80- cell markers
+  # markers <- colnames(cellMarkers) %>% as.array()
+  # markers <- markers[80:168]
+  # saveRDS(markers, "./ISS_marker_list.rds")
+  cellMarkers <- cellMarkers %>% select(c(X.1, X, Y, cell.type, all_of(MARKERS)))
+  names(cellMarkers)[names(cellMarkers) == 'X.1'] <- 'cell_id'
+  names(cellMarkers)[names(cellMarkers) == 'cell.type'] <- 'complex_celltype'
+  
+  # read in patient data information
+  
+  datalist = list()
+  
+  for (i in ImageIDs) {
+    dataframe <- read.csv(paste(ROOT_DATA_PATH,"patient",i,"_cell_positions.csv") %>%
+                                 str_replace_all(" ", ""))
+    dataframe <- cbind(dataframe, patient_id = rep(i, nrow(dataframe)))
+    datalist[[i]] <- dataframe
+  }
+  patient_data <- do.call(rbind, datalist) %>% select(patient_id, label, x_origin, y_origin, cell_type)
+  rm(datalist, dataframe)
+  names(patient_data)[names(patient_data) == "label"] <- "cell_id"
+  
+  # merge 2 dataframe
+  
+  cellMarkers_new <- right_join(cellMarkers, patient_data, by = "cell_id") %>%
+    select(patient_id, cell_id, x_origin, y_origin, cell_type, complex_celltype, all_of(MARKERS))
+  colnames(cellMarkers_new) = c("SampleID", "cellLabelInImage", "X", "Y", "cell_type", "complex_celltype", all_of(MARKERS))
+  write_csv(cellMarkers_new, paste(ROOT_DATA_PATH,"cellData_",ImageIDs,".csv") %>% str_replace_all(" ", ""))
+
+}
+```
+
+
+```{r, include=FALSE}
+#######---- Open .json files ----#######
+
+file1 = paste(RESULT_DATA_PATH,"pca_sites.json") %>% str_replace_all(" ", "") # pca object on sites elements 
+file2 = paste(RESULT_DATA_PATH,"AA_sites.json") %>% str_replace_all(" ", "") # archetype Analysis object based on sites cell abundance
+file3 = paste(RESULT_DATA_PATH,"ca_sites.json") %>% str_replace_all(" ", "") # cell abundance of randomly generated sites
+file4 = paste(RESULT_DATA_PATH,"cells_niches.json") %>% str_replace_all(" ", "") # sites centered on cells and niches weights
+
+pca_sites <- fromJSON(file=file1)
+AA_sites <- fromJSON(file=file2)
+ca_sites <- fromJSON(file=file3)
+cells_niches <- fromJSON(file=file4)
+
+pca3D <- matrix(unlist(pca_sites$PC_proj),nrow=15)[1:3,]
+```
+
+
+```{r pca 3D, include=FALSE}
+plotly::plot_ly(x=pca3D[1,],
+                y=pca3D[2,],
+                z=pca3D[3,],
+                type="scatter3d",
+                mode="marker",
+                marker = list(size = 2))
+```
+
+
+```{r face projection, echo=FALSE, message=FALSE, fig.width=15, fig.height=12}
+arche_list <- c()
+for (i in seq(1,NBNICHES)) {
+  arche_list <- arche_list %>% append(paste("arch",i) %>% str_replace_all(" ",""))
+}
+
+#######---- The pc composition of all niches ----#######
+
+niche_pccompo <- read.csv(paste(RESULT_DATA_PATH,"niche_pcabundance.csv") %>% str_replace_all(" ","")) %>% 
+  select(-c(X)) %>% 
+  cbind(arche_list = arche_list) %>% 
+  column_to_rownames(var = "arche_list")
+
+#######---- Alpha of all sites in terms of these niches ----#######
+
+niche_alfas <- matrix(unlist(AA_sites$alfas), ncol=length(arche_list)) %>% as.data.frame()
+colnames(niche_alfas) <- arche_list
+
+plist <- Faceprojection(arche_list, niche_pccompo, niche_alfas)
+plot <- do.call("grid.arrange", c(plist, ncol = 4))
+
+ggsave("../output/face_projection.pdf", plot, height=10,width=12)
+```
+
+
+```{r, echo=FALSE, warning=FALSE, fig.height=5, fig.width=7}
+#######---- The cellular composition of all niches ----#######
+
+niche_cellcompo <- read.csv(paste(RESULT_DATA_PATH,"niche_cellbundance.csv") %>% str_replace_all(" ","")) %>% 
+  select(-c(X)) %>% 
+  apply(1, function(x){100 * (x/((as.numeric(RADIUS)^2)*pi))}) %>% 
+  t() %>% as.data.frame() %>% 
+  cbind(arche_list = arche_list) %>% melt(id="arche_list")
+  # column_to_rownames(var = "arche_list") %>% 
+#niche_cellcompo$arche_list <- str_replace_all(niche_cellcompo$arche_list, c("arch1" = "epithelial","arch2" = "mesenchymal","arch3" = "smooth muscle", 
+#                                                                            "arch4" = "arterial", "arch5"= "ductal/alveolar"))
+
+cell_Freq <- table(stat(cell_markers$cell_type)) %>% as.data.frame() %>% mutate(percent = Freq*100/sum(Freq))
+keep <- cell_Freq %>% filter(percent >= 1) %>% `colnames<-`(c("cell_type", "Freq", "percent"))
+keep$cell_type <- str_replace_all(keep$cell_type, " ",".")
+
+niche_cellcompo$variable <- as.character(niche_cellcompo$variable)
+niche_cellcompo$variable[!(niche_cellcompo$variable %in% c(keep$cell_type)%>%as.vector())] <- "other"
+
+cols = c("#FF00DF", "#0000DF", "#46CBEC", "#FF0000", "#000000")
+## all niches
+niche_cellcompo[niche_cellcompo<0] <- 0
+
+ggplot(niche_cellcompo, aes(x=variable, y=value, fill=arche_list)) + 
+  geom_bar(stat = 'identity', position = 'dodge') + 
+  xlab("Cell types") + 
+  ylab("density [#cells / 100 um^2]") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
+  #scale_fill_npg()
+  scale_fill_manual(values = cols)
+
+ggsave("../output/arche_barplot.pdf", width=7, height=5)
+ggsave("../output/arche_barplot.svg", width=7, height=5)
+
+## draw niches sepreately
+
+# color <- pal_npg(palette = c("nrc"))(as.numeric(NBNICHES))
+# plist <- list()
+# 
+# for (i in seq(1,as.numeric(NBNICHES))) {
+#   niche = arche_list[i]
+#   col = color[i]
+#   
+#   data <- filter(niche_cellcompo, arche_list == niche)
+#   p <- ggplot(data, aes(x=variable, y=value)) + 
+#     geom_bar(stat = 'identity', position = 'dodge', fill=col) + 
+#     labs(title = paste(niche), 
+#          x = "Cell types", 
+#          y="density [#cells / 100 um^2]") + 
+#     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+#   plist[[i]] <- p
+#   }
+# plot <- do.call("grid.arrange", c(plist, ncol = 3))
+```
+
+## TMENS as a new way to describe single-cell local environment
+
+Update the niche-phenotype association matrix + PCA (no clusters) + does interface or core drive phenotypes. 
+
+```{r, include=FALSE}
+core_niche <- c(arche_list) %>% str_replace_all("rch","")
+inter_niche <- combn(core_niche, 2)
+removed_celltype <- c("megakaryocyte") # suggestions from dataset provider
+
+# prepare tmens_per_cell table
+tmens_per_cell <- cells_niches$cells_niches
+tmens_per_cell <- do.call(cbind, tmens_per_cell) %>% 
+  as.data.frame() %>% 
+  `colnames<-`(c(core_niche, "patient_id", "site_id",
+                              "cell_type_site", "TOT_cell_dens"))
+
+tmens_per_cell$patient_id <- as.integer(tmens_per_cell$patient_id)
+tmens_per_cell$site_id <- as.integer(tmens_per_cell$site_id)
+for (i in core_niche) {
+  tmens_per_cell[,i] <- as.double(tmens_per_cell[,i])
+}
+```
+
+### Use All gene list for phenotype mapping with raw count
+
+```{r, include=FALSE}
+cell_markers <- read.csv(paste(ROOT_DATA_PATH,"cellData_",ImageIDs,".csv") %>% str_replace_all(" ", ""))
+  cell_markers$cell_type <- replace(cell_markers$cell_type, cell_markers$cell_type == "Erythroblast/RBC", "Erythroblast.RBC")
+
+ZscoreScale <- function(M, cutOff=3) {
+  M0 = apply(M, 2, function(x) {(x-mean(x)) / sd(x)}) %>% t
+  M0[M0>cutOff] = cutOff
+  M0[M0<(-cutOff)] = -cutOff
+  return(M0)
+}
+
+markers <- cell_markers %>% 
+  select(-c(SampleID, cellLabelInImage, X, Y, cell_type, complex_celltype)) %>% 
+  ZscoreScale() %>% 
+  t() %>% 
+  as.data.frame()
+
+cell_markers <- cell_markers %>% 
+  select(c(SampleID, cellLabelInImage, X, Y, cell_type, complex_celltype)) %>% 
+  cbind(markers)
+```
+
+
+```{r calculate TMENS dataset, include=FALSE}
+
+markersPerCell <- cell_markers%>%pivot_longer(cols = all_of(MARKERS), names_to = "marker", values_to = "value")
+
+ if (file.exists("../data/MarkersCellsTMENs_filtered.rds")){
+   MarkersCellsTMENS <- readRDS("../data/MarkersCellsTMENs_filtered.rds")
+ }else{
+  MarkersCellsTMENS <- left_join(markersPerCell %>% rename(site_id=cell_id), tmens_per_cell, by=c("patient_id","site_id")) %>%
+    filter_at(vars(all_of(core_niche)), any_vars(!(is.na(.))))
+  
+  for(i in seq(1,ncol(inter_niche))){
+    colname = paste(inter_niche[1,i],inter_niche[2,i]) %>% str_replace_all("rch","") %>% str_replace_all(" ","")
+    d = MarkersCellsTMENS[,inter_niche[1,i]]*MarkersCellsTMENS[,inter_niche[2,i]] %>% as.data.frame()
+    colnames(d) = colname
+    MarkersCellsTMENS <- cbind(MarkersCellsTMENS, d)
+}
+  inter_niche <- colnames(MarkersCellsTMENS %>% select(matches("a[0-9]a[0-9]")))
+  saveRDS(MarkersCellsTMENS,"../data/MarkersCellsTMENs_filtered.rds")
+}
+```
+
+
+```{r, fig.height=6, fig.width=4, echo=FALSE, warning=FALSE, message=FALSE}
+
+corMatrix.pval <-
+    matrix(nrow = c(length(CELLTYPES)-length(removed_celltype))*length(MARKERS), ncol=length(core_niche)+length(inter_niche),
+           dimnames =
+             list(c(),
+                  c(core_niche,
+                   inter_niche)))#, ,"a1a2a3","a1a2a4","a1a3a4","a2a3a4","a1a2a3a4")))
+  corMatrix <- corMatrix.pval
+  cmNames <- c()
+  id = 1
+  # ct = CELLTYPES[1]
+  for(ct in c(CELLTYPES[ !CELLTYPES %in% c(removed_celltype) ])){
+    #cat(sprintf("%s\n", ct))
+    for(m in MARKERS){
+      # print(paste(ct,m))
+      
+      data <- get_tmens_coord_marker(MarkersCellsTMENS,ct,m)
+      
+      if(nrow(data)>=2)
+        {
+        X <- data %>%dplyr::select(c(value))
+        A <- data %>%dplyr::select(c(core_niche, inter_niche))
+        #A3 <- data %>%dplyr::select(c(a1a2a3,a1a2a4,a1a3a4,a2a3a4))
+        #print(A1)
+        cmNames[id] <- paste0(ct,";",m)
+        for (i in c(core_niche, inter_niche)) {
+          corMatrix.pval[id, i] <- cor.test(X%>%pull(value),A%>%pull(i),method="spearman",exact=FALSE)$p.value
+          corMatrix[id,i] <- cor.test(X%>%pull(value),A%>%pull(i),method="spearman",exact=FALSE)$estimate
+        } # FIXME use apply() to save time
+        id = id+1
+      }
+      else{
+        next
+      }
+    }
+  }
+
+  corMatrix <- corMatrix[1:length(cmNames), ] %>% 
+    `rownames<-`(cmNames)
+  
+  corMatrix.pval <- corMatrix.pval[1:length(cmNames), ] %>% 
+    `rownames<-`(cmNames)
+
+  corCMtmens.pval <- corMatrix.pval%>%as_tibble(rownames=NA)%>%
+    rownames_to_column(var="names")%>%
+    drop_na()
+  
+  corCMtmens <- corMatrix%>%as_tibble(rownames=NA)%>%
+    rownames_to_column(var="names")%>%
+    drop_na()
+
+  corCMtmens.pval.mat = corCMtmens.pval %>% column_to_rownames(var='names')
+  fdrOut = 
+    fdrtool(corCMtmens.pval.mat %>% as.matrix %>% as.numeric(), 
+            statistic = "pvalue")
+  
+  corCMtmens.qval = 
+    fdrOut$qval %>% 
+    matrix(nrow=nrow(corCMtmens.pval.mat), ncol=ncol(corCMtmens.pval.mat),
+           dimnames = list(rownames(corCMtmens.pval.mat), colnames(corCMtmens.pval.mat)))
+```
+
+The different cell types of the dataset display phenotypes with specific associations to the different histological niches. The heatmap shows all phenotypes with a niche-phenotype correlation of at least 0.3 and a false discovery rate less than 1% in at least one niche or interface.
+
+```{r}
+coreIntf2 <- c(inter_niche)
+
+  qThresh <- 0.01
+  corThresh <- 0.3
+  filterMat <- corCMtmens.qval<qThresh & abs(corMatrix[rownames(corCMtmens.qval),])>corThresh
+  # mean(apply(filterMat, 1, sum) > 0)
+  ## 90% of the marker are associated to at least one TMENs or interface!
+  
+  cMf <- corMatrix[names(which(apply(filterMat, 1, sum) > 0)),]
+  figWidth <- nrow(cMf) * 30/267
+  
+# plot_heatmap_CT(cMf,coreIntf2)
+  cts <- unique(pull(as_tibble(cMf,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),cell_type))
+  CM_TMENs_ct <- as_tibble(cMf,rownames=NA)%>%
+    rownames_to_column(var="names")%>%
+    separate(names,into=c("cell_type","marker"),sep=";")%>%#mutate(marker=paste0(marker,"+"))%>%
+    pivot_longer(cols=coreIntf2,names_to = "region",values_to="corr_val")%>%
+    mutate(idx =match(cell_type, cts))%>%
+    group_by(cell_type)%>%mutate(corr_val = corr_val+ (idx-1)*10)%>%pivot_wider(names_from="region", values_from="corr_val")%>%mutate(names = paste(cell_type,marker,sep=";"))%>%column_to_rownames(var="names")#%>%dplyr::select(-c(cell_type,idx))
+  
+  colnames(cMf) <- str_replace_all(colnames(cMf), c("a2a3"="mesenchymalxsmooth muscle",
+                                                           "a1a3" = "epithelial x smooth muscle",
+                                                           "a1a2"= "epithelial x mesenchymal",
+                                                           "a1a4" = "epithelial x arterial",
+                                                           "a2a4" ="mesenchymal x arterial",
+                                                           "a3a4" = "smooth muscle x arterial",
+                                                           "a1a5" = "epithelial x ductal/alveolar", 
+                                                           "a2a5" = "mesenchymal x ductal/alveolar", 
+                                                           "a3a5" = "smooth muscle x ductal/alveolar", 
+                                                           "a4a5" = "arterial x ductal/alveolar"))
+  colnames(cMf) <- str_replace_all(colnames(cMf),c("a1" = "epithelial","a2" = "mesenchymal","a3" = "smooth muscle","a4" = "arterial", "a5"= "ductal/alveolar"))
+  
+  dists <- dist(as.matrix(CM_TMENs_ct%>%dplyr::select(-c(cell_type,marker,idx))),method="euclidean")
+  hclustCells <- hclust(dists,method="ward.D") 
+  #plot(as.dendrogram(hclustCells))
+  cellTypes <- data.frame(cell_type =pull(CM_TMENs_ct ,cell_type))
+  Markers<- pull(CM_TMENs_ct ,marker)
+  ## Annotations colors = length of cell types
+  colorCount = length(unique(cellTypes$cell_type))
+  getPalette = colorRampPalette(RColorBrewer::brewer.pal(9, "Set1"))
+  getPalette(colorCount)
+  # List with colors for each annotation.
+  CTcolors <- list(cell_type = getPalette(colorCount))
+  names(CTcolors$cell_type) <- cts
+  rownames(cellTypes) <- rownames(CM_TMENs_ct)
+  #rownames(Markers) <-rownames(CM_TMENs_ct)
+  pdf("../output/cMf.pdf",height=6, width=ifelse(figWidth<6, 6, figWidth+2))
+  pheatmap(t(cMf),cluster_cols = hclustCells,cluster_rows = FALSE,annotation_col=cellTypes,annotation_colors= CTcolors,labels_col = Markers)#
+  dev.off()
+```
+
+### Reporting results in table (TMENs core & interface x cell phenotypes)
+
+```{r prepare table for reporting, warning=FALSE, echo=FALSE}
+
+  qThresh <- 0.01
+  corThresh <- 0.3
+  filterMat <- corCMtmens.qval<qThresh & abs(corMatrix[rownames(corCMtmens.qval),])>corThresh
+  # mean(apply(filterMat, 1, sum) > 0)
+  ## 90% of the marker are associated to at least one TMENs or interface!
+  
+  cMf <- corMatrix[names(which(apply(filterMat, 1, sum) > 0)),]
+
+tabTMENs2 <- as_tibble(cMf,rownames=NA)%>%
+  rownames_to_column(var="names")%>%
+  separate(names,into=c("cell_type","marker"),sep=";")%>%
+  mutate(marker=paste0(marker,"+"))%>%
+  pivot_longer(cols=c(core_niche,inter_niche),names_to ="niche",values_to="corr_val")#,"a1a2a3","a1a2a4","a1a3a4","a2a3a4"
+
+tabTMENs2$niche <- str_replace_all(pull(tabTMENs2,niche), c("a2a3"="mesenchymalxsmooth muscle",
+                                                           "a1a3" = "epithelialxsmooth muscle",
+                                                           "a1a2"= "epithelialxmesenchymal",
+                                                           "a1a4" = "epithelialxarterial",
+                                                           "a2a4" ="mesenchymalxarterial",
+                                                           "a3a4" = "smooth musclexarterial",
+                                                           "a1a5" = "epithelialxductal/alveolar", 
+                                                           "a2a5" = "mesenchymalxductal/alveolar", 
+                                                           "a3a5" = "smooth musclexductal/alveolar", 
+                                                           "a4a5" = "arterialxductal/alveolar"))
+tabTMENs2$niche <- str_replace_all(pull(tabTMENs2,niche),c("a1" = "epithelial","a2" = "mesenchymal","a3" = "smooth muscle","a4" = "arterial", "a5"= "ductal/alveolar"))
+
+tabCellPhen <- tabTMENs2%>%
+  separate(col=niche, into = c("type1","type2"),sep="x")%>%
+  group_by(cell_type,marker)%>%mutate(len=length(type1))%>%
+  mutate(inter_region=ifelse(len==1,type1,
+                                                                                                                                                                    ifelse(head(sort(table(type1),decreasing=TRUE),1)>1, names(head(sort(table(type1),decreasing=TRUE),1)),
+                                                                                                                                                                          ifelse(head(sort(table(type2),decreasing=TRUE),1)>1,  names(head(sort(table(type2),decreasing=TRUE),1)),ifelse(length(intersect(type1,type2))==0,paste(type1,type2,sep="x"),intersect(type1,type2) )))))%>%
+  group_by(cell_type, marker,inter_region)%>%filter(corr_val==max(corr_val))
+
+
+tabCellPhen2 <- tabCellPhen %>%
+  mutate(niche = paste(type1,type2,sep=" x "))%>%
+  mutate(niche=str_replace_all(niche," x NA",""))%>%
+  group_by(niche)%>%mutate(cells = paste(unique(cell_type),collapse='\n'))%>%
+  group_by(niche,cell_type)%>% 
+  mutate(cell_phenotype= paste0(paste(marker, collapse = " "),cell_type)) %>%
+  ungroup()%>%
+
+  group_by(niche)%>%
+  mutate(cell_phenotype=paste(unique(cell_phenotype),collapse="\n")) %>%
+  distinct(niche, .keep_all = TRUE)%>%
+  arrange(niche)%>%dplyr::select(niche, cells,cell_phenotype)
+
+
+tabCellPhen3 <- tabCellPhen2%>%
+  # mutate(cellPh =ifelse(niche %in% pull(archs.CT,niche),paste(archs.CT[archs.CT$niche==niche ,"cell_type"],collapse="\n"),""))%>%
+  # rowwise()%>%
+  # mutate(ct = ifelse(grepl("\n",cellPh,fixed=TRUE)==FALSE,paste(setdiff(as.vector(cellPh),str_split(cells,"\n")[[1]]),collapse="\n"),ifelse(grepl("\n",cells,fixed=TRUE)==FALSE,paste(setdiff(str_split(cellPh,"\n")[[1]], as.vector(cells)),collapse="\n"),paste(setdiff(str_split(cellPh,"\n")[[1]],str_split(cells,"\n")[[1]]),collapse="\n"))))%>%
+  #mutate(cell_phenotype = paste(cell_phenotype,ct,sep="\n"),.keep="unused")%>%
+  dplyr::select(c(niche, cell_phenotype))%>%
+  arrange(niche)
+
+
+### Display and save table in pdf
+ th1 <- ttheme_default()
+ g1 <- tableGrob(tabCellPhen3,rows=NULL,theme = th1)
+ grid.newpage()
+ grid.draw(g1)
+ ggsave("../output/tab_tmens.pdf",g1,width=7,height=6)
+```
+
+### PCA on correlation matrix of cell markers VS TMENs
+
+Can we find cross-cells phenotypes that are associated to niches ? Are they associated to core niches or do they arise at the interface ? If so, is it a continuum or do we have clusters?
+
+```{r, fig.width=8, echo=FALSE}
+###PCA on correlation matrix
+CM_TMENs.pca <- dudi.pca(cMf[,c(core_niche, inter_niche)],center=FALSE, scale=TRUE,scannf=FALSE, nf=3) # ,"a1a2a3","a1a2a4","a1a3a4","a2a3a4"
+fviz_eig(CM_TMENs.pca)
+fviz_pca_ind(CM_TMENs.pca)
+fviz_pca_var(CM_TMENs.pca)
+```
+
+
+### Sum of Squares of correlations per TMENs (core and interfaces)
+
+To understand with cores/interfaces of TMENs associate (positively or negatively) best to environment, we compute the sum of squares of the spearman correlations for each environment:
+
+```{r, echo=FALSE}
+coreCorr <- cMf[,c(core_niche)]
+interCorr <- cMf[,c(inter_niche)] # ,"a1a2a3","a1a2a4","a1a3a4","a2a3a4"
+SS <- apply(cMf[,c(core_niche, inter_niche)],2, function(x) sum(x)^2)#var(x) ,"a1a2a3","a1a2a4","a1a3a4","a2a3a4" #sum(x-mean(x))^2
+sort(SS)
+```
+
+```{r, fig.height=6, fig.width=3, echo=FALSE}
+x <- rep(0,length(SS))
+
+tmens_SS <- as_tibble(cbind(SS,x),rownames=NA)%>%
+  rownames_to_column(var="tmen")%>%
+  mutate(type = ifelse(tmen %in% c(core_niche),"core","interface"))
+
+ tmens_SS$tmen <- str_replace_all(tmens_SS$tmen, c("a2a3"="mesenchymalxsmooth muscle",
+                                                           "a1a3" = "epithelial x smooth muscle",
+                                                           "a1a2"= "epithelial x mesenchymal",
+                                                           "a1a4" = "epithelial x arterial",
+                                                           "a2a4" ="mesenchymal x arterial",
+                                                           "a3a4" = "smooth muscle x arterial",
+                                                           "a1a5" = "epithelial x ductal/alveolar", 
+                                                           "a2a5" = "mesenchymal x ductal/alveolar", 
+                                                           "a3a5" = "smooth muscle x ductal/alveolar", 
+                                                           "a4a5" = "arterial x ductal/alveolar"))
+  tmens_SS$tmen <- str_replace_all(tmens_SS$tmen,c("a1" = "epithelial","a2" = "mesenchymal","a3" = "smooth muscle","a4" = "arterial", "a5"= "ductal/alveolar"))
+
+p <- ggplot(tmens_SS, aes(x, SS, color=type, label=tmen)) + 
+  geom_point()+ 
+  scale_color_npg() + 
+  ylab("Sum of squares of association scores of all phenotypes")+
+  geom_text_repel(max.overlaps=10)
+
+p + theme(axis.line.x=element_blank(),
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.title.x=element_blank(),
+          panel.grid.minor.x=element_blank(),
+          panel.grid.major.x=element_blank())
+
+ggsave("../output/SS_tmens.pdf",height=10,width=4)
+```
+
+
+
+
