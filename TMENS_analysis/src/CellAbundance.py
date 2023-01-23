@@ -6,9 +6,9 @@ from sklearn.neighbors import KDTree
 import matplotlib.pyplot as plt
 
 
-def generate_abundance_matrix(cell_types, patient_ids, n_site, radius, method, snr=1, root="../../output/",
+def generate_abundance_matrix(cell_types, patient_ids, n_site, radius, method, snr=1, root="../../output/",image_x_size=800, image_y_size=800,
                               random_seed=False,center_sites_cells=False,border=False):
-    return [CellAbundance(p, n_site, radius, cell_types, method=method, snr=snr, root=root, random_seed=random_seed,center_sites_cells=center_sites_cells,border=border) for
+    return [CellAbundance(p, n_site, radius, cell_types, method=method, snr=snr, root=root,image_x_size=image_x_size, image_y_size=image_y_size, random_seed=random_seed,center_sites_cells=center_sites_cells,border=border) for
             p in patient_ids]
 
 
@@ -203,7 +203,6 @@ class CellAbundance:
     def calculate_abundace_matrix(self):
         """
         calculates the sites abundance matrix, the counting is based on the argument passed in the constructor of the class
-
         :@return: {numpy array}(n_sites, #cell_types) matrix containing the abundance of cells for each site. In case of gaussian counting
         method selected, the gradient matrix is also returned.
         """
