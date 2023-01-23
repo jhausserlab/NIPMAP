@@ -106,7 +106,7 @@ if (file.exists(paste(ROOT_DATA_PATH,"cellData_",ImageIDs,".csv") %>% str_replac
   
 }else{
   
-  cellMarkers <- read.csv("../My_cell_positions_data/ISS_dataset/Cell_type_deep_clusters/PCW13/S1T1_mALL_complex_celltypes_formatted.csv")
+  cellMarkers <- read.csv("/scratch/ziqi.kang/HIFI_TMENs_analysis/My_cell_positions_data/ISS_dataset/Cell_type_deep_clusters/PCW13/S1T1_mALL_complex_celltypes_formatted.csv")
    # keep column 80- cell markers
   # markers <- colnames(cellMarkers) %>% as.array()
   # markers <- markers[80:168]
@@ -133,7 +133,7 @@ if (file.exists(paste(ROOT_DATA_PATH,"cellData_",ImageIDs,".csv") %>% str_replac
   
   cellMarkers_new <- right_join(cellMarkers, patient_data, by = "cell_id") %>%
     select(patient_id, cell_id, x_origin, y_origin, cell_type, complex_celltype, all_of(MARKERS))
-  colnames(cellMarkers_new) = c("patient_id", "cell_id", "X", "Y", "cell_type", "complex_celltype", all_of(MARKERS))
+  colnames(cellMarkers_new) = c("SampleID", "cellLabelInImage", "X", "Y", "cell_type", "complex_celltype", all_of(MARKERS))
   write_csv(cellMarkers_new, paste(ROOT_DATA_PATH,"cellData_",ImageIDs,".csv") %>% str_replace_all(" ", ""))
 
 }
@@ -284,13 +284,13 @@ ZscoreScale <- function(M, cutOff=3) {
 }
 
 markers <- cell_markers %>% 
-  select(-c(patient_id, cell_id, X, Y, cell_type, complex_celltype)) %>% 
+  select(-c(SampleID, cellLabelInImage, X, Y, cell_type, complex_celltype)) %>% 
   ZscoreScale() %>% 
   t() %>% 
   as.data.frame()
 
 cell_markers <- cell_markers %>% 
-  select(c(patient_id, cell_id, X, Y, cell_type, complex_celltype)) %>% 
+  select(c(SampleID, cellLabelInImage, X, Y, cell_type, complex_celltype)) %>% 
   cbind(markers)
 ```
 
