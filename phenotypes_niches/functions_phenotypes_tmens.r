@@ -119,10 +119,10 @@ ZscoreScale <- function(M, cutOff=3) {
 
 ## Hierarchical clustering on cells from the same type
 # ward's method (variance minimization, scaled with cut-off value of markers intensity =3)
-# dfCellsMarkers: df with cell_type, cell_id columns and markers columns and cells as rows
-# markers: string vector of functional markers used for clustering
-# cellTyoes: string vector of cell types to be clustered 
-# nClusts: number of clusters for hierarchical clustering(same as number of core/interfaces used in NIPMAP for comparing both methods)
+# @param dfCellsMarkers: df with cell_type, cell_id columns and markers columns and cells as rows
+# @param markers: string vector of functional markers used for clustering
+# @param cellTyoes: string vector of cell types to be clustered 
+# @param nClusts: number of clusters for hierarchical clustering(same as number of core/interfaces used in NIPMAP for comparing both methods)
 hclust_cellTypes <- function(dfCellsMarkers = cell_markers,cellTypes,markers=FuncMarkers,nClusts=10){
   # select cell types from cellTypes variable in df 
   CellsFunctMarkers.df <- dfCellsMarkers[which(dfCellsMarkers$cell_type %in% cellTypes),append(append(append(all_of(markers),"cell_type"),"cell_id"),"patient_id")]# "Keratin-positive tumor"
@@ -520,7 +520,7 @@ correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman
 
 #########---- HEATMAP ORGANIZED BY CELL TYPES ----###########
 # nichsIntf: string vector of archetypes and interfacs as named in correlation matrix
-plot_heatmap_CT<-function(CM.mat = cMf2,nichesIntf,figPath="./figs/cM_byCells3.pdf"){
+plot_heatmap_CT <- function(CM.mat = cMf2,nichesIntf,figPath="./figs/cM_byCells3.pdf"){
   cts <- unique(pull(as_tibble(CM.mat,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),cell_type))
   print(cts)
   CM_TMENs_ct <- as_tibble(CM.mat,rownames=NA)%>%
@@ -592,7 +592,9 @@ plot_heatmap_markers <- function(CM.mat=cMf2,nichesIntf,figPath="./figs/cM_byMar
 # compare the average density  d1 of a cell type from the top 1% closest sites with the av denisty of cell type from the rest of the sites d2
 # if d1 > d2+ k* SD ==> the cell type is representative  of the archetype
 # do the same for the other archetypes
-#  @param cellAb.df: df of cell abundance of archetypes
+# @param cellAb.df: df of cell abundance of sites and their archetypes weights
+#                   with columns of cell_type and cell_density and
+#                   archetypes as columns and sites as rows(with their ids)
 # @param archetype: str of nae of archetype
 # @param k: int, value to multiply standard deviation of cell type abundance
 # @param thresh: double, threshold value to select top sites(between 0 and 1)
@@ -673,7 +675,7 @@ NichesCellProfile <- function(sitesCA = sites,Arch = AA,pcaObj = pca_obj){
   NichesCellProp <- NichesCellProf%>%as_tibble(rownames = NA)%>%
     rownames_to_column(var="archetype")%>%
     pivot_longer(cols=all_of(CELLTYPES),names_to="cell_type",values_to = "cell_density")
-  
+  NichesCellProp[NichesCellProp<0] <-0
   barplot1 <- ggplot(data = NichesCellProp, aes(x = cell_type, y = cell_density,fill = archetype)) +
     geom_bar(stat = "identity",position = position_dodge(),width = 0.6) + 
     theme(axis.text.x = element_text(angle = 90, vjust = .2))+
