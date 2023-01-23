@@ -7,6 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.patches as mpatches
 from scipy.spatial import ConvexHull
 import mpl_toolkits.mplot3d as a3
+import matplotlib as mpl
 import matplotlib.colors
 import numpy as np
 import pandas as pd
@@ -197,7 +198,14 @@ def plot_cells_positions(data, cell_types, segment_image=False, segmentation_typ
     if segment_image is True:
         if pca_obj is None or AA_obj is None:
             raise ValueError("To segment the image pca and archetypes objects are needed")
-        color_vector =  np.array(color_vector)
+        
+        if color_vector is None:
+            colormap = mpl.cm.Dark2.colors
+            
+            color_vector=np.array(colormap[0:AA_obj.alfa.shape[0]])*255
+            print(color_vector)
+        else:
+            color_vector =  np.array(color_vector)
         if segmentation_type == 'hard': #color pixel by 1 of the colors defining TMENs (discrete)
             color_fun = partial(alfa2color, color_vector)
 
@@ -726,6 +734,8 @@ def archetypes_bar_plot(cell_number_archetypes, cell_types, colors, y_axis='coun
     width = 0.50
 
     data = cell_number_archetypes
+    nbArch= data.shape[0]
+
     if y_axis == 'log':
         data = [np.log(d) for d in cell_number_archetypes]
     elif y_axis == 'density':
@@ -738,7 +748,12 @@ def archetypes_bar_plot(cell_number_archetypes, cell_types, colors, y_axis='coun
     #3-->1, 1-->4, 2-->2 , 4-->3
     #print(list(range(-x, x)))
     #print(data)
-    for d, c, idx, nb in zip(data, colors, list(range(-x, x)), nbs):
+    #if colors==None:
+    #    colormap = mpl.cm.Dark2.colors 
+    #    for d, idx, col in zip(data,list(range(-x, x)),colormap): #zip(data, colors, list(range(-x, x)),nbs):
+    #        ax.bar(y_pos + idx * width, d, color=col, width=width, label="Arch "+str(idx+3))
+    #else:
+    for d,c, idx, nb in zip(data, colors, list(range(-x, x)),nbs):
         ax.bar(y_pos + idx * width, data[nb-1], color=colors[nb-1], width=width, label="Arch "+str(nb))#ax.bar(y_pos + idx * width, d, color=c, width=width, label="Arch "+str(nb))
 
 
