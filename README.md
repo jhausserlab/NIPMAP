@@ -25,10 +25,10 @@ NIche Phenotype MAPping (NIPMAP) analysis from spatial multiplex data: Multiplex
     pckgs <- c("tidyverse","ggplot2","ade4","factoextra","plotly","igraph","reshape2","ggrepel","viridis","fdrtool","pheatmap","cluster","broom","pROC","ggpubr","devtools","ggridges")
     install.packages(pckgs)
     ```
-    **//!\\ CAUTION** reticulate library version 1.22 should be downloaded, not the latest !! 
+    ** /!\ CAUTION** reticulate library version 1.22 should be downloaded, not the latest !! 
 
 ## Quick start
-The input is a CSV file where rows represent cells and columns represent cell_type, x position, y position, tissue_sample_of_origin, XXX. See XXX.csv for an example.
+The input is a CSV file where rows represent cells and columns represent cell_type, x position, y position, SampleID, cellLabelInImage. See patient1_cell_positions.csv for an example. For niche-phenotype mapping part, another input is a CSV file  cells' marker expression. Cells are rows, and columns are marker expression values already trasnformed (Z-score normalization, log-normalisation arcsinh trasnformed depending the method used). See cellData.csv for an example.
 
 Geometrically, the samples should have the shape of a rectangle to generate sites and compute cell abundance. Cell types must have been already identified prior to NIPMAP analysis: NIPMAP considers cell types as a given. The list of markers should include phenotypic markers, that is markers (proteins or other) that were not used to identify cell types.
 
@@ -45,7 +45,17 @@ Running the analysis will produce the following outputs:
 ```
 └───/main_nipmap.py: calls py functions for NIPMAP pipeline + saves outputs into .json files
 └───/py_wrapper_nipmap.r: get NIPMAP outputs from .json files and loads R objects for further analyses
+└───/README.md
 |
+/ISS_analysis
+|
+└───/data
+|
+└───/notebooks
+|
+└───/output
+|
+└───/scripts
 /macro_niches_analysis
 |
 └───/data
@@ -64,8 +74,9 @@ Running the analysis will produce the following outputs:
 └───/outputs
 |
 /TMENS_analysis
-|   README.md
 |
+└───/clustering_MIBI_data.py: clustering (k-means) of sites cell abundance compared with niche-finding in NIPMAP
+└───/building_blocks_mapping.Rmd: Marker expression analysis in niches
 └───/data
 |   |   cellData.csv: normalized data (markers intensity) from CyTOF expfrom Keren et al.,Cell(2018)
 |   └───/tnbc_nature_cancer_dataset: contains csv files of cell positions and label for each patient (patientID_cell_position.csv)
@@ -97,13 +108,13 @@ Running the analysis will produce the following outputs:
 * **Images segmentation into niches**: Open /TMENS_analysis/notebooks/cell_positions_visualization.ipynb
 * **Macroscopic analysis of niches from CyTOF data (Wagner et al,2019)**: Open and excute the following R scripts from /macro_niches_analysis folder: 1. Processing of CyTOF data: scBC_analysis.Rmd, 2.Macro-microscopic cell composition of tumors mapping:  scBC_newCells.Rmd, 3. Linear regression of macroscopic cellular abundance over niches: lm_TMENS.Rmd Figures are found in /figs folder from /macro_niches_analysis
 * **Niche-phenotype mapping**: Open and excute this file from /phenotypes_niches: niche_phenotype_mapping.Rmd. Figures are found in /phenotypes_niches/figs
-* **NIPMAP on ISS dataset from Sountoulidis et al**: Open /ISS_analysis/notebooks/archetype_analysis.ipynb and excute "Radius Analysis", "Archetype Anlysis", "Visualization" and "Save data". The "Save data" part generates all the files needed for downstream analysis. Open /ISS_analysis/notebooks/HybISS_niche_explore.Rmd and excute the whole Rmarkdown file to generate all the figures included in the section "NIPMAP identifies the cellular and phenotypic architecture of developing lung from in situ RNA sequencing" of the paper. Figures could be found in the /ISS_analysis/output.
+* **NIPMAP on ISS dataset from Sountoulidis et al**: Open /ISS_analysis/notebooks/archetype_analysis.ipynb and excute "Radius Analysis", "Archetype Anlysis", "Visualization" and "Save data". The "Save data" part generates all the files needed for downstream analyses. Then, open /ISS_analysis/notebooks/HybISS_niche_explore.Rmd and excute the whole Rmarkdown file to generate all the figures included in the section "NIPMAP identifies the cellular and phenotypic architecture of developing lung from in situ RNA sequencing" of the paper. Figures generated for this analysis are found in /ISS_analysis/output.
 
 ## License
 
 ## Contact
 Fabio Lipreri - <>
-Anissa El Marrahi - <anissa.el@scilifelab.se>
+Anissa El Marrahi - <anissa.el@scilifelab.se>   <anissel12@gmail.com>
 Ziqi Kang - <ziqi.kang@scilifelab.se>
 Jean Hausser - <jean.hausser@scilifelab.se>
 
