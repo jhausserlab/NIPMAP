@@ -61,16 +61,14 @@ setwd(dirName)#setwd(dir = "/scratch/anissa.el/ImmuneStates/phenot_tmens")
 CELLTYPES=c('secretory', 'epithelial', 'proliferating smooth muscle', 'lymphatic endothelial', 'arterial', 
 'mesenchymal', 'ciliated epithelial', 'neuronal', 'pericyte', 'ASM', 
 'fibroblast', 'megakaryocyte', 'proximal progenitor', 'endothelial', 'neuroendocrine', 
-'chondroblast', 'airway smooth muscle', 'Dendritic', 'macrophage', 'myeloid', 
+'chondroblast', 'Dendritic', 'macrophage', 'myeloid', 
 'mesothelial', 'monocyte', 'capillary', 'ILC3', 'B-cell', 
-'erythrocyte', 'myeloid progenitor', 'dendritic', 'mast/basophil', 'venous', 
+'erythrocyte', 'myeloid progenitor', 'mast/basophil', 'venous', 
 'neutrophil', 'ILC2', 'lymphoid progenitor', 'natural killer')
 
 NBCELLTYPES = length(CELLTYPES)
 MARKERS <- read_rds("../data/ISS_marker_list.rds")
 METHOD ="gaussian"
-
-ROOT_OUTPUT_PATH="../output/"
 ```
 
 So far, we explored NIPMAP in the context of spatial mass cytometry data from tumor tissues. But NIPAMP is applicable to single-cell spatial multiplex imaging data. To illustrate this, we explore healthy tissues during develop profiled by in situ RNA sequencing (ISS). Instead of having cell positions (x,y), the local environment will be described as a vector with the proportions of TMENs of a site centered on each cell. We will study then the expression of markers within different cell types in the function of the local environment. 
@@ -79,6 +77,31 @@ So far, we explored NIPMAP in the context of spatial mass cytometry data from tu
 * Phenotypes can associate with multiple niches in different ways
 * Spatial niches
 * Phenotypes
+
+### Plot the dataset used
+
+```{r, warning=FALSE, echo=FALSE, fig.width=10, message=FALSE}
+
+dataset <- read_csv("../data/patient1_cell_positions.csv")
+
+cell_Freq <- table(stat(dataset$cell_type)) %>% as.data.frame() %>% mutate(percent = Freq*100/sum(Freq))
+keep <- cell_Freq %>% filter(percent >= 1) %>% `colnames<-`(c("cell_type", "Freq", "percent"))
+
+dataset$cell_type[!(dataset$cell_type %in% c(keep$cell_type)%>%as.vector())] <- "other"
+write_csv(dataset, "../data/patient1_cell_positions_simplified.csv")
+
+rhg_cols <- c('#629563', '#044E75', '#CA8F04', '#645D0D','#43BC52',
+'#B25E89', '#2E3790', '#F118BE','#50974E', '#3273D6',
+'#0AF24B', '#A3F159')
+
+ggplot(dataset, aes(x=x_origin,y=y_origin, color=cell_type)) + 
+  geom_point(size = 0.0001, alpha=0.5) + 
+  coord_fixed() + 
+  scale_color_manual(values = rhg_cols) +
+  guides(colour = guide_legend(override.aes = list(size=5,alpha=1)))
+
+```
+
 
 ### Face projection and cellular barplot for 5 niches
 
@@ -102,7 +125,6 @@ RESULT_DATA_PATH=paste(ROOT_DATA_PATH,"niche",NBNICHES,"_radius",RADIUS,"_patien
 if (file.exists(paste(ROOT_DATA_PATH,"cellData_",ImageIDs,".csv") %>% str_replace_all(" ", ""))){
   
   cell_markers <- read.csv(paste(ROOT_DATA_PATH, "cellData_",ImageIDs,".csv") %>% str_replace_all(" ", ""))
-  cell_markers$cell_type <- replace(cell_markers$cell_type, cell_markers$cell_type == "Erythroblast/RBC", "Erythroblast.RBC")
   
 }else{
   
@@ -579,13 +601,15 @@ plot_heatmap_CT(CM.mat=cMf,coreIntf2,"../output/CMbyCells.pdf")
 
 ```{r prepare table for reporting, warning=FALSE, echo=FALSE}
 
-  qThresh <- 0.01
-  corThresh <- 0.3
-  filterMat <- corCMtmens.qval<qThresh & abs(corMatrix[rownames(corCMtmens.qval),])>corThresh
-  # mean(apply(filterMat, 1, sum) > 0)
-  ## 90% of the marker are associated to at least one TMENs or interface!
-  
-  cMf <- corMatrix[names(which(apply(filterMat, 1, sum) > 0)),]
+  # qThresh <- 0.01
+  # corThresh <- 0.3
+  # filterMat <- corCMtmens.qval<qThresh & abs(corMatrix[rownames(corCMtmens.qval),])>corThresh
+  # # mean(apply(filterMat, 1, sum) > 0)
+  # ## 90% of the marker are associated to at least one TMENs or interface!
+  # 
+  # cMf <- corMatrix[names(which(apply(filterMat, 1, sum) > 0)),]
+
+inter_niche <- colnames(cellsPhen.niches %>% select(matches("a[0-9]a[0-9]")))
 
 tabTMENs2 <- as_tibble(cMf,rownames=NA)%>%
   rownames_to_column(var="names")%>%
@@ -701,7 +725,7 @@ p + theme(axis.line.x=element_blank(),
           panel.grid.minor.x=element_blank(),
           panel.grid.major.x=element_blank())
 
-ggsave("../output/SS_tmens.pdf",height=10,width=4)
+ggsave("../output/SS_tmens.pdf",height=10,width=5)
 ```
 
 
