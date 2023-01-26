@@ -7,7 +7,7 @@ library(pROC)
 library(ggpubr)
 library(pheatmap)
 
-#FIXME add figs path where to save all figures
+
 set_tmens_names <- function(x){
   names1 <- str_replace_all(x,c(a1 = "TLS",
                                 a2 = "inflammatory",
@@ -479,10 +479,15 @@ correlations_tmens_CM <- function(MarkersCellsTMENs,cellTypes, markers, qThresh=
 # qThresh: double, cut-off of q value for FDR correction of p values in correlation test
 # corThresh: double, cut-off to select high correlation
 correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman",coreIntf,qThresh=1/100,corThresh=0.3){
-  CM.gps <- markersCells.niches%>%filter(marker %in% Markers)%>%
+  rareCells<- markersCells.niches%>%group_by(cell_type)%>%summarise(total=n())%>%filter(total<10)%>%pull(cell_type)
+  print("These cell types are rare (count<10),")
+  print(rareCells)
+  #print("They will be removed from the correlation analysis")
+  CM.gps <- markersCells.niches%>%#filter(cell_type %in%rareCells)%>% #removing rare cell types
+    filter(marker %in% Markers)%>%
     mutate(id=paste(cell_type,marker,sep=";"))%>%
     group_by(cell_type, marker)%>%split(f= as.factor(.$id))
-  
+  #print(CM.gps)
   res <-lapply(CM.gps,function(x){ #a%>%group_by(cell_type, marker)%>%group_split()%>%setNames(id)
     corrs <- c()
     corrpvals <-c()
@@ -490,8 +495,11 @@ correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman
     #print(id)
     #cellPhen.names <- append(cellPhen.names,id)
     for(n in coreIntf){
-      if(sd(pull(x,value))==0){
-        corrValue<-NA
+      #print(n)
+      #print(length(pull(x,value)))
+      if(is.na(pull(x,value))|sd(pull(x,value))==0 |length(pull(x,value))<3){#|sd(pull(x,value))==0){
+        #print("ok")
+        corrValue <- NA
         corrp <- NA
       }
       else{
@@ -503,7 +511,7 @@ correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman
     }
     names(corrs) <- coreIntf2
     names(corrpvals) <- coreIntf2
-    list("corr_value"=corrs,"p_value"=corrpvals)
+    list("corr_value"=corrs,"p_value"= corrpvals)
   })
   #print(names(res))
   CorrMat <- do.call(rbind,lapply(res,'[[',"corr_value"))#do.call(rbind,res["corr_value"])
