@@ -471,7 +471,7 @@ correlation_niches_CM <- function(markersCells.niches=MarkersCellsTMENS2,Markers
     #print(id)
     #cellPhen.names <- append(cellPhen.names,id)
     for(n in coreIntf){
-      if(sd(pull(x,value))==0){
+      if(sd(pull(x,value))==0 | is.na(sd(pull(x,value)))){
         corrValue<-NA
         corrp <- NA
       }

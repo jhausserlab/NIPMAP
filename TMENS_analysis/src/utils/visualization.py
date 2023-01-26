@@ -958,7 +958,7 @@ def archetypes_bar_plot(cell_number_archetypes, cell_types, colors, y_axis='coun
     #print(y_pos)
     x = (len(cell_number_archetypes)//2) + len(cell_number_archetypes)%2
     #print(x)
-    nbs = list(range(1, nbArch))
+    nbs = list(range(1, nbArch+1))
     #3-->1, 1-->4, 2-->2 , 4-->3
     #print(list(range(-x, x)))
     #print(data)
