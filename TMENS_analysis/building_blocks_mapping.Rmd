@@ -37,27 +37,15 @@ setwd(dirName)#setwd("/scratch/anissa.el/ImmuneStates")
 ```
 
 
-
-```{r data, echo=TRUE,eval=FALSE}
-#archetypes_sites <- read.csv('/srv/mfs/hausserlab/fabio/output/csv_files/archetypes_matrix.csv', header = TRUE, sep = ",",col.names = c('archetype1', 'archetype2', 'archetype3', 'archetype4','site_id','patient_id'))
-#saveRDS(archetypes_sites,"/srv/mfs/hausserlab/anissa.el/ImmuneStates/data_BB/archetypesSitesKeren.rds")
-#sites_abund <- read.csv("/srv/mfs/hausserlab/fabio/output/csv_files/abbundance_matrix.csv",header = TRUE, sep = ",",col.names = c("index",'CD8-T', 'Other immune', 'DC / Mono', 'CD3-T', 'B', 'NK', 'Keratin-positive tumor', 'Tumor', 
-#              'CD4-T', 'Mesenchymal-like', 'Macrophages', 'Endothelial', 'Tregs', 'Unidentified', 'DC', 'Mono / Neu', 
-#              'Neutrophils','site_id', 'patient_id'))
-#sites_abund <- dplyr::select(sites_abund,-(index))
-
-```
-
-
 ```{r dataGaussian, eval=TRUE,echo=TRUE}
 
 NBCELLTYPES = 17
 CELLTYPES <- c('CD8-T', 'Other immune', 'DC / Mono', 'CD3-T', 'B', 'NK', 'Keratin-positive tumor', 'Tumor','CD4-T', 'Mesenchymal-like', 'Macrophages', 'Endothelial', 'Tregs', 'Unidentified', 'DC', 'Mono / Neu','Neutrophils')
-archetypes_sites <- read.csv("./data_BB/archetypes_matrix_gaussian.csv", header = TRUE, sep = ",")#,col.names = c('archetype1', 'archetype2', 'archetype3', 'archetype4','site_id','patient_id'))
+archetypes_sites <- read.csv("./data/archetypes_matrix_gaussian.csv", header = TRUE, sep = ",")#,col.names = c('archetype1', 'archetype2', 'archetype3', 'archetype4','site_id','patient_id'))
 
-saveRDS(archetypes_sites,"./data_BB/archetypesSitesKeren.rds")
+saveRDS(archetypes_sites,"./data/archetypesSitesKeren.rds")
 #saveRDS(archetypes_sites,"/srv/mfs/hausserlab/anissa.el/ImmuneStates/archetypesSitesKeren.rds")
-sites_abund <- read.csv("./data_BB/abundance_matrix_gaussian.csv",header = TRUE, sep = ",")#,col.names = c("index",'CD8-T', 'Other immune', 'DC / Mono', 'CD3-T', 'B', 'NK', 'Keratin-positive tumor', 'Tumor','CD4-T', 'Mesenchymal-like', 'Macrophages', 'Endothelial', 'Tregs', 'Unidentified', 'DC', 'Mono / Neu','Neutrophils','site_id', 'patient_id'))
+sites_abund <- read.csv("./data/abundance_matrix_gaussian.csv",header = TRUE, sep = ",")#,col.names = c("index",'CD8-T', 'Other immune', 'DC / Mono', 'CD3-T', 'B', 'NK', 'Keratin-positive tumor', 'Tumor','CD4-T', 'Mesenchymal-like', 'Macrophages', 'Endothelial', 'Tregs', 'Unidentified', 'DC', 'Mono / Neu','Neutrophils','site_id', 'patient_id'))
 sites_abund <- sites_abund%>%dplyr::select(-(index))
 
 ```
@@ -214,7 +202,7 @@ BuildingBlocks <- rbind(BuildingBlocks,bb3)
 BuildingBlocks <- rbind(BuildingBlocks,bb4)
 BuildingBlocks <- BuildingBlocks %>%mutate(`Mesenchymal.like` =`Mesenchymal.like`+Unidentified)%>%dplyr::select(-(Unidentified))
 #BuildingBlocks <- BuildingBlocks%>%column_to_rownames(var="bb")
-write.csv(BuildingBlocks,"./data_BB/building_blocks_cell_abundance.csv",col.names=TRUE)
+write.csv(BuildingBlocks,"./data/building_blocks_cell_abundance.csv",col.names=TRUE)
 ```
 
 
@@ -225,7 +213,7 @@ write.csv(BuildingBlocks,"./data_BB/building_blocks_cell_abundance.csv",col.name
 
 ```{r cellmarkers, echo=FALSE}
 
-cell_markers <- read.csv('/srv/mfs/hausserlab/fabio/david_data/cellData.csv',header = TRUE, sep =',')
+cell_markers <- read.csv('./data/cellData.csv',header = TRUE, sep =',')
 
 colnames(cell_markers)
 cell_markers <- cell_markers %>% relocate(Background, .after = cellLabelInImage)
@@ -256,7 +244,7 @@ cell_markers <- cell_markers%>%
   dplyr::rename(cell_id = cellLabelInImage)
 colnames(cell_markers)
 #ImmuneCells <- filter(cell_markers, immuneGroup !='None')
-saveRDS(cell_markers, "./data_BB/cell_markers_keren.rds")
+saveRDS(cell_markers, "./data/cell_markers_keren.rds")
 cells_abund_patient <- cell_markers %>%
   dplyr::select(patient_id,cell_id,cell_type)
 cells_abund_patient <- cells_abund_patient%>%
@@ -269,7 +257,7 @@ cells_abund_patient <- cells_abund_patient%>%
 
 CellsPropKeren <- t(apply(as.matrix(cells_abund_patient),1,function(x) x*100/sum(x)))
 
-saveRDS(CellsPropKeren, file = "./wagner_analysis/data/CellsPropKeren.rds")
+saveRDS(CellsPropKeren, file = "../macro_niches_analysis/data/CellsPropKeren.rds")
 
 ```
 
@@ -343,7 +331,7 @@ Here, we get the cell ID and site ID to link each cell to a site and so on :
 
 ```{r cellsmarkers2, echo= TRUE}
 
-cells_per_sites<-read.csv("./data_BB/site_cells_gaussian.csv",header = TRUE, sep = ",") #read.csv("/srv/mfs/hausserlab/fabio/output/csv_files/site_cells.csv",header = TRUE, sep = ",")
+cells_per_sites<-read.csv("./data/site_cells_gaussian.csv",header = TRUE, sep = ",") #read.csv("/srv/mfs/hausserlab/fabio/output/csv_files/site_cells.csv",header = TRUE, sep = ",")
 cells_per_sites <- cells_per_sites %>% dplyr::rename (site_id = site_idx)
 
 ```
@@ -416,7 +404,7 @@ ggplot(cell_BB_m,aes(color = variable)) +
 ```{r plotBCells, echo=FALSE}
 
 markers_BB_boxplot(CellsBB1_markers,"BB1","B",c(0,7))
-ggsave("../figs/markersBcellsBB1.pdf",height = 3, width = 4)
+ggsave("./output/figs/markersBcellsBB1.pdf",height = 3, width = 4)
 ```
  
  
@@ -486,7 +474,7 @@ Let's see with a boxplot the markers that are most intense :
 ```{r plotCD4BB1, echo=FALSE}
 
 markers_BB_boxplot(CellsBB1_markers,"BB1","CD4-T",c(-2,7))
-ggsave("../figs/markersCD4TBB1.pdf",height = 3, width = 4)
+ggsave("./output/figs/markersCD4TBB1.pdf",height = 3, width = 4)
 ```
  We can see that in majority CD4, CD3 and CD45RO positive markers. We didn't find a significant intensity for FoxP3, nor checkpoint markers such as B7H3 (CD276), PD1 and Lag3. 
  
@@ -514,7 +502,7 @@ If we take a look at the intensities for macrophages from this building block, w
 ```{r plotMacro, echo=FALSE}
 
 markers_BB_boxplot(CellsBB2_markers,"BB2","Macrophages",c(-0.5,9))
-ggsave("../figs/markersMacrophagesBB2.pdf",height = 3, width = 4)
+ggsave("./output/figs/markersMacrophagesBB2.pdf",height = 3, width = 4)
 ```
  
  In particular, the marker CD68 seems significantly intense while we have low intensity (even no intensity) for the marker CD63, known to be a marker for M2 macrophages in flow cytometry. Therefore, we can identify the macrophages as more likely to be M1-like macrophages. W need to prove It with a statistical test. BUt, as we might have seen in this building block, the sites contain a lot of CD8+ T cells, CD4 T cells which are known to be tumor suppressors ==> Th1 response against cancer cells (+ Little amounts of NK cells). The CSFR1 marker is present because it is the main marker of monocytes.
@@ -545,7 +533,7 @@ markers_BB_boxplot(CellsBB2_markers,"BB2","CD8-T",c(-1,7))
 ```{r plotCD4, echo=FALSE}
 
 markers_BB_boxplot(CellsBB2_markers,"BB2","CD4-T",c(-1,8))
-ggsave("../figs/markersCD4TBB2.pdf",height = 3, width = 4)
+ggsave("./output/figs/markersCD4TBB2.pdf",height = 3, width = 4)
 ```
 
  We can find the CD3 and CD4 markers in higher intensities but also a certain amount of CD8 marker. THis means that we are most likely to have a T helper cell but we cannot determine the subtype of those CD4 cells, we need more specific markers.
@@ -650,7 +638,7 @@ Let's take a look at Keratin positive tumor cells in this building block :
 'Keratin-positive tumor' %in%CellsBB3_markers$cell_type
 #'Tumor' %in%CellsBB3_markers$cell_type
 markers_BB_boxplot2(CellsBB3_markers,"BB3",'Keratin-positive tumor',c(-2,7.5))
-ggsave("../figs/markersKerPosCellsBB3.pdf",height = 3, width = 4)
+ggsave("./output/figs/markersKerPosCellsBB3.pdf",height = 3, width = 4)
 ```
 
 THose cells express more pan keratin and keratin 17 and almost no keratin 6.
@@ -667,527 +655,13 @@ The beta catenin seems to be very high in this cell type  but htis is the ionly 
 
 We know that there are cells at an undifferentiated stage in the tumor micro environment. It would be interesting to take a look at the markers related to those cells. But first, we need to see in which building block(s), this cell type is mostly present (in terms of proportions)
 
-```{r mesenchymalCells, echo = FALSE }
-# summary(bblock1_sites)
-# summary(bblock2_sites)
-# summary(bblock3_sites)
-# summary(bblock4_sites)
-```
-
 We'll take a look at mesenchymal cells in building block 4 (median = 48)
 
 ```{r mesenchymalCllsBB4, echo = FALSE}
 markers_BB_boxplot2(CellsBB4_markers,'BB4','Mesenchymal-like',c(-1,4))
 ```
- This cell type has negative intensities for beta catenin and HLA class I. In some websites, this last marker is presented a one for identifying this cell type but we don't understand why we find low intensities of this marker here. source('data_proc_building_blocks.r')
- 
-### **Are the results consistent ?**
+ This cell type has negative intensities for beta catenin and HLA class I. In some websites, this last marker is presented a one for identifying this cell type but we don't understand why we find low intensities of this marker here. #source('data_proc_building_blocks.r')
 
-We will run 3 times the simulation  of building blocks analysis to see if the cell abundance results that we have -especially for building block 4 which represents a disorganized tissue- is consistent  because the boxplots represented a lot of outliers  
-
-
-
-### **Immune Checkpoint markers**
-
-#### **Are they represented by a mix of building blocks ?**
-
-Immune Checkpoints are critical for tumor progression but are also some interesting targets in immunotherapy. Indeed, they are response for tumor survival and correlate with low survival for patients. The major markers of immune checkpoints are Lag3, PD1 (T cells), PD-L1 (tumor cells) and B7H3. We didn't find any of those markers in our building blocks which can either indicate that they are not expressed in our set of cells or just that the cells expressing those markers are not representative of any of the 4 building blocks.  Then we can make the hypothesis that the cells expressing those IC are part of a mix of building block. 
-
-To test this hypothesis, we would take a look first at the cell types that express in higher intensities our markers :
-
-```{r IC1, echo=FALSE}
-if (!exists("cell_markers")){
-  cell_markers <- loadRDS( "./data_BB/cell_markers_keren.rds")
-}
-
-ICMarkers <- cell_markers%>% dplyr::select(patient_id, cell_id, cell_type,Lag3,B7H3, IDO, PD1, PD.L1,OX40,Vimentin,Ki67,EGFR)
-#%>% filter(cell_type =='CD4-T')
-```
-
-Now, let's take a look with a violin plot for each marker how high the cell types express It :
-
-```{r IC2,echo = TRUE}
-#ICM_m <- melt(ICMarkers[3:4])
-ggplot(ICMarkers,aes(color = cell_type))+
-    geom_violin(aes(x= cell_type, y = PD1),trim=TRUE,show.legend = FALSE)+
-    theme(axis.text.x=element_text(angle=45,hjust=0.8,vjust=0.5))+
-    coord_cartesian(ylim = c(-10,30))+
-    labs(title = "    Boxplot of marker Lag3 intensity for each cell type ")+
-    xlab ("") + ylab("intensity (Arbitrary Unit)")
-
-
-
-```
-  The violin plot doesn't clearly show us what are the cell types that express the most a marker such as Lag3. Let's try to plot points by cell types for each Immune checkpoint marker. 
-
-```{r IC3,echo= FALSE}
-#ic_markers <- list('Lag3','B7H3','IDO',PD1,PD.L1,OX40)
-ic_markers <- ICMarkers[c('Lag3','B7H3','IDO','PD1','PD.L1','OX40')]#[4:9]
-#par(mfrow(3,2))
-plots <- list()
-for(i in c('Lag3','B7H3','IDO','PD1','PD.L1','OX40','Vimentin','Ki67','EGFR')){
-fig <- ggplot(ICMarkers,aes(color = cell_type))+
-  geom_point(aes_string(x='cell_type', y =i),show.legend=FALSE)+
-  theme(axis.text.x=element_text(angle=45,hjust=0.8,vjust=0.5))+
-  coord_cartesian(ylim = c(0,40))+
-  labs(title = paste("     Plot of marker ",i, " intensity for each cell type "))+
-  xlab ("") + ylab("intensity (Arbitrary Unit)")
-print(fig)
-plots[[i]] <- fig  
-}
-#cowplot::plot_grid(plotlist = plots, nrow = 2)
-#multiplot(plots,ncol = 3, nrow = 2)
-```
-
-
-```{r IC4, echo=TRUE}
-CellsSitesIC <- left_join(cells_per_sites,ICMarkers,by = c('cell_id','patient_id'))%>%
-  dplyr::select(-(cell_type.y))%>%
-  dplyr::rename(cell_type=cell_type.x)
-SummaryICSites <- CellsSitesIC %>% 
-  group_by(patient_id,site_id,cell_type) %>%
-  summarise(avLag3 = mean(Lag3),
-            avOX40 = mean(OX40),
-            avPD1 = mean(PD1),
-            avPDL1 = mean(PD.L1),
-            avIDO = mean(IDO),
-            avB7H3 = mean(B7H3))
-
-#SummaryICSites  <- SummaryICSites %>%mutate(avLag3= replace(avLag3,cell_type==,NA))
-
-#### Lag3 marker
-Lag3CD4T <- SummaryICSites%>% 
-  group_by(patient_id,site_id)%>%
-  filter(cell_type=='CD4-T')%>%
-  dplyr::select(-c(cell_type,avOX40,avPD1,avPDL1,avIDO,avB7H3))%>%
-  dplyr::rename(Lag3CD4 = avLag3)
-
-Lag3CD8T <- SummaryICSites%>%
-  group_by(patient_id,site_id)%>%
-  filter(cell_type=='CD8-T')%>%
-  dplyr::select(site_id,patient_id,avLag3)%>%
-  dplyr::rename(Lag3CD8 = avLag3)
-
-Lag3Tregs <- SummaryICSites%>%
-  group_by(patient_id,site_id)%>%
-  filter(cell_type=='Tregs')%>%
-  dplyr::select(site_id,patient_id,avLag3)%>%
-  dplyr::rename(Lag3tregs = avLag3)
-
-#MARKERSic1 <- left_join(sites_PCA,Lag3Tregs,by=c('patient_id','site_id'))
-###PD1 marker 
-PD1CD4 <- SummaryICSites%>% group_by(patient_id,site_id)%>%
-  filter(cell_type=='CD4-T')%>%
-  dplyr::select(site_id,patient_id,avPD1)%>%
-  dplyr::rename(PD1cd4 = avPD1)
-
-PD1CD8 <- SummaryICSites%>%
-  group_by(patient_id,site_id)%>%
-  filter(cell_type=='CD8-T')%>%
-  dplyr::select(site_id,patient_id,avPD1)%>%
-  dplyr::rename(PD1cd8 = avPD1)
-
-
-#### PD L1 marker
-PDL1Ker <- SummaryICSites%>%
-  group_by(patient_id,site_id)%>%
-  filter(cell_type=='Keratin-positive tumor')%>%
-  dplyr::select(site_id,patient_id,avPDL1)%>%
-  dplyr::rename(PDL1ker = avPDL1)
-
-#### OX40 marker
-OX40CD8 <- SummaryICSites%>%
-  group_by(patient_id,site_id)%>%
-  filter(cell_type=='CD8-T')%>%
-  dplyr::select(site_id,patient_id,avOX40)%>%
-  dplyr::rename(OX40cd8 = avOX40)
-
-OX40CD4 <- SummaryICSites%>%
-  group_by(patient_id,site_id)%>%
-  filter(cell_type=='CD4-T')%>%
-  dplyr::select(site_id,patient_id,avOX40)%>%
-  dplyr::rename(OX40cd4 = avOX40)
-
-OX40Tregs <- SummaryICSites%>%
-  group_by(patient_id,site_id)%>%
-  filter(cell_type=='Tregs')%>%
-  dplyr::select(site_id,patient_id,avOX40)%>%
-  dplyr::rename(OX40tregs = avOX40)
-
-OX40Ker <- SummaryICSites%>%
-  group_by(patient_id,site_id)%>%
-  filter(cell_type=='Keratin-positive tumor')%>%
-  dplyr::select(site_id,patient_id,avOX40)%>%
-  dplyr::rename(OX40ker = avOX40)
-
-#### B7H3 marker
-B7H3Ker <- SummaryICSites%>%
-  group_by(patient_id,site_id)%>%
-  filter(cell_type=='Keratin-positive tumor')%>%
-  dplyr::select(site_id,patient_id,avB7H3)%>%
-  dplyr::rename(B7H3ker = avB7H3)
-#### IDO marker
-
-```
-
-
-
-
-```{r IC5, echo=TRUE}
-
-
-## Sampling sites: gaussian counts (proportions)
-sites_PCA <- read.csv("./data_BB/sites_pca_matrix_gaussian.csv",sep=',',header=TRUE)
-
-## Sampling sites: absolute counts
-#sites_PCA <-read.csv('/srv/mfs/hausserlab/anissa.el/building_blocks_old/sites_pca_matrix.csv',sep=',',header=TRUE)
-
-sitesMarkersICperCellType <- left_join(sites_PCA,Lag3CD4T,by=c('patient_id','site_id'))
-sitesMarkersICperCellType <- left_join(sitesMarkersICperCellType,Lag3Tregs,by=c('patient_id','site_id'))
-sitesMarkersICperCellType <- left_join(sitesMarkersICperCellType,Lag3CD8T,by=c('patient_id','site_id'))
-sitesMarkersICperCellType <- left_join(sitesMarkersICperCellType,PD1CD4,by=c('patient_id','site_id'))
-sitesMarkersICperCellType <- left_join(sitesMarkersICperCellType,PD1CD8,by=c('patient_id','site_id'))
-
-sitesMarkersICperCellType <- left_join(sitesMarkersICperCellType,PDL1Ker,by=c('patient_id','site_id'))
-sitesMarkersICperCellType <- left_join(sitesMarkersICperCellType,OX40CD8,by=c('patient_id','site_id'))
-sitesMarkersICperCellType <- left_join(sitesMarkersICperCellType,OX40CD4,by=c('patient_id','site_id'))
-sitesMarkersICperCellType <- left_join(sitesMarkersICperCellType,OX40Tregs,by=c('patient_id','site_id'))
-sitesMarkersICperCellType <- left_join(sitesMarkersICperCellType,OX40Ker,by=c('patient_id','site_id'))
-sitesMarkersICperCellType <- left_join(sitesMarkersICperCellType,B7H3Ker,by=c('patient_id','site_id'))
-
-sitesMarkersICperCellType <- sitesMarkersICperCellType%>%replace(., is.na(.), 0)
-
-plot_ICMarkers <- function(marker_type){
-  to_col <- sitesMarkersICperCellType$marker_type
-  fig <- plot_ly(x = sitesMarkersICperCellType$PC2,
-                 y = sitesMarkersICperCellType$PC1,
-                 z = sitesMarkersICperCellType$PC3,
-                 type="scatter3d",
-                 mode="markers",
-                 mode = 'text',
-                 color=~to_col)
-
-  fig <- fig %>% layout(scene = list(xaxis = list(title = 'PC1'),
-                                     yaxis = list(title = 'PC2'),
-                                     zaxis = list(title = 'PC3') ),
-                      title = '3D PCA of sites')
-  fig
-}
-### PLOT PCA SITES
-
-#plot_ICMarkers(Lag3tregs)
-```
-
-```{r archetypesIC, echo=TRUE}
-library(reticulate)
-
-nbArch = 4
-data = as.matrix(sites_PCA[,c("PC1","PC2","PC3")])
-
-py_run_string("import numpy as np")
-py_run_string("import sys")
-py_run_string("sys.path.insert(1, '/srv/mfs/hausserlab/fabio/data_analysis/src/utils')")
-py_run_string("from archetypes import ArchetypalAnalysis")
-py_run_string("import pandas as pd")
-py_run_string("def compute_archetypes(data,nbArch):
-    pc3dWagner = data
-    AA = ArchetypalAnalysis(n_archetypes = nbArch, 
-                          tolerance = 0.001, 
-                          max_iter = 200, 
-                          random_state = 0, 
-                          C = 0.0001, 
-                          initialize = 'random',
-                          redundancy_try = 30)
-    AA.fit_transform(pc3dWagner)
-    return AA.alfa")
-ArchsAlfas <- t(py$compute_archetypes(data,as.integer(nbArch)))
-sitesMarkersICperCellType$Arch1 <- ArchsAlfas[,1]  
-sitesMarkersICperCellType$Arch2 <- ArchsAlfas[,2]
-sitesMarkersICperCellType$Arch3 <- ArchsAlfas[,3]
-sitesMarkersICperCellType$Arch4 <- ArchsAlfas[,4]
-colnames(ArchsAlfas) <- c("Arch1","Arch2","Arch3","Arch4")
-```
-
-
-```{r plotsArchIC, echo=TRUE}
-library(ggpubr)
-sitesMarkerAA <- pivot_longer(sitesMarkersICperCellType%>%dplyr::select(-c(PC1,PC2,PC3)),#PD1cd4,site_id,Arch1,Arch2,Arch3,Arch4
-                                      cols = c("Arch1","Arch2","Arch3","Arch4"),
-                                      names_to = "archetype",
-                                      values_to = "proportion")%>%pivot_longer(cols = c("Lag3CD4","Lag3tregs","Lag3CD8","PD1cd4","PD1cd8","PDL1ker","OX40cd8","OX40cd4","OX40tregs","OX40ker","B7H3ker"),
-                                                                               names_to="marker",
-                                                                               values_to="intensity")
-
-ggplot(data=sitesMarkerAA,aes(x = proportion, y= intensity,color =marker ))+
-  #scale_y_continuous(trans="log10")+
-  facet_wrap(~archetype,ncol=2,labeller = "label_value")+
-  geom_point()#+
-  #stat_cor(method="spearman")
-  #geom_smooth()  
-
-# summary(lm(PD1cd4 ~ Arch1 + Arch3 + Arch3*Arch4+0,data=sitesMarkersICperCellType))
-# summary(lm(PD1cd4 ~ Arch1*Arch2+0,data=sitesMarkersICperCellType))
-# summary(aov(PD1cd4 ~ Arch3*Arch4+0,data=sitesMarkersICperCellType))
-cellMarkers.sites <- right_join(cell_markers,cells_per_sites,by=c("cell_id","patient_id","cell_type"))
-
-NB_PATIENTS <- 40
-sites_PCA2 <-cbind(sites_PCA,ArchsAlfas)#nb patients = 40
-
-cellMarkers.sites2 <- left_join(cellMarkers.sites,sites_PCA2, by = c("patient_id","site_id"))
-cellMarkers.sites3 <- cellMarkers.sites2 %>%pivot_longer(cols = c("Background","dsDNA","Vimentin","SMA","B7H3","FoxP3","Lag3","CD4","CD16","CD56","OX40","PD1","CD31","PD.L1","EGFR","Ki67","CD209","CD11c","CD138","CD163","CD68","CSF.1R","CD8","CD3","IDO","Keratin17","CD63","CD45RO","CD20","p53","Beta.catenin","HLA.DR","CD11b","CD45","H3K9ac","Pan.Keratin","H3K27me3","phospho.S6","MPO", "Keratin6","HLA_Class_1"),
-                                                        names_to = "marker",
-                                                        values_to ="intensity")%>%pivot_longer(cols = c("Arch1", "Arch2", "Arch3", "Arch4"), names_to = "archetype", values_to ="proportion" )
-
-
-ggplot(data = cellMarkers.sites3%>%filter(cell_type == "CD4-T" & marker %in% c("PD1","FoxP3","PD.L1","Lag3","IDO","B7H3")), aes(x = intensity, y = proportion,color = marker))+
-  facet_wrap(~archetype,ncol=2, labeller="label_value")+
-  geom_point()
-
-
-```
-
-
-```{r probsArchs, echo=TRUE}
-#ggplot(data = sitesMarkerAA, aes(x = archetype,y = proportion))+
-#  geom_col
-# sites.ICMarkersArch<- sitesMarkersICperCellType%>%mutate(archetype = ifelse(Arch1>=0.8, "ARCH1",
-#                                                       ifelse(Arch2>=0.8,"ARCH2",
-#                                                              ifelse(Arch3>=0.8,"ARCH3",
-#                                                                     ifelse(Arch4>=0.8,"ARCH4",NA)))))%>% filter(!is.na(archetype))
-# anova (lm(PD1cd4 ~ archetype,data = sites.ICMarkersArch))
-#anova(lm(PD1cd4~ Arch1 + Arch3 + Arch4 + Arch3*Arch4,data = sitesMarkersICperCellType))
-
-#anova(lm(PD1cd4~ Arch2 + Arch3 + Arch4 + Arch3*Arch4,data = sitesMarkersICperCellType))
-plot_IC_markers_archs <-function(cellType){
- plot1 <- ggplot(data = cellMarkers.sites3%>%filter(cell_type == cellType & marker %in% c("PD1","FoxP3","PD.L1","Lag3","IDO","B7H3")), aes(x = intensity, y = proportion,color = marker))+
-  facet_wrap(~archetype,ncol=2, labeller="label_value")+
-  ggtitle(ct)+
-  geom_point()
- #plot1
- ggsave(plot1,paste0("./plots/plotICSitesArchs_",ct,".pdf"))
- #return(plot1)
-}
-#rm(ct)
-
-# plot_IC_markers_archs("CD4-T")
-# plots <- c()
-# for(ct in CELLTYPES){
-#   p1 <- plot_IC_markers_archs(ct)
-#   #plots <-rbind(plots,p1) 
-#   #print(p1)
-# }
-
-
-```
-Look at the cells within the site 
-For example a T cell
-observe the intensity of a certain T cell marker
-Environment: this is the proportions of archetypes
-Plot : x is the Intensity of the marker observed in a specific cell type
-      y is the proportion of as certain TMEN of a site in which the cell is located
-      points are all the cells
-      
-WARNING: plot hist of markers ==> is it a good marker (bi modal distr), if it is bimodal then it is good quality. Otherwise, we would find anyways correlations between markers and the alphas, because of the neighbouring cells or because of a potenital overlapping between cells ==> CyTOF at singke cell level, more precise in space, less overlapping issues a priori.
-
-```{r cellsMarkersSites ,echo=TRUE}
-
-```
-
-```{r plotIC1, echo = TRUE}
-
-Lag3_Tregs <- sitesMarkersICperCellType$Lag3tregs
-sitesMarkersICperCellType <- sitesMarkersICperCellType%>%
-  replace_na(list(Lag3tregs=0))
-fig <- plot_ly(x = sitesMarkersICperCellType$PC2,
-               y = sitesMarkersICperCellType$PC1,
-               z = sitesMarkersICperCellType$PC3,
-               type="scatter3d",
-               mode="markers",color =~Lag3_Tregs,
-               mode = 'text')
-
-fig <- fig %>% layout(scene = list(xaxis = list(title = 'PC1'),
-                                   yaxis = list(title = 'PC2'),
-                                   zaxis = list(title = 'PC3') ),
-                      title = '3D PCA of sites with average intensity of Lag3 in Tregs')
-fig
-
-```
-
-
-We can find some sites where Lag3 is expressed in Tregs near Building block 3 (known to contain exclusively tumor cells). We can also find some along the edge between archetype 3 and 4. 
-
-```{r plotIC2, echo = TRUE}
-Lag3_CD4 <- sitesMarkersICperCellType$Lag3CD4
-sitesMarkersICperCellType <- sitesMarkersICperCellType%>%
-  replace_na(list(Lag3tregs=0))
-
-fig <- plot_ly(x = sitesMarkersICperCellType$PC2,
-               y = sitesMarkersICperCellType$PC1,
-               z = sitesMarkersICperCellType$PC3,type="scatter3d",
-               mode="markers",
-               color =~Lag3_CD4,
-               opacity=0.5,
-               mode = 'text')
-
-fig <- fig %>% layout(scene = list(xaxis = list(title = 'PC1'),
-                                   yaxis = list(title = 'PC2'),
-                                   zaxis = list(title = 'PC3') ),
-                      title = '3D PCA of sites with average intensity of Lag3 in CD4 T cells')
-fig
-```
-
-Let's see with the PD1 marker :
-
-```{r plotIC3, echo = TRUE}
-PD1_CD4 <- sitesMarkersICperCellType$PD1cd4
-#sitesMarkersICperCellType <- sitesMarkersICperCellType%>%replace_na(list(Lag3tregs=0))
-fig <- plot_ly(x = sitesMarkersICperCellType$PC2,
-               y = sitesMarkersICperCellType$PC1,
-               z = sitesMarkersICperCellType$PC3,
-               type = "scatter3d",
-               mode = "markers",
-               color =~PD1_CD4,
-               marker = list(colorbar = list(title = "Intensity of PD1 marker in CD4 T cells"),
-                           colorscale = "Viridis"),
-               mode = 'text')
-
-fig <- fig %>% layout(scene = list(xaxis = list(title = 'PC1'),
-                                   yaxis = list(title = 'PC2'),
-                                   zaxis = list(title = 'PC3') ),
-                      title = '3D PCA of sites with average intensity of PD1 in CD4 T cells')
-fig
-
-```
-
-We can have the same conclusions as previously. 
-
-#### PD L1 MARKER
-
-This marker is an immune checkpoint expressed by the tumor cells. It recognizes PD1 which is a molecule expressed by T cells. This complex allows tumor cell survival. T cells don't trigger the killing of those cells when the immune checkpoint is recognized. Here, we'll see the sites that contain tumor cells that express the marker PD L1 :
-
-
-
-```{r plotIC4, fig.width =15,fig.height = 12,echo = FALSE}
-sitesMarkersICperCellTypeCut = apply(sitesMarkersICperCellType, 2, function(x) {
-  cutOffs = quantile(x, c(.05, .95))
-  x[x<cutOffs[1]] = cutOffs[1]
-  x[x>cutOffs[2]] = cutOffs[2]
- return(x)
-}) %>% as.data.frame()
-sitesMarkersICperCellType[1:5,1:7]
-sitesMarkersICperCellTypeCut[1:5,1:7]
-plot(sitesMarkersICperCellType[,8], sitesMarkersICperCellTypeCut[,8])
-
-PDL1_KeratinPositiveTumor <- sitesMarkersICperCellTypeCut$PDL1ker
-
-fig <- plot_ly(x = sitesMarkersICperCellType$PC2,
-               y = sitesMarkersICperCellType$PC1,
-               z = sitesMarkersICperCellType$PC3,
-               type = "scatter3d",
-               mode = "markers",
-               color =~PDL1_KeratinPositiveTumor,
-               mode = 'text')
-
-fig <- fig %>% layout(scene = list(xaxis = list(title = 'PC1'),
-                                   yaxis = list(title = 'PC2'),
-                                   zaxis = list(title = 'PC3') ),
-                      title = '3D PCA of sites with average intensity of PD1 L1 in Keratin positive tumor cells')
-fig
-
-```
-
-#### OX40 MARKER
-
-This marker is expressed mainly in CD4 T cells, Tregs and can be found in some tumor cells.
-
-```{r plotIC5, echo = FALSE}
-OX40_CD4 <- sitesMarkersICperCellType$OX40cd4
-
-fig <- plot_ly(x = sitesMarkersICperCellType$PC2,
-               y = sitesMarkersICperCellType$PC1,
-               z = sitesMarkersICperCellType$PC3,
-               type="scatter3d",
-               mode="markers",
-               color =~OX40_CD4,
-               mode = 'text')
-
-fig <- fig %>% layout(scene = list(xaxis = list(title = 'PC1'),
-                                   yaxis = list(title = 'PC2'),
-                                   zaxis = list(title = 'PC3') ),
-                      title = '3D PCA of sites with average intensity of OX40 in CD4 T cells')
-fig
-
-```
-
-
-In CD4 T cells, there are very few sites with this marker expressed in high intensity. However, those rare sites are located always on the edge between building block 3 and building block 4. 
-Let's check for Tregs :
-
-```{r plotIC6, echo = TRUE}
-OX40_Tregs <- sitesMarkersICperCellType$OX40tregs
-
-fig <- plot_ly(x = sitesMarkersICperCellType$PC2,
-               y = sitesMarkersICperCellType$PC1,
-               z = sitesMarkersICperCellType$PC3,
-               type="scatter3d",
-               mode="markers",
-               color=~OX40_Tregs,
-               mode = 'text')
-
-fig <- fig %>% layout(scene = list(xaxis = list(title = 'PC1'), 
-                                   yaxis = list(title = 'PC2'), 
-                                   zaxis = list(title = 'PC3') ),
-                      title = '3D PCA of sites with average intensity of OX40 in Tregs')
-fig
-
-```
-
-
-
-
-```{r plotIC7, echo = TRUE}
-OX40_KeratinPositiveTumor <- sitesMarkersICperCellType$OX40ker
-
-fig <- plot_ly(x = sitesMarkersICperCellType$PC2,
-               y = sitesMarkersICperCellType$PC1,
-               z = sitesMarkersICperCellType$PC3,
-               type="scatter3d",
-               mode="markers",
-               color=~OX40_KeratinPositiveTumor,
-               mode = 'text')
-
-fig <- fig %>% layout(scene = list(xaxis = list(title = 'PC1'),
-                                   yaxis = list(title = 'PC2'),
-                                   zaxis = list(title = 'PC3') ),
-                      title = '3D PCA of sites with average intensity of OX40 in Keratin-Positive Tumor cells')
-fig
-
-```
-
-
-#### B7H3 MARKER
-
-```{r plotIC8, echo = TRUE}
-B7H3_KeratinPositiveTumor <- sitesMarkersICperCellType$B7H3ker
-
-fig <- plot_ly(x = sitesMarkersICperCellType$PC2,
-               y = sitesMarkersICperCellType$PC1,
-               z = sitesMarkersICperCellType$PC3,
-               type="scatter3d",
-               mode="markers",
-               color=~B7H3_KeratinPositiveTumor,
-               mode = 'text')
-
-fig <- fig %>% layout(scene = list(xaxis = list(title = 'PC1'),
-                                   yaxis = list(title = 'PC2'),
-                                   zaxis = list(title = 'PC3') ),
-                      title = '3D PCA of sites with average intensity of B7H3 in Keratin-Positive Tumor cells')
-fig
-
-```
- There are very few sites expressing in high intensity this marker, so this is not relevant for our analysis. BUt we know that this marker is expressed somewhere and not in sites classified as pure building blocks.
- 
- 
 
 
 ### **Take-home messages**
@@ -1206,13 +680,5 @@ fig
 
 * We have to use more accurate tools to map our findings with Fabio's building blocks
 
-**NEW ANALYSIS**
 
-* No checkpoint proteins expressed in any of the building block : Those cell types don't represent any of the 4 building block found after archetypal analysis
-
-* No high Ki67 intensity for tumor cells : maybe for the same reasons aforementioned
-
-* Tumor cells don't always express the same markers in the building blocks (Different cytokeratin expressed)
-
-**Immune Checkpoint markers in tumor sites ?**
 

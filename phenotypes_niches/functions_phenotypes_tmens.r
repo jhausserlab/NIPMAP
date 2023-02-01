@@ -7,7 +7,7 @@ library(pROC)
 library(ggpubr)
 library(pheatmap)
 
-#FIXME add figs path where to save all figures
+
 set_tmens_names <- function(x){
   names1 <- str_replace_all(x,c(a1 = "TLS",
                                 a2 = "inflammatory",
@@ -344,10 +344,12 @@ plot_roc_niches_cells <- function(CT,clustFiles,clustIDs, nichesNames,markers,ce
 correct_cor_fdr <- function(corMatrix,corCMtmens.pval,qThresh,corThresh){
   ### CORRECTIONS P VALUE FDR
   #dim(corCMtmens.pval)
+  write_csv(as.data.frame(corMatrix,row.names=rownames(corMatrix)),"./NiPhcorrelations.csv")
   corCMtmens.pval.mat = corCMtmens.pval %>% column_to_rownames(var='names')
   fdrOut = 
     fdrtool(corCMtmens.pval.mat %>% as.matrix %>% as.numeric(), 
             statistic = "pvalue")
+  write_csv(as.data.frame(corCMtmens.pval.mat,row.names=rownames(corCMtmens.pval.mat)),"./NiPhpvalue.csv")
   corCMtmens.qval = 
     fdrOut$lfdr %>% 
     matrix(nrow=nrow(corCMtmens.pval.mat), ncol=ncol(corCMtmens.pval.mat),
@@ -359,6 +361,7 @@ correct_cor_fdr <- function(corMatrix,corCMtmens.pval,qThresh,corThresh){
   # qThreshold <- 1/100
   # corThreshold <- .3
   # corThreshold2 <- .2
+  write_csv(as.data.frame(corCMtmens.qval,row.names=rownames(corCMtmens.qval)),"./NiPhqvalue.csv")
   filterMat <- corCMtmens.qval<qThresh & corMatrix[rownames(corCMtmens.qval),]>corThresh#corCMtmens.qval<qThresh & abs(corMatrix[rownames(corCMtmens.qval),])>corThresh
   return(filterMat)
 }
@@ -441,7 +444,7 @@ correlations_tmens_CM <- function(MarkersCellsTMENs,cellTypes, markers, qThresh=
     rownames_to_column(var="names")%>%
     #separate(names,into=c("cell_type","marker"),sep=";")%>%
     drop_na()
-  write_csv(corCMtmens,"./outputs/rawCorMatrix.csv")
+  #write_csv(corCMtmens,"./outputs/rawCorMatrix.csv")
   ### CORRECTIONS P VALUE FDR
   # library(fdrtool)
   # dim(corCMtmens.pval)
@@ -479,10 +482,15 @@ correlations_tmens_CM <- function(MarkersCellsTMENs,cellTypes, markers, qThresh=
 # qThresh: double, cut-off of q value for FDR correction of p values in correlation test
 # corThresh: double, cut-off to select high correlation
 correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman",coreIntf,qThresh=1/100,corThresh=0.3){
-  CM.gps <- markersCells.niches%>%filter(marker %in% Markers)%>%
+  rareCells<- markersCells.niches%>%group_by(cell_type)%>%summarise(total=n())%>%filter(total<10)%>%pull(cell_type)
+  print("These cell types are rare (count<10),")
+  print(rareCells)
+  #print("They will be removed from the correlation analysis")
+  CM.gps <- markersCells.niches%>%#filter(cell_type %in%rareCells)%>% #removing rare cell types
+    filter(marker %in% Markers)%>%
     mutate(id=paste(cell_type,marker,sep=";"))%>%
     group_by(cell_type, marker)%>%split(f= as.factor(.$id))
-  
+  #print(CM.gps)
   res <-lapply(CM.gps,function(x){ #a%>%group_by(cell_type, marker)%>%group_split()%>%setNames(id)
     corrs <- c()
     corrpvals <-c()
@@ -490,8 +498,11 @@ correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman
     #print(id)
     #cellPhen.names <- append(cellPhen.names,id)
     for(n in coreIntf){
-      if(sd(pull(x,value))==0){
-        corrValue<-NA
+      #print(n)
+      #print(length(pull(x,value)))
+      if(is.na(pull(x,value))|sd(pull(x,value))==0 |length(pull(x,value))<3){#|sd(pull(x,value))==0){
+        #print("ok")
+        corrValue <- NA
         corrp <- NA
       }
       else{
@@ -503,7 +514,7 @@ correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman
     }
     names(corrs) <- coreIntf2
     names(corrpvals) <- coreIntf2
-    list("corr_value"=corrs,"p_value"=corrpvals)
+    list("corr_value"=corrs,"p_value"= corrpvals)
   })
   #print(names(res))
   CorrMat <- do.call(rbind,lapply(res,'[[',"corr_value"))#do.call(rbind,res["corr_value"])
@@ -512,6 +523,7 @@ correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman
   corCMniches.pval <- CorrpVal.mat%>%as_tibble(rownames=NA)%>%
     rownames_to_column(var="names")%>%
     drop_na()
+  write_csv(as_tibble(CorrMat,rownames=NA), "./rawCorrMatrix.csv")
   filtMat <- correct_cor_fdr(CorrMat,corCMniches.pval,qThresh,corThresh)
   #mean(apply(filtMat, 1, sum) > 0)
   cM.filt <- CorrMat[names(which(apply(filtMat, 1, sum) > 0)),]
@@ -520,7 +532,7 @@ correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman
 
 #########---- HEATMAP ORGANIZED BY CELL TYPES ----###########
 # nichsIntf: string vector of archetypes and interfacs as named in correlation matrix
-plot_heatmap_CT <- function(CM.mat = cMf2,nichesIntf,figPath="./figs/cM_byCells3.pdf"){
+plot_heatmap_CT <- function(CM.mat,nichesIntf,figPath="./figs/cM_byCells3.pdf"){
   cts <- unique(pull(as_tibble(CM.mat,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),cell_type))
   print(cts)
   CM_TMENs_ct <- as_tibble(CM.mat,rownames=NA)%>%
@@ -536,12 +548,12 @@ plot_heatmap_CT <- function(CM.mat = cMf2,nichesIntf,figPath="./figs/cM_byCells3
   cellTypes <- data.frame(cell_type =pull(CM_TMENs_ct ,cell_type))
   Markers<- pull(CM_TMENs_ct ,marker)
   ## Annotations colors = length of cell types
-  colorCount = length(CELLTYPES)
+  colorCount = length(cts)#length(CELLTYPES)
   getPalette = colorRampPalette(RColorBrewer::brewer.pal(9, "Set1"))
   getPalette(colorCount)
   # List with colors for each annotation.
   CTcolors <- list(cell_type = getPalette(colorCount))
-  names(CTcolors$cell_type) <- CELLTYPES
+  names(CTcolors$cell_type) <- cts#CELLTYPES
   rownames(cellTypes) <- rownames(CM_TMENs_ct)
   #rownames(Markers) <-rownames(CM_TMENs_ct)
   figWidth <- nrow(CM.mat) * 30/267
@@ -551,7 +563,7 @@ plot_heatmap_CT <- function(CM.mat = cMf2,nichesIntf,figPath="./figs/cM_byCells3
 }
 
 #########---- HEATMAP ORGANIZED BY MARKERS ----###########
-plot_heatmap_markers <- function(CM.mat=cMf2,nichesIntf,figPath="./figs/cM_byMarkers2.pdf"){
+plot_heatmap_markers <- function(CM.mat,nichesIntf,figPath="./figs/cM_byMarkers2.pdf"){
   markersCorr <- unique(pull(as_tibble(CM.mat,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),marker))
   CM_TMENs_ph <- as_tibble(CM.mat,rownames=NA)%>%
     rownames_to_column(var="names")%>%

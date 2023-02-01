@@ -15,23 +15,35 @@ setwd(dirName)
 #TODO plot table of cell phenotypes for each niche/interface
 
 ### CONTROL PANEL: SET PARAMETERS AND CONSTANTS
-CELLTYPES=paste(c('CD8-T', 'Other\\\ immune', 'DC\\\ /\\\ Mono', 'CD3-T', 'B', 'NK', 'Keratin-positive\\\ tumor', 'Tumor', 
-             'CD4-T', 'Mesenchymal-like', 'Macrophages', 'Endothelial', 'Tregs', 'Unidentified', 'DC', 'Mono\\\ /\\\ Neu', 
-             'Neutrophils'),collapse=",")
-ImageIDs=paste(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-            20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 34, 35, 36, 37,
-            38, 39, 40, 41),collapse = ",")
-NSITES=as.character(100) # number of sites generated per image
-RADIUS=as.character(25) # radius of site in micrometer²
-NBNICHES = as.character(4) # number of niches to find (in PC space of NBNICHES-1 dimensions)
+CELLTYPES = c('CD8-T', 'Other\\\ immune', 'DC\\\ /\\\ Mono', 'CD3-T', 'B', 'NK', 'Keratin-positive\\\ tumor', 'Tumor', 
+              'CD4-T', 'Mesenchymal-like', 'Macrophages', 'Endothelial', 'Tregs', 'Unidentified', 'DC', 'Mono\\\ /\\\ Neu', 
+              'Neutrophils')
+ImageIDs <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+              20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 34, 35, 36, 37,
+              38, 39, 40, 41)
+NSITES=100 # number of sites generated per image
+RADIUS= 25# radius of site in micrometer²
+NBNICHES = 4 # number of niches to find (in PC space of NBNICHES-1 dimensions)
 METHOD ="gaussian"
+#Method = "gaussian"
 ROOT_DATA_PATH="./TMENS_analysis/data/cell_positions_data" 
+#rootDataPath = 
 ROOT_OUTPUT_PATH="./TMENS_analysis/output"
-COLARCHS=c()#vector of HTML color codes of niches for plots TODO add sys.argv[9]
 
+CellTypes=paste(CELLTYPES,collapse=",")# 
+imageID=paste(ImageIDs,collapse = ",")
+nsites = as.character(NSITES)
+Radius = as.character(RADIUS)
+nbNiches =  as.character(NBNICHES)
+
+
+COLARCHS=c()#vector of HTML color codes of niches for plots TODO add sys.argv[9]
 #system("source /scratch/anissa.el/miniconda3/etc/profile.d/conda.sh")
-system("source /scratch/anissa.el/miniconda3/bin/activate /scratch/anissa.el/miniconda3/envs/building-blocks")
-system(paste("/scratch/anissa.el/miniconda3/envs/building-blocks/bin/python3 ./main_nipmap.py",CELLTYPES," ",ImageIDs," ",NSITES," ",RADIUS," ",NBNICHES," ",METHOD," ",ROOT_DATA_PATH," ",ROOT_OUTPUT_PATH))
+condaPath = "/scratch/anissa.el/miniconda3/envs/building-blocks"
+pythonPath = "scratch/anissa.el/miniconda3/bin/python3"
+
+system(paste("source /scratch/anissa.el/miniconda3/bin/activate", condaPath))
+system(paste(pythonPath,"./main_nipmap.py",CellTypes," ",imageID," ",nsites," ",Radius," ",nbNiches," ",METHOD," ",ROOT_DATA_PATH," ",ROOT_OUTPUT_PATH))
 
 
 
@@ -61,7 +73,6 @@ plotly::plot_ly(x=pca3D[1,],
                 mode="marker")
 
 ## Niches weights(proportions) of all cells from all images 
-
 cellsNiches <- as_tibble(lapply(json_data4$cells_niches,unlist))%>%mutate(site_id=as.numeric(site_id))
 
 

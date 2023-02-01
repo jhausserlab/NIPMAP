@@ -10,13 +10,15 @@ import matplotlib as mpl
 import matplotlib.colors
 import numpy as np
 import seaborn as sns
+
 #import image_seaborn as isns
 import pandas as pd
 import matplotlib.patheffects as path_effects
 
-from src.CellAbundance import CellAbundance
-from src.utils.equations import alfa2rgb, alfa2color, color_mapper
-
+import sys
+#sys.path.insert(0, '../src')
+from src.CellAbundance import CellAbundance #from CellAbundance import CellAbundance
+from src.utils.equations import alfa2rgb, alfa2color, color_mapper #from utils.equations import alfa2rgb, alfa2color, color_mapper
 colors = ['#629563', '#044E75', '#CA8F04', '#645D0D','#43BC52', 
 '#B25E89', '#2E3790', '#F118BE','#50974E', '#3273D6', 
 '#0AF24B', '#A3F159','#933835', '#CEB134', '#226BCF', 
