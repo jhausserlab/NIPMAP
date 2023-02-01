@@ -359,6 +359,7 @@ correct_cor_fdr <- function(corMatrix,corCMtmens.pval,qThresh,corThresh){
   # qThreshold <- 1/100
   # corThreshold <- .3
   # corThreshold2 <- .2
+  
   filterMat <- corCMtmens.qval<qThresh & corMatrix[rownames(corCMtmens.qval),]>corThresh#corCMtmens.qval<qThresh & abs(corMatrix[rownames(corCMtmens.qval),])>corThresh
   return(filterMat)
 }
@@ -441,7 +442,7 @@ correlations_tmens_CM <- function(MarkersCellsTMENs,cellTypes, markers, qThresh=
     rownames_to_column(var="names")%>%
     #separate(names,into=c("cell_type","marker"),sep=";")%>%
     drop_na()
-  write_csv(corCMtmens,"./outputs/rawCorMatrix.csv")
+  #write_csv(corCMtmens,"./outputs/rawCorMatrix.csv")
   ### CORRECTIONS P VALUE FDR
   # library(fdrtool)
   # dim(corCMtmens.pval)
@@ -520,6 +521,7 @@ correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman
   corCMniches.pval <- CorrpVal.mat%>%as_tibble(rownames=NA)%>%
     rownames_to_column(var="names")%>%
     drop_na()
+  write_csv(as_tibble(CorrMat,rownames=NA), "./rawCorrMatrix.csv")
   filtMat <- correct_cor_fdr(CorrMat,corCMniches.pval,qThresh,corThresh)
   #mean(apply(filtMat, 1, sum) > 0)
   cM.filt <- CorrMat[names(which(apply(filtMat, 1, sum) > 0)),]
@@ -528,7 +530,7 @@ correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman
 
 #########---- HEATMAP ORGANIZED BY CELL TYPES ----###########
 # nichsIntf: string vector of archetypes and interfacs as named in correlation matrix
-plot_heatmap_CT <- function(CM.mat = cMf2,nichesIntf,figPath="./figs/cM_byCells3.pdf"){
+plot_heatmap_CT <- function(CM.mat,nichesIntf,figPath="./figs/cM_byCells3.pdf"){
   cts <- unique(pull(as_tibble(CM.mat,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),cell_type))
   print(cts)
   CM_TMENs_ct <- as_tibble(CM.mat,rownames=NA)%>%
@@ -544,12 +546,12 @@ plot_heatmap_CT <- function(CM.mat = cMf2,nichesIntf,figPath="./figs/cM_byCells3
   cellTypes <- data.frame(cell_type =pull(CM_TMENs_ct ,cell_type))
   Markers<- pull(CM_TMENs_ct ,marker)
   ## Annotations colors = length of cell types
-  colorCount = length(CELLTYPES)
+  colorCount = length(cts)#length(CELLTYPES)
   getPalette = colorRampPalette(RColorBrewer::brewer.pal(9, "Set1"))
   getPalette(colorCount)
   # List with colors for each annotation.
   CTcolors <- list(cell_type = getPalette(colorCount))
-  names(CTcolors$cell_type) <- CELLTYPES
+  names(CTcolors$cell_type) <- cts#CELLTYPES
   rownames(cellTypes) <- rownames(CM_TMENs_ct)
   #rownames(Markers) <-rownames(CM_TMENs_ct)
   figWidth <- nrow(CM.mat) * 30/267
@@ -559,7 +561,7 @@ plot_heatmap_CT <- function(CM.mat = cMf2,nichesIntf,figPath="./figs/cM_byCells3
 }
 
 #########---- HEATMAP ORGANIZED BY MARKERS ----###########
-plot_heatmap_markers <- function(CM.mat=cMf2,nichesIntf,figPath="./figs/cM_byMarkers2.pdf"){
+plot_heatmap_markers <- function(CM.mat,nichesIntf,figPath="./figs/cM_byMarkers2.pdf"){
   markersCorr <- unique(pull(as_tibble(CM.mat,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),marker))
   CM_TMENs_ph <- as_tibble(CM.mat,rownames=NA)%>%
     rownames_to_column(var="names")%>%

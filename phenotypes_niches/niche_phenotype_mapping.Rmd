@@ -408,7 +408,7 @@ start_time <- Sys.time()
 cMf <- correlations_tmens_CM(MarkersCellsTMENs=MarkersCellsTMENS2,cellTypes=CELLTYPES, markers=FuncMarkers)
 end_time <- Sys.time()
 print(end_time - start_time)
-write_csv(cMf%>%as_tibble(rownames=NA)%>%rownames_to_column(var="cell_marker"), "./CM_corr_tmens_thresh0.3.csv")
+write_csv(cMf%>%as_tibble(rownames=NA)%>%rownames_to_column(var="cell_marker"), "../CM_corr_tmens_thresh0.3.csv")
 
 figWidth <- nrow(cMf) * 30/267
 #pheatmap(cMf%>%t)
@@ -422,7 +422,7 @@ BCat.filt <- names(which(cMf[rownames(cMf)[which(grepl("Beta catenin",rownames(c
 cMf2 <- cMf[!rownames(cMf)%in%BCat.filt& !rownames(cMf)%in% Krt.filt,]
 
 pheatmap(cMf2%>%t)
-pdf("./figs/cMf.pdf", height=8, width=ifelse(figWidth<6, 6, figWidth+2)); pheatmap(cMf%>%t); dev.off()
+#pdf("./figs/cMf.pdf", height=8, width=ifelse(figWidth<6, 6, figWidth+2)); pheatmap(cMf%>%t); dev.off()
 
 ######## ----- VISUALIZATION ----- ##########
 # figWidth <- nrow(cMf) * 30/267
@@ -460,6 +460,7 @@ pdf("./figs/cMf2.pdf", height=8, width=ifelse(figWidth<6, 6, figWidth+2)); pheat
 # print(end_time - start_time)
 
 ```
+
 Reporting results in table (TMENs core & interface x cell phenotypes)
 
 ```{r tabCorrelations,fig.height=10, echo=TRUE}

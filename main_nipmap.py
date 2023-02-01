@@ -92,11 +92,11 @@ if __name__ == "__main__":
   NichesProf = get_niches_cell_abund(sitesCellAb=sites,pcaSites=pca_obj,ArchObj=AA,nComp=NBNICHES-1)
   sites_alfa = compute_cells_niches_weights(niches=NichesProf,cellsSites=sitesCC,nbNiches=NBNICHES)
   sites_archs = pd.DataFrame(sites_alfa)
-  sites_archs['patient_id'] = patients_ids2
-  sites_archs["site_id"] = sites_ids2[:,0]
-  sites_archs["cell_type_site"] = sites_ids2[:,1]
+  sites_archs['SampleID'] = patients_ids2
+  sites_archs["cell_id"] = sites_ids2[:,0]
+  sites_archs["cell_type"] = sites_ids2[:,1]
   sites_archs["TOT_cell_dens"]= sitesCC.sum(axis=1)
-  
+  sites_archs.to_csv("./sites_cells_archs.csv",ondex=False)
   # print(CellAb_df[0:9,: ])
   # print(CellAbCC_df[0:9,: ])
   # print(sites_archs[0:9,: ])
@@ -115,14 +115,14 @@ if __name__ == "__main__":
     
   dict_AA = {"archs_coord": AA.archetypes.tolist(), "alfas": AA.alfa.tolist()}
     
-  dict_caSites = {"cellAbSites": CellAb_df.to_dict()}
-  dict_caSitesCC = {"cells_niches": sites_archs.to_dict(),"cellAb_sitesCC": CellAbCC_df.to_dict()}
+  #dict_caSites = {"cellAbSites": CellAb_df.to_dict()}
+  #dict_caSitesCC = {"cells_niches": sites_archs.to_dict(),"cellAb_sitesCC": CellAbCC_df.to_dict()}
     
   # Serializing json objects
   PCA_json = json.dumps(dict_pca, indent=4)
   AA_json = json.dumps(dict_AA, indent=4)
-  caSites_json = json.dumps(dict_caSites,indent=4)
-  cellsNiches_json = json.dumps(dict_caSitesCC,indent=4)
+  #caSites_json = json.dumps(dict_caSites,indent=4)
+  #cellsNiches_json = json.dumps(dict_caSitesCC,indent=4)
      
   # Writing to .json files
   with open("./pca_sites.json", "w") as outfile:
@@ -130,10 +130,10 @@ if __name__ == "__main__":
     
   with open("./AA_sites.json","w") as outfile2:
     outfile2.write(AA_json)
-      
-  with open("./ca_sites.json","w") as outfile3:
-    outfile3.write(caSites_json)
-      
-  with open("./cells_niches.json","w") as outfile4:
-    outfile4.write(cellsNiches_json)
+  #     
+  # with open("./ca_sites.json","w") as outfile3:
+  #   outfile3.write(caSites_json)
+  #     
+  # with open("./cells_niches.json","w") as outfile4:
+  #   outfile4.write(cellsNiches_json)
 
