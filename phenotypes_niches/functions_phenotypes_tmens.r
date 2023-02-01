@@ -344,10 +344,12 @@ plot_roc_niches_cells <- function(CT,clustFiles,clustIDs, nichesNames,markers,ce
 correct_cor_fdr <- function(corMatrix,corCMtmens.pval,qThresh,corThresh){
   ### CORRECTIONS P VALUE FDR
   #dim(corCMtmens.pval)
+  write_csv(as.data.frame(corMatrix,row.names=rownames(corMatrix)),"./NiPhcorrelations.csv")
   corCMtmens.pval.mat = corCMtmens.pval %>% column_to_rownames(var='names')
   fdrOut = 
     fdrtool(corCMtmens.pval.mat %>% as.matrix %>% as.numeric(), 
             statistic = "pvalue")
+  write_csv(as.data.frame(corCMtmens.pval.mat,row.names=rownames(corCMtmens.pval.mat)),"./NiPhpvalue.csv")
   corCMtmens.qval = 
     fdrOut$lfdr %>% 
     matrix(nrow=nrow(corCMtmens.pval.mat), ncol=ncol(corCMtmens.pval.mat),
@@ -359,7 +361,7 @@ correct_cor_fdr <- function(corMatrix,corCMtmens.pval,qThresh,corThresh){
   # qThreshold <- 1/100
   # corThreshold <- .3
   # corThreshold2 <- .2
-  
+  write_csv(as.data.frame(corCMtmens.qval,row.names=rownames(corCMtmens.qval)),"./NiPhqvalue.csv")
   filterMat <- corCMtmens.qval<qThresh & corMatrix[rownames(corCMtmens.qval),]>corThresh#corCMtmens.qval<qThresh & abs(corMatrix[rownames(corCMtmens.qval),])>corThresh
   return(filterMat)
 }
