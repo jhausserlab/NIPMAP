@@ -278,7 +278,7 @@ core_niche <- c(arche_list) %>% str_replace_all("rch","")
 inter_niche <- combn(core_niche, 2)
 #inter_niche <- c("a1a2","a1a3","a1a4","a1a5","a2a3","a2a4","a2a5","a3a4","a3a5","a4a5")
 
-removed_celltype <- c("megakaryocyte") # suggestions from dataset provider
+# removed_celltype <- c("megakaryocyte") # suggestions from dataset provider
 
 # prepare tmens_per_cell table
 tmens_per_cell <- cells_niches$cells_niches
@@ -294,6 +294,7 @@ for (i in core_niche) {
 }
 tmens_per_cell$cell_type_site <- as.character(tmens_per_cell$cell_type_site)
 ```
+
 
 ### Use All gene list for phenotype mapping with raw count
 
@@ -394,7 +395,7 @@ ggplot(data=mRNA.means,aes(x=meanRNA_counts))+
   geom_density()
 
 # Check the cells that have few mRNA expressed ==> fitler out ?
-CellsmRNA[which(rowSums(CellsmRNA)<=10),]
+# CellsmRNA[which(rowSums(CellsmRNA)<=10),]
 
 ## Distribution of mean value of mRNA counts after Z-score normalization 
 mRNA.meansNorm <- data.frame(meanRNA_counts = apply(cell_markersNorm%>%dplyr::select(-c(SampleID, cell_id, X, Y, cell_type, complex_celltype)),2,mean))
@@ -408,32 +409,31 @@ ggplot(data=mRNA.meansNorm,aes(x=meanRNA_counts))+
 ```
 
 
-```{r CM,warning=FALSE}
+```{r,warning=FALSE}
 source("../../phenotypes_niches/functions_phenotypes_tmens.r")
 CM <- correlation_niches_CM(markersCells.niches=cellsPhen.niches, Markers=MARKERS, corrMeth="spearman", coreIntf2, 1/100, 0.3)
 cMf <- CM
 # Plot heatmaps of niches-phenotypes associations
-#plot_heatmap_CT(CM.mat=cMf,coreIntf2,"../output/CMbyCells.pdf")
+plot_heatmap_CT(CM.mat=cMf,coreIntf2,"../output/CMbyCells.pdf")
 ```
+
 #### Analysis of correlation statistics
 
-```{r histCorr}
+```{r}
 correlationMatrix <- read_csv("./NiPhcorrelations.csv")
 CorpvalueMatrix <- read_csv("./NiPhpvalue.csv")
 CorqvalueMatrix <- read_csv("./NiPhqvalue.csv")
 
-hist(as.vector(as.matrix(correlationMatrix)))
-
-hist(as.vector(as.matrix(CorpvalueMatrix)))
-
-hist(as.vector(as.matrix(CorqvalueMatrix)))
+hist(as.vector(as.matrix(log(correlationMatrix))))
+hist(as.vector(as.matrix(log(CorpvalueMatrix))))
+hist(as.vector(as.matrix(log(CorqvalueMatrix))))
 
 ```
 
 ### Reporting results in table (TMENs core & interface x cell phenotypes)
 
 
-```{r prepare table for reporting, warning=FALSE, echo=FALSE}
+```{r, warning=FALSE, echo=FALSE}
 
   # qThresh <- 0.01
   # corThresh <- 0.3
@@ -563,16 +563,276 @@ ggsave("../output/SS_tmens.pdf",height=10,width=5)
 ```
 
 
-### Niche-phenotype mapping on 800x 800 images
+
+
+
+
+
+## Niche-phenotype mapping on 800x 800 images
+
+```{r, warning=FALSE, echo=FALSE, fig.width=10, message=FALSE}
+
+dataset <- read_csv("../data/patient1_cell_positions.csv")
+
+cell_Freq <- table(stat(dataset$cell_type)) %>% as.data.frame() %>% mutate(percent = Freq*100/sum(Freq))
+keep <- cell_Freq %>% filter(percent >= 1) %>% `colnames<-`(c("cell_type", "Freq", "percent"))
+
+dataset$cell_type[!(dataset$cell_type %in% c(keep$cell_type)%>%as.vector())] <- "other"
+write_csv(dataset, "../data/patient1_cell_positions_simplified.csv")
+
+rhg_cols <- c('#629563', '#044E75', '#CA8F04', '#645D0D','#43BC52',
+'#B25E89', '#2E3790', '#F118BE','#50974E', '#3273D6',
+'#0AF24B', '#A3F159')
+
+ggplot(dataset, aes(x=x,y=y, color=cell_type)) + 
+  geom_point(size = 1.5, alpha=0.5) + 
+  coord_fixed() + 
+  scale_color_manual(values = rhg_cols) +
+  guides(colour = guide_legend(override.aes = list(size=5,alpha=1)))+
+  xlim(0,800)+
+  ylim(0,800)
+
+```
+
 
 ```{r}
 # data set of cells with their niches weights computed from 800 x 800 image: cells_niches_xs.json file
 #TODO repeat histograms analysis on  cells niches weights from 800x800 image
 #TODO repeat scatter plots of JAG1 arterial VS arterial niche and FZD1 Dendritic in arterial niche on cells niches weights from 800x 800 image SEE histCorr, pltNichesGenes and CM chunks to repeat
-file5 = paste(RESULT_DATA_PATH,"cells_niches_xs.json") %>% str_replace_all(" ", "") # sites centered on cells and niches weights
-
+file5 = paste("/scratch/ziqi.kang/HIFI_TMENs_analysis/My_cell_positions_data/ISS_dataset/Region_test_6500/niche5_radius25_patientid[1]/cells_niches.json") # sites centered on cells and niches weights
 cells_niches_xs <- fromJSON(file=file5)
+```
 
+```{r, include=FALSE}
+#######---- Open .json files ----#######
+
+file6 = paste("/scratch/ziqi.kang/HIFI_TMENs_analysis/My_cell_positions_data/ISS_dataset/Region_test_6500/niche5_radius25_patientid[1]/pca_sites.json") %>% str_replace_all(" ", "") # pca object on sites elements 
+file7 = paste("/scratch/ziqi.kang/HIFI_TMENs_analysis/My_cell_positions_data/ISS_dataset/Region_test_6500/niche5_radius25_patientid[1]/AA_sites.json") %>% str_replace_all(" ", "") # archetype Analysis object based on sites cell abundance
+file8 = paste("/scratch/ziqi.kang/HIFI_TMENs_analysis/My_cell_positions_data/ISS_dataset/Region_test_6500/niche5_radius25_patientid[1]/ca_sites.json") %>% str_replace_all(" ", "") # cell abundance of randomly generated sites
+
+pca_sites_xs <- fromJSON(file=file6)
+AA_sites_xs <- fromJSON(file=file7)
+ca_sites_xs <- fromJSON(file=file8)
+
+arche_list <- c()
+for (i in seq(1,NBNICHES)) {
+  arche_list <- arche_list %>% append(paste("arch",i) %>% str_replace_all(" ",""))
+}
+
+core_niche <- c(arche_list) %>% str_replace_all("rch","")
+inter_niche <- combn(core_niche, 2)
+#inter_niche <- c("a1a2","a1a3","a1a4","a1a5","a2a3","a2a4","a2a5","a3a4","a3a5","a4a5")
+
+# removed_celltype <- c("megakaryocyte") # suggestions from dataset provider
+
+# prepare tmens_per_cell table
+tmens_per_cell <- cells_niches_xs$cells_niches
+tmens_per_cell <- do.call(cbind, tmens_per_cell) %>% 
+  as.data.frame() %>% 
+  `colnames<-`(c(core_niche, "patient_id", "site_id",
+                              "cell_type_site", "TOT_cell_dens"))
+
+tmens_per_cell$patient_id <- as.integer(tmens_per_cell$patient_id)
+tmens_per_cell$site_id <- as.integer(tmens_per_cell$site_id)
+for (i in core_niche) {
+  tmens_per_cell[,i] <- as.double(tmens_per_cell[,i])
+}
+tmens_per_cell$cell_type_site <- as.character(tmens_per_cell$cell_type_site)
+
+################---------NICHE-PHENOTYPE MAPPING ------------###################
+NINTERFACES = 2
+# Phenotypic markers
+MARKERS <- read_rds("../data/ISS_marker_list.rds")
+
+getInterNiches <- function(nIntf,nbNiches){
+  interfaces <- combn(paste0("a",as.vector(seq(1,nbNiches,1))),nIntf)
+  coreIntf <- apply(interfaces,2,function(x) paste0(x,collapse=""))
+  return(coreIntf)
+}
+
+coreIntf2 <- append(paste0("a",as.vector(seq(1,NBNICHES,1))),getInterNiches(NINTERFACES,NBNICHES))
+
+cell_markers <- read.csv(paste(ROOT_DATA_PATH, "/cellData_",ImageIDs,".csv") %>% str_replace_all(" ", ""))
+cell_markers$cell_type <- replace(cell_markers$cell_type, cell_markers$cell_type == "Erythroblast/RBC", "Erythroblast.RBC")
+
+markers <- cell_markers %>% 
+  dplyr::select(-c(SampleID, cellLabelInImage, X, Y, cell_type, complex_celltype)) %>% 
+  ZscoreScale() %>% 
+  t() %>% 
+  as.data.frame()
+
+cell_markersNorm <- cell_markers %>% 
+  dplyr::select(c(SampleID, cellLabelInImage, X, Y, cell_type, complex_celltype)) %>% 
+  rename(cell_id=cellLabelInImage)%>%
+  #mutate_at(MARKERS, scale2) # mutate_at(MARKERS, ZscoreScale)#
+  cbind(markers)
+
+# tmens_per_cell <- read_csv("/scratch/anissa.el/macro_micro_niches/macro_micro_niches2022/cells_niches_weights_ISS.csv")
+
+cellsPhen.niches <- left_join(tmens_per_cell %>% rename(SampleID=patient_id, cell_id=site_id, cell_type=cell_type_site),
+                              cell_markersNorm,
+                              by=c("SampleID","cell_id","cell_type"))%>%
+  filter(!(is.na(a1)| is.na(a2)| is.na(a3) | is.na(a4) |is.na(a5)))%>%
+  mutate(a1a2 = a1*a2)%>%
+  mutate(a1a3 = a1*a3)%>%
+  mutate(a1a4 = a1*a4)%>%
+  mutate(a2a3 = a2*a3)%>%
+  mutate(a2a4 = a2*a4)%>%
+  mutate(a3a4 = a3*a4)%>%
+  mutate(a1a5 = a1*a5)%>%
+  mutate(a2a5 = a2*a5)%>%
+  mutate(a3a5 = a3*a5)%>%
+  mutate(a4a5 = a4*a5)%>%
+  #mutate(a1a2a3 = a1*a2*a3)%>%
+  #mutate(a1a2a4 = a1*a2*a4)%>%
+  #mutate(a1a3a4 = a1*a3*a4)%>%
+  #mutate(a2a3a4 = a2*a3*a4)%>%
+  #mutate(a1a2a3a4 = a1*a2*a3*a4)%>%
+  pivot_longer(cols=MARKERS,
+               names_to="marker",values_to="value")
 
 ```
+
+
+```{r}
+### Visualize niche- phenotype associations: 
+# JAG1+ arterial cells in arterial niche
+cellType <-"arterial"
+Marker <- "JAG1"
+niche <- "a4"
+plot1 <- ggplot(data=cellsPhen.niches%>%filter(cell_type==cellType & marker==Marker),aes_string(x=niche,y="value"))+
+      geom_point(alpha=.1)+
+      stat_cor(method="spearman",cor.coef.name="rho",label.x=0.1)+
+      stat_cor(method="pearson",cor.coef.name="R",label.y=4.0,label.x=0.1)+
+      xlab(paste0(niche,collapse=" x "))+ ylab(paste0(Marker," expression"))+
+      ggtitle(paste0(Marker,"⁺ ",cellType," VS ",niche))
+plot1
+boxplot(x=cellsPhen.niches%>%filter(cell_type==cellType & marker==Marker)%>%pull(value))
+
+# "FZD1+ Dendrtitic cells in arterial niche
+cellType <-"Dendritic"
+Marker <- "FZD1"
+niche <- "a4"
+plot2 <- ggplot(data=cellsPhen.niches%>%filter(cell_type==cellType & marker==Marker),aes_string(x=niche,y="value"))+
+      geom_point(alpha=.1)+
+      stat_cor(method="spearman",cor.coef.name="rho",label.x=0.1)+
+      stat_cor(method="pearson",cor.coef.name="R",label.y=4.0,label.x=0.1)+
+      xlab(paste0(niche,collapse=" x "))+ ylab(paste0(Marker," expression"))+
+      ggtitle(paste0(Marker,"⁺ ",cellType," VS ",niche))
+plot2
+#boxplot(apply(cell_markers%>%dplyr::select(-c(SampleID, cellLabelInImage, X, Y, cell_type, complex_celltype)),2,mean))
+
+## Distribution of mean mRNA counts(raw, not Z-score normalized)
+CellsmRNA<-cell_markers%>%dplyr::select(-c(SampleID, cellLabelInImage, X, Y, cell_type, complex_celltype))%>%as.matrix()
+mRNA.means <- data.frame(meanRNA_counts = apply(cell_markers%>%dplyr::select(-c(SampleID, cellLabelInImage, X, Y, cell_type, complex_celltype)),2,mean))
+ggplot(data=mRNA.means,aes(x=meanRNA_counts))+
+  geom_density()
+
+# Check the cells that have few mRNA expressed ==> fitler out ?
+#CellsmRNA[which(rowSums(CellsmRNA)<=10),]
+
+## Distribution of mean value of mRNA counts after Z-score normalization 
+mRNA.meansNorm <- data.frame(meanRNA_counts = apply(cell_markersNorm%>%dplyr::select(-c(SampleID, cell_id, X, Y, cell_type, complex_celltype)),2,mean))
+ggplot(data=mRNA.meansNorm,aes(x=meanRNA_counts))+
+  geom_density()
+
+
+# ggplot(data=data.frame(meanRNA_counts =apply(cell_markers%>%mutate_at(.vars = MARKERS,scale)%>%dplyr::select(-c(SampleID, cellLabelInImage, X, Y, cell_type, complex_celltype))%>%as.matrix(),2,mean)),aes(x=meanRNA_counts))+
+#   geom_density()
+
+```
+
+
+```{r CM,warning=FALSE}
+
+source("../../phenotypes_niches/functions_phenotypes_tmens.r")
+CM <- correlation_niches_CM(markersCells.niches=cellsPhen.niches, Markers=MARKERS, corrMeth="spearman", coreIntf2, 1/100, 0.3)
+cMf <- CM
+# Plot heatmaps of niches-phenotypes associations
+plot_heatmap_CT(CM.mat=cMf,coreIntf2,"../output/CMbyCells_xs.pdf")
+
+```
+
+```{r histCorr}
+correlationMatrix <- read_csv("./NiPhcorrelations.csv")
+CorpvalueMatrix <- read_csv("./NiPhpvalue.csv")
+CorqvalueMatrix <- read_csv("./NiPhqvalue.csv")
+
+hist(as.vector(as.matrix(log(correlationMatrix))))
+hist(as.vector(as.matrix(log(CorpvalueMatrix))))
+hist(as.vector(as.matrix(log(CorqvalueMatrix))))
+
+```
+
+```{r prepare table for reporting, warning=FALSE, echo=FALSE}
+
+  # qThresh <- 0.01
+  # corThresh <- 0.3
+  # filterMat <- corCMtmens.qval<qThresh & abs(corMatrix[rownames(corCMtmens.qval),])>corThresh
+  # # mean(apply(filterMat, 1, sum) > 0)
+  # ## 90% of the marker are associated to at least one TMENs or interface!
+  # 
+  # cMf <- corMatrix[names(which(apply(filterMat, 1, sum) > 0)),]
+
+inter_niche <- colnames(cellsPhen.niches %>% select(matches("a[0-9]a[0-9]")))
+
+tabTMENs2 <- as_tibble(cMf,rownames=NA)%>%
+  rownames_to_column(var="names")%>%
+  separate(names,into=c("cell_type","marker"),sep=";")%>%
+  mutate(marker=paste0(marker,"+"))%>%
+  pivot_longer(cols=c(core_niche,inter_niche),names_to ="niche",values_to="corr_val")#,"a1a2a3","a1a2a4","a1a3a4","a2a3a4"
+
+tabTMENs2$niche <- str_replace_all(pull(tabTMENs2,niche), c("a2a3"="mesenchymalxsmooth muscle",
+                                                           "a1a3" = "epithelialxsmooth muscle",
+                                                           "a1a2"= "epithelialxmesenchymal",
+                                                           "a1a4" = "epithelialxarterial",
+                                                           "a2a4" ="mesenchymalxarterial",
+                                                           "a3a4" = "smooth musclexarterial",
+                                                           "a1a5" = "epithelialxductal/alveolar", 
+                                                           "a2a5" = "mesenchymalxductal/alveolar", 
+                                                           "a3a5" = "smooth musclexductal/alveolar", 
+                                                           "a4a5" = "arterialxductal/alveolar"))
+tabTMENs2$niche <- str_replace_all(pull(tabTMENs2,niche),c("a1" = "epithelial","a2" = "mesenchymal","a3" = "smooth muscle","a4" = "arterial", "a5"= "ductal/alveolar"))
+
+tabCellPhen <- tabTMENs2%>%
+  separate(col=niche, into = c("type1","type2"),sep="x")%>%
+  group_by(cell_type,marker)%>%mutate(len=length(type1))%>%
+  mutate(inter_region=ifelse(len==1,type1,
+                                                                                                                                                                    ifelse(head(sort(table(type1),decreasing=TRUE),1)>1, names(head(sort(table(type1),decreasing=TRUE),1)),
+                                                                                                                                                                          ifelse(head(sort(table(type2),decreasing=TRUE),1)>1,  names(head(sort(table(type2),decreasing=TRUE),1)),ifelse(length(intersect(type1,type2))==0,paste(type1,type2,sep="x"),intersect(type1,type2) )))))%>%
+  group_by(cell_type, marker,inter_region)%>%filter(corr_val==max(corr_val))
+
+
+tabCellPhen2 <- tabCellPhen %>%
+  mutate(niche = paste(type1,type2,sep=" x "))%>%
+  mutate(niche=str_replace_all(niche," x NA",""))%>%
+  group_by(niche)%>%mutate(cells = paste(unique(cell_type),collapse='\n'))%>%
+  group_by(niche,cell_type)%>% 
+  mutate(cell_phenotype= paste0(paste(marker, collapse = " "),cell_type)) %>%
+  ungroup()%>%
+
+  group_by(niche)%>%
+  mutate(cell_phenotype=paste(unique(cell_phenotype),collapse="\n")) %>%
+  distinct(niche, .keep_all = TRUE)%>%
+  arrange(niche)%>%dplyr::select(niche, cells,cell_phenotype)
+
+
+tabCellPhen3 <- tabCellPhen2%>%
+  # mutate(cellPh =ifelse(niche %in% pull(archs.CT,niche),paste(archs.CT[archs.CT$niche==niche ,"cell_type"],collapse="\n"),""))%>%
+  # rowwise()%>%
+  # mutate(ct = ifelse(grepl("\n",cellPh,fixed=TRUE)==FALSE,paste(setdiff(as.vector(cellPh),str_split(cells,"\n")[[1]]),collapse="\n"),ifelse(grepl("\n",cells,fixed=TRUE)==FALSE,paste(setdiff(str_split(cellPh,"\n")[[1]], as.vector(cells)),collapse="\n"),paste(setdiff(str_split(cellPh,"\n")[[1]],str_split(cells,"\n")[[1]]),collapse="\n"))))%>%
+  #mutate(cell_phenotype = paste(cell_phenotype,ct,sep="\n"),.keep="unused")%>%
+  dplyr::select(c(niche, cell_phenotype))%>%
+  arrange(niche)
+
+
+### Display and save table in pdf
+ th1 <- ttheme_default()
+ g1 <- tableGrob(tabCellPhen3,rows=NULL,theme = th1)
+ grid.newpage()
+ grid.draw(g1)
+ ggsave("../output/tab_tmens_xs.pdf",g1,width=7,height=6)
+```
+
+
 
