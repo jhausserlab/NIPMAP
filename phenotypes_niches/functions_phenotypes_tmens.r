@@ -251,7 +251,7 @@ fdr_lm_niches <- function(lmStats,qvalTresh=0.01){
   fdrCorr <- fdrtool(mat.pval2%>% as.numeric(),
                      statistic = "pvalue")
   CMtmens.qval<- 
-    fdrCorr$lfdr %>% 
+    fdrCorr$qval %>% 
     matrix(nrow=nrow(mat.pval2), ncol=ncol(mat.pval2),
            dimnames = list(rownames(mat.pval2), colnames(mat.pval2)))
   ## Set to 0 non-significant estimates
@@ -351,7 +351,7 @@ correct_cor_fdr <- function(corMatrix,corCMtmens.pval,qThresh,corThresh){
             statistic = "pvalue")
   write_csv(as.data.frame(corCMtmens.pval.mat,row.names=rownames(corCMtmens.pval.mat)),"./NiPhpvalue.csv")
   corCMtmens.qval = 
-    fdrOut$lfdr %>% 
+    fdrOut$qval %>% 
     matrix(nrow=nrow(corCMtmens.pval.mat), ncol=ncol(corCMtmens.pval.mat),
            dimnames = list(rownames(corCMtmens.pval.mat), colnames(corCMtmens.pval.mat)))
   # dim(corCMtmens.qval)
@@ -500,7 +500,7 @@ correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman
     for(n in coreIntf){
       #print(n)
       #print(length(pull(x,value)))
-      if (any(is.na(pull(x,value))|sd(pull(x,value))==0 |length(pull(x,value))<3)){#|sd(pull(x,value))==0){
+      if(is.na(pull(x,value))|sd(pull(x,value))==0 |length(pull(x,value))<3){#|sd(pull(x,value))==0){
         #print("ok")
         corrValue <- NA
         corrp <- NA
