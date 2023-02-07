@@ -26,6 +26,8 @@ RADIUS= 25# radius of site in micrometer²
 NBNICHES = 4 # number of niches to find (in PC space of NBNICHES-1 dimensions)
 METHOD ="gaussian"
 #Method = "gaussian"
+W = 800
+H = 800
 ROOT_DATA_PATH="./TMENS_analysis/data/cell_positions_data" 
 #rootDataPath = 
 ROOT_OUTPUT_PATH="./TMENS_analysis/output"
@@ -35,6 +37,8 @@ imageID=paste(ImageIDs,collapse = ",")
 nsites = as.character(NSITES)
 Radius = as.character(RADIUS)
 nbNiches =  as.character(NBNICHES)
+xsize = as.numeric(W)
+ysize = as.numeric(H)
 
 
 COLARCHS=c()#vector of HTML color codes of niches for plots TODO add sys.argv[9]
@@ -43,7 +47,7 @@ condaPath = "/scratch/anissa.el/miniconda3/envs/building-blocks"
 pythonPath = "scratch/anissa.el/miniconda3/bin/python3"
 
 system(paste("source /scratch/anissa.el/miniconda3/bin/activate", condaPath))
-system(paste(pythonPath,"./main_nipmap.py",CellTypes," ",imageID," ",nsites," ",Radius," ",nbNiches," ",METHOD," ",ROOT_DATA_PATH," ",ROOT_OUTPUT_PATH))
+system(paste(pythonPath,"./main_nipmap.py",CellTypes," ",imageID," ",nsites," ",Radius," ",nbNiches," ",METHOD," ",xsize, " ",ysize," ",ROOT_DATA_PATH," ",ROOT_OUTPUT_PATH))
 
 
 
