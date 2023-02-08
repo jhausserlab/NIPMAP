@@ -175,17 +175,6 @@ AA_sites <- fromJSON(file=file2)
 ca_sites <- fromJSON(file=file3)
 cells_niches <- fromJSON(file=file4)
 
-pca3D <- matrix(unlist(pca_sites$PC_proj),nrow=15)[1:3,]
-```
-
-
-```{r pca 3D, include=FALSE}
-plotly::plot_ly(x=pca3D[1,],
-                y=pca3D[2,],
-                z=pca3D[3,],
-                type="scatter3d",
-                mode="marker",
-                marker = list(size = 2))
 ```
 
 
@@ -276,9 +265,6 @@ Update the niche-phenotype association matrix + PCA (no clusters) + does interfa
 ```{r, include=FALSE}
 core_niche <- c(arche_list) %>% str_replace_all("rch","")
 inter_niche <- combn(core_niche, 2)
-#inter_niche <- c("a1a2","a1a3","a1a4","a1a5","a2a3","a2a4","a2a5","a3a4","a3a5","a4a5")
-
-# # removed_celltype <- c("megakaryocyte") # suggestions from dataset provider
 
 # prepare tmens_per_cell table
 tmens_per_cell <- cells_niches$cells_niches
