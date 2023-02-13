@@ -20,17 +20,17 @@ from shutil import make_archive
 
 
 #### ARGUMENTS
-CELLTYPES = list(sys.argv[1].split(",")) #['CD8-T', 'Other immune', 'DC / Mono', 'CD3-T', 'B', 'NK', 'Keratin-positive tumor', 'Tumor','CD4-T', 'Mesenchymal-like', 'Macrophages', 'Endothelial', 'Tregs', 'Unidentified', 'DC', 'Mono / Neu','Neutrophils']
-ImageIDs = [int(i) for i in sys.argv[2].split(",")] #[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 34, 35, 36, 37,38, 39, 40, 41]
-NSITES = int(sys.argv[3]) #100
-RADIUS = int(sys.argv[4]) #25
-NBNICHES = int(sys.argv[5]) #4
-METHOD = int(sys.argv[6]) #"gaussian"
-XSIZE= int(sys.argv[7])
-YSIZE = int(sys.argv[8])
-ROOT_DATA_PATH = sys.argv[9]  #"./TMENS_analysis/data/cell_positions_data"
-ROOT_OUTPUT_PATH = sys.argv[10] #"./TMENS_analysis/output"
-COLARCHS = np.array([[255, 0, 223],[255,0,0],[70,203,236],[0,0,0]]) #TODO  sys.argv[9]
+# CELLTYPES = list(sys.argv[1].split(",")) #['CD8-T', 'Other immune', 'DC / Mono', 'CD3-T', 'B', 'NK', 'Keratin-positive tumor', 'Tumor','CD4-T', 'Mesenchymal-like', 'Macrophages', 'Endothelial', 'Tregs', 'Unidentified', 'DC', 'Mono / Neu','Neutrophils']
+# ImageIDs = [int(i) for i in sys.argv[2].split(",")] #[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 34, 35, 36, 37,38, 39, 40, 41]
+# NSITES = int(sys.argv[3]) #100
+# RADIUS = int(sys.argv[4]) #25
+# NBNICHES = int(sys.argv[5]) #4
+# METHOD = int(sys.argv[6]) #"gaussian"
+# XSIZE= int(sys.argv[7])
+# YSIZE = int(sys.argv[8])
+# ROOT_DATA_PATH = sys.argv[9]  #"./TMENS_analysis/data/cell_positions_data"
+# ROOT_OUTPUT_PATH = sys.argv[10] #"./TMENS_analysis/output"
+# COLARCHS = np.array([[255, 0, 223],[255,0,0],[70,203,236],[0,0,0]]) #TODO  sys.argv[9]
 
 # CELLTYPES = ['CD8-T', 'Other immune', 'DC / Mono', 'CD3-T', 'B', 'NK', 'Keratin-positive tumor', 'Tumor','CD4-T', 'Mesenchymal-like', 'Macrophages', 'Endothelial', 'Tregs', 'Unidentified', 'DC', 'Mono / Neu','Neutrophils']
 # ImageIDs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 34, 35, 36, 37,38, 39, 40, 41]
@@ -113,7 +113,7 @@ if __name__ == "__main__":
   # 
   #####----- GENERATE SITES CENTERED ON CELLS AND THEIR NICHE WEIGHTS ----#####
   print("Computing cells' niche weights, the operation might take some time...")
-  CellAbCC_list = generate_abundance_matrix(CELLTYPES, ImageIDs, NSITES,RADIUS,method=METHOD, snr=3,center_sites_cells=True,root=ROOT_DATA_PATH)
+  CellAbCC_list = generate_abundance_matrix(CELLTYPES, ImageIDs, NSITES,RADIUS,method=METHOD, snr=3,center_sites_cells=True, border=False,root=ROOT_DATA_PATH)
   sitesCC, patients_ids2,sites_ids2, _ = join_abundance_matrices(CellAbCC_list)
   CellAbCC_df = pd.DataFrame()
   for ca in CellAbCC_list:

@@ -344,12 +344,12 @@ plot_roc_niches_cells <- function(CT,clustFiles,clustIDs, nichesNames,markers,ce
 correct_cor_fdr <- function(corMatrix,corCMtmens.pval,qThresh,corThresh){
   ### CORRECTIONS P VALUE FDR
   #dim(corCMtmens.pval)
-  write_csv(as.data.frame(corMatrix,row.names=rownames(corMatrix)),"./NiPhcorrelations.csv")
+  #write_csv(as.data.frame(corMatrix,row.names=rownames(corMatrix)),"./NiPhcorrelations.csv")
   corCMtmens.pval.mat = corCMtmens.pval %>% column_to_rownames(var='names')
   fdrOut = 
     fdrtool(corCMtmens.pval.mat %>% as.matrix %>% as.numeric(), 
             statistic = "pvalue")
-  write_csv(as.data.frame(corCMtmens.pval.mat,row.names=rownames(corCMtmens.pval.mat)),"./NiPhpvalue.csv")
+  #write_csv(as.data.frame(corCMtmens.pval.mat,row.names=rownames(corCMtmens.pval.mat)),"./NiPhpvalue.csv")
   corCMtmens.qval = 
     fdrOut$qval %>% 
     matrix(nrow=nrow(corCMtmens.pval.mat), ncol=ncol(corCMtmens.pval.mat),
@@ -361,7 +361,7 @@ correct_cor_fdr <- function(corMatrix,corCMtmens.pval,qThresh,corThresh){
   # qThreshold <- 1/100
   # corThreshold <- .3
   # corThreshold2 <- .2
-  write_csv(as.data.frame(corCMtmens.qval,row.names=rownames(corCMtmens.qval)),"./NiPhqvalue.csv")
+  #write_csv(as.data.frame(corCMtmens.qval,row.names=rownames(corCMtmens.qval)),"./NiPhqvalue.csv")
   filterMat <- corCMtmens.qval<qThresh & corMatrix[rownames(corCMtmens.qval),]>corThresh#corCMtmens.qval<qThresh & abs(corMatrix[rownames(corCMtmens.qval),])>corThresh
   return(filterMat)
 }
@@ -706,9 +706,11 @@ NichesCellProfile <- function(sitesCA = sites,Arch = AA,pcaObj = pca_obj){
 # @param CM: matrix of correlation between cell phenotypes(rows) and niches/interfaces(columns)
 # @param NichesCT: dataframe of cell types enriched in each niche columns: niche, cell_type
 # @param NichesNames: named vector of archetypes(names) and niches names(value)
+# @param  nichesCA.sorted: dataframe of cell abundance of niches, cell types sorted by desc order
+# @param pathFigs: str of path where to save table figure (pdf)
 # @return tabCellPhen3: dataframe of cell phenotypes of each niche/interface
 #test str_detect(names(c("a1"="TLS","a3"="cancer","a2"="inflammatory","a!"=0)),"^a[:digit:]")
-TableNichesPhenotypes <- function(CM,NichesCT,Niches.names,pathFigs){
+TableNichesPhenotypes <- function(CM,NichesCT,Niches.names,nichesCA.sorted,pathFigs){
   intfNames <-apply(combn(Niches.names,2),2,function(x) {paste0(x,collapse = " x ")})
   names(intfNames) <-apply(combn(names(Niches.names),2),2,function(x) {paste0(x,collapse = "")})
   
@@ -723,7 +725,7 @@ TableNichesPhenotypes <- function(CM,NichesCT,Niches.names,pathFigs){
   
   tabTMENs2 <- tabTMENs2%>% filter(corr_val >=0.3)%>%
     #filter(!(grepl("cancer",niche,fixed=TRUE) & (marker%in% c("Keratin6+","Beta catenin+"))))%>%
-    left_join(.,nichesCA.sort, by=c("cell_type","niche"))%>%group_by(niche)%>%
+    left_join(.,nichesCA.sorted, by=c("cell_type","niche"))%>%group_by(niche)%>%
     arrange(desc(cell_density))%>%dplyr::select(-c(cell_density))#### Select correlations that are >0.35 + remove correlations that arise from bleed over of structural proteins in cancer and interfaces with cancer.
   
   ######### Compare correlations from core VS from interfaces
