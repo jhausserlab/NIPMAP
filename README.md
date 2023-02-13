@@ -28,12 +28,8 @@ NIche Phenotype MAPping (NIPMAP) analysis from spatial multiplex data: Multiplex
     ** /!\ CAUTION** reticulate library version 1.22 should be downloaded, not the latest !! 
 
 ## Quick start
-The input is a CSV file where rows represent cells and columns represent cell_type, x position, y position, SampleID, cellLabelInImage. See patient1_cell_positions.csv for an example. For niche-phenotype mapping part, another input is a CSV file  cells' marker expression. Cells are rows, and columns are marker expression values already trasnformed (Z-score normalization, log-normalisation arcsinh trasnformed depending the method used). See cellData.csv for an example.
-
-Geometrically, the samples should have the shape of a rectangle to generate sites and compute cell abundance. Cell types must have been already identified prior to NIPMAP analysis: NIPMAP considers cell types as a given. The list of markers should include phenotypic markers, that is markers (proteins or other) that were not used to identify cell types.
-
-Run script called nipmap.r with your own data. Witin this script, adjust parameters (number of niches, size of sampling sites, number of sites, ...). 
-Running the analysis will produce the following outputs:
+In progress...
+We are currently developing a python and R scripts to produce the following the following outputs:
 * Generation of sites and cellular abundances within them (+ radius size selection)
 * PCA and Archetype Analysis
 * Niche identification
