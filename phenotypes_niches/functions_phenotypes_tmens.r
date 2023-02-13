@@ -482,14 +482,13 @@ correlations_tmens_CM <- function(MarkersCellsTMENs,cellTypes, markers, qThresh=
 # qThresh: double, cut-off of q value for FDR correction of p values in correlation test
 # corThresh: double, cut-off to select high correlation
 correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman",coreIntf,qThresh=1/100,corThresh=0.3){
-  rareCells<- markersCells.niches%>%group_by(cell_type)%>%summarise(total=n())%>%filter(total<3)%>%pull(cell_type)
+  rareCells<- markersCells.niches%>%group_by(cell_type)%>%summarise(total=n())%>%filter(total<=3*length(Markers))%>%pull(cell_type)
   if (length(rareCells)>=1){
     print("These cell types are rare (count<10),")
     print(rareCells)
   }
-  
   #print("They will be removed from the correlation analysis")
-  CM.gps <- markersCells.niches%>%#filter(cell_type %in%rareCells)%>% #removing rare cell types
+  CM.gps <- markersCells.niches%>%filter(!cell_type %in% rareCells)%>% #removing rare cell types
     filter(marker %in% Markers)%>%
     mutate(id=paste(cell_type,marker,sep=";"))%>%
     group_by(cell_type, marker)%>%split(f= as.factor(.$id))
