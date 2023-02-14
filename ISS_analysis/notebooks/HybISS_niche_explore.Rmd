@@ -58,8 +58,8 @@ setwd(dirName)#setwd(dir = "/scratch/anissa.el/ImmuneStates/phenot_tmens")
 
 ```{r constant variables}
 
-CELLTYPES=c('secretory', 'epithelial', 'proliferating smooth muscle', 'lymphatic endothelial', 'arterial', 
-'mesenchymal', 'ciliated epithelial', 'neuronal', 'pericyte', 'ASM', 
+CELLTYPES=c('secretory', 'epithelium', 'proliferating smooth muscle', 'lymphatic endothelial', 'vessel', 
+'parenchyma', 'ciliated epithelium', 'neuronal', 'pericyte', 'ASM', 
 'fibroblast', 'megakaryocyte', 'proximal progenitor', 'endothelial', 'neuroendocrine', 
 'chondroblast', 'Dendritic', 'macrophage', 'myeloid', 
 'mesothelial', 'monocyte', 'capillary', 'ILC3', 'B-cell', 
@@ -67,6 +67,14 @@ CELLTYPES=c('secretory', 'epithelial', 'proliferating smooth muscle', 'lymphatic
 'neutrophil', 'ILC2', 'lymphoid progenitor', 'natural killer')
 
 NBCELLTYPES = length(CELLTYPES)
+
+# comment the following scripts if you already have marker list
+# cellMarkers <- read.csv("/scratch/ziqi.kang/HIFI_TMENs_analysis/My_cell_positions_data/ISS_dataset/Cell_type_deep_clusters/PCW13/S1T1_mALL_complex_celltypes_formatted.csv")
+# # keep column 80- cell markers
+# markers <- colnames(cellMarkers) %>% as.array()
+# markers <- markers[80:168]
+# saveRDS(markers, "./ISS_marker_list.rds")
+
 MARKERS <- read_rds("../data/ISS_marker_list.rds")
 METHOD ="gaussian"
 ```
@@ -129,10 +137,6 @@ if (file.exists(paste(ROOT_DATA_PATH,"cellData_",ImageIDs,".csv") %>% str_replac
 }else{
   
   cellMarkers <- read.csv("/scratch/ziqi.kang/HIFI_TMENs_analysis/My_cell_positions_data/ISS_dataset/Cell_type_deep_clusters/PCW13/S1T1_mALL_complex_celltypes_formatted.csv")
-   # keep column 80- cell markers
-  # markers <- colnames(cellMarkers) %>% as.array()
-  # markers <- markers[80:168]
-  # saveRDS(markers, "./ISS_marker_list.rds")
   cellMarkers <- cellMarkers %>% select(c(X.1, X, Y, cell.type, all_of(MARKERS)))
   names(cellMarkers)[names(cellMarkers) == 'X.1'] <- 'cell_id'
   names(cellMarkers)[names(cellMarkers) == 'cell.type'] <- 'complex_celltype'
@@ -212,8 +216,8 @@ niche_cellcompo <- read.csv(paste(RESULT_DATA_PATH,"niche_cellbundance.csv") %>%
   t() %>% as.data.frame() %>% 
   cbind(arche_list = arche_list) %>% melt(id="arche_list")
   # column_to_rownames(var = "arche_list") %>% 
-#niche_cellcompo$arche_list <- str_replace_all(niche_cellcompo$arche_list, c("arch1" = "epithelial","arch2" = "mesenchymal","arch3" = "smooth muscle", 
-#                                                                            "arch4" = "arterial", "arch5"= "ductal/alveolar"))
+#niche_cellcompo$arche_list <- str_replace_all(niche_cellcompo$arche_list, c("arch1" = "epithelium","arch2" = "parenchyma","arch3" = "smooth muscle", 
+#                                                                            "arch4" = "vessel", "arch5"= "ductal/alveolar"))
 
 cell_Freq <- table(stat(cell_markers$cell_type)) %>% as.data.frame() %>% mutate(percent = Freq*100/sum(Freq))
 keep <- cell_Freq %>% filter(percent >= 1) %>% `colnames<-`(c("cell_type", "Freq", "percent"))
@@ -263,6 +267,12 @@ ggsave("../output/arche_barplot.pdf", width=7, height=5)
 Update the niche-phenotype association matrix + PCA (no clusters) + does interface or core drive phenotypes. 
 
 ```{r, include=FALSE}
+
+arche_list <- c()
+for (i in seq(1,NBNICHES)) {
+  arche_list <- arche_list %>% append(paste("arch",i) %>% str_replace_all(" ",""))
+}
+
 core_niche <- c(arche_list) %>% str_replace_all("rch","")
 inter_niche <- combn(core_niche, 2)
 
@@ -273,7 +283,7 @@ tmens_per_cell <- do.call(cbind, tmens_per_cell) %>%
   `colnames<-`(c(core_niche, "patient_id", "site_id",
                               "cell_type_site", "TOT_cell_dens"))
 
-tmens_per_cell$patient_id <- as.integer(tmens_per_cell$patient_id)
+tmens_per_cell$patient_id <- as.integer(tmens_per_cell$patient_id) # FIXME as.numeric instead of as.integer
 tmens_per_cell$site_id <- as.integer(tmens_per_cell$site_id)
 for (i in core_niche) {
   tmens_per_cell[,i] <- as.double(tmens_per_cell[,i])
@@ -352,17 +362,17 @@ tabTMENs2 <- as_tibble(cMf,rownames=NA)%>%
   mutate(marker=paste0(marker,"+"))%>%
   pivot_longer(cols=c(core_niche,inter_niche),names_to ="niche",values_to="corr_val")#,"a1a2a3","a1a2a4","a1a3a4","a2a3a4"
 
-tabTMENs2$niche <- str_replace_all(pull(tabTMENs2,niche), c("a2a3"="mesenchymalxsmooth muscle",
-                                                           "a1a3" = "epithelialxsmooth muscle",
-                                                           "a1a2"= "epithelialxmesenchymal",
-                                                           "a1a4" = "epithelialxarterial",
-                                                           "a2a4" ="mesenchymalxarterial",
-                                                           "a3a4" = "smooth musclexarterial",
-                                                           "a1a5" = "epithelialxductal/alveolar", 
-                                                           "a2a5" = "mesenchymalxductal/alveolar", 
+tabTMENs2$niche <- str_replace_all(pull(tabTMENs2,niche), c("a2a3"="parenchymaxsmooth muscle",
+                                                           "a1a3" = "epitheliumxsmooth muscle",
+                                                           "a1a2"= "epitheliumxparenchyma",
+                                                           "a1a4" = "epitheliumxvessel",
+                                                           "a2a4" ="parenchymaxvessel",
+                                                           "a3a4" = "smooth musclexvessel",
+                                                           "a1a5" = "epitheliumxductal/alveolar", 
+                                                           "a2a5" = "parenchymaxductal/alveolar", 
                                                            "a3a5" = "smooth musclexductal/alveolar", 
-                                                           "a4a5" = "arterialxductal/alveolar"))
-tabTMENs2$niche <- str_replace_all(pull(tabTMENs2,niche),c("a1" = "epithelial","a2" = "mesenchymal","a3" = "smooth muscle","a4" = "arterial", "a5"= "ductal/alveolar"))
+                                                           "a4a5" = "vesselxductal/alveolar"))
+tabTMENs2$niche <- str_replace_all(pull(tabTMENs2,niche),c("a1" = "epithelium","a2" = "parenchyma","a3" = "smooth muscle","a4" = "vessel", "a5"= "ductal/alveolar"))
 
 tabCellPhen <- tabTMENs2%>%
   separate(col=niche, into = c("type1","type2"),sep="x")%>%
@@ -435,17 +445,17 @@ tmens_SS <- as_tibble(cbind(SS,x),rownames=NA)%>%
   rownames_to_column(var="tmen")%>%
   mutate(type = ifelse(tmen %in% c(core_niche),"core","interface"))
 
- tmens_SS$tmen <- str_replace_all(tmens_SS$tmen, c("a2a3"="mesenchymalxsmooth muscle",
-                                                           "a1a3" = "epithelial x smooth muscle",
-                                                           "a1a2"= "epithelial x mesenchymal",
-                                                           "a1a4" = "epithelial x arterial",
-                                                           "a2a4" ="mesenchymal x arterial",
-                                                           "a3a4" = "smooth muscle x arterial",
-                                                           "a1a5" = "epithelial x ductal/alveolar", 
-                                                           "a2a5" = "mesenchymal x ductal/alveolar", 
+ tmens_SS$tmen <- str_replace_all(tmens_SS$tmen, c("a2a3"="parenchymaxsmooth muscle",
+                                                           "a1a3" = "epithelium x smooth muscle",
+                                                           "a1a2"= "epithelium x parenchyma",
+                                                           "a1a4" = "epithelium x vessel",
+                                                           "a2a4" ="parenchyma x vessel",
+                                                           "a3a4" = "smooth muscle x vessel",
+                                                           "a1a5" = "epithelium x ductal/alveolar", 
+                                                           "a2a5" = "parenchyma x ductal/alveolar", 
                                                            "a3a5" = "smooth muscle x ductal/alveolar", 
-                                                           "a4a5" = "arterial x ductal/alveolar"))
-  tmens_SS$tmen <- str_replace_all(tmens_SS$tmen,c("a1" = "epithelial","a2" = "mesenchymal","a3" = "smooth muscle","a4" = "arterial", "a5"= "ductal/alveolar"))
+                                                           "a4a5" = "vessel x ductal/alveolar"))
+  tmens_SS$tmen <- str_replace_all(tmens_SS$tmen,c("a1" = "epithelium","a2" = "parenchyma","a3" = "smooth muscle","a4" = "vessel", "a5"= "ductal/alveolar"))
 
 p <- ggplot(tmens_SS, aes(x, SS, color=type, label=tmen)) + 
   geom_point()+ 
