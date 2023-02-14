@@ -536,14 +536,14 @@ correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman
 # nichsIntf: string vector of archetypes and interfacs as named in correlation matrix
 plot_heatmap_CT <- function(CM.mat,nichesIntf,figPath="./figs/cM_byCells3.pdf"){
   cts <- unique(pull(as_tibble(CM.mat,rownames=NA)%>%rownames_to_column(var="names")%>%separate(names,into=c("cell_type","marker"),sep=";"),cell_type))
-  print(cts)
+  #print(cts)
   CM_TMENs_ct <- as_tibble(CM.mat,rownames=NA)%>%
     rownames_to_column(var="names")%>%
     separate(names,into=c("cell_type","marker"),sep=";")%>%#mutate(marker=paste0(marker,"+"))%>%
-    pivot_longer(cols=nichesIntf,names_to = "region",values_to="corr_val")%>%
+    pivot_longer(cols=all_of(nichesIntf),names_to = "region",values_to="corr_val")%>%
     mutate(idx =match(cell_type, cts))%>%
     group_by(cell_type)%>%mutate(corr_val = corr_val+ (idx-1)*10)%>%pivot_wider(names_from="region", values_from="corr_val")%>%mutate(names = paste(cell_type,marker,sep=";"))%>%column_to_rownames(var="names")#%>%dplyr::select(-c(cell_type,idx))
-  print(head(CM_TMENs_ct))
+  #print(head(CM_TMENs_ct))
   dists <- dist(as.matrix(CM_TMENs_ct%>%dplyr::select(-c(cell_type,marker,idx))),method="euclidean")
   hclustCells <- hclust(dists,method="ward.D") 
   #plot(as.dendrogram(hclustCells))
@@ -570,7 +570,7 @@ plot_heatmap_markers <- function(CM.mat,nichesIntf,figPath="./figs/cM_byMarkers2
   CM_TMENs_ph <- as_tibble(CM.mat,rownames=NA)%>%
     rownames_to_column(var="names")%>%
     separate(names,into=c("cell_type","marker"),sep=";")%>%#mutate(marker=paste0(marker,"+"))%>%
-    pivot_longer(cols=nichesIntf,names_to = "region",values_to="corr_val")%>%
+    pivot_longer(cols=all_of(nichesIntf),names_to = "region",values_to="corr_val")%>%
     mutate(idx =match(marker, markersCorr))%>%arrange(marker)%>%
     group_by(marker)%>%mutate(corr_val = corr_val+ (idx-1)*10)%>%pivot_wider(names_from="region", values_from="corr_val")%>%mutate(names = paste(marker,cell_type,sep=";"))%>%column_to_rownames(var="names")#%>%dplyr::select(-c(marker,idx))
   

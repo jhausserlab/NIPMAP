@@ -19,9 +19,9 @@ source("./phenotypes_niches/functions_phenotypes_tmens.r")
 #TODO plot table of cell phenotypes for each niche/interface
 
 ### CONTROL PANEL: SET PARAMETERS AND CONSTANTS
-CELLTYPES = c('CD8-T', 'Other\\\ immune', 'DC\\\ /\\\ Mono', 'CD3-T', 'B', 'NK', 'Keratin-positive\\\ tumor', 'Tumor', 
-              'CD4-T', 'Mesenchymal-like', 'Macrophages', 'Endothelial', 'Tregs', 'Unidentified', 'DC', 'Mono\\\ /\\\ Neu', 
-              'Neutrophils')
+# CELLTYPES = c('CD8-T', 'Other\\\ immune', 'DC\\\ /\\\ Mono', 'CD3-T', 'B', 'NK', 'Keratin-positive\\\ tumor', 'Tumor', 
+#               'CD4-T', 'Mesenchymal-like', 'Macrophages', 'Endothelial', 'Tregs', 'Unidentified', 'DC', 'Mono\\\ /\\\ Neu', 
+#               'Neutrophils')
 CELLTYPES = c('CD8-T', 'Other immune', 'DC / Mono', 'CD3-T', 'B', 'NK', 'Keratin-positive tumor', 'Tumor', 
               'CD4-T', 'Mesenchymal-like', 'Macrophages', 'Endothelial', 'Tregs', 'Unidentified', 'DC', 'Mono / Neu', 
               'Neutrophils')
@@ -38,7 +38,7 @@ H = 800
 ROOT_DATA_PATH="./TMENS_analysis/data/cell_positions_data" 
 #rootDataPath = 
 ROOT_OUTPUT_PATH="./TMENS_analysis/output"
-pathFigs = "."
+pathFigs = "./figs_niches"
 
 # CellTypes=paste(CELLTYPES,collapse=",")# 
 # imageID=paste(ImageIDs,collapse = ",")
@@ -86,7 +86,7 @@ plotly::plot_ly(x=pca3D[1,],
                 mode="marker")
 
 ######--- NICHE IDENTIFICATION 
-niches<- paste0("a",as.vector(seq(1,NBNICHES,1)))
+niches <- paste0("a",as.vector(seq(1,NBNICHES,1)))
 NichesCellProf <- do.call(cbind,lapply(json_data2$nichesCA,unlist))
 rownames(NichesCellProf) <- CELLTYPES
 colnames(NichesCellProf) <- niches
@@ -95,7 +95,7 @@ NichesCellProp <- NichesCellProf%>%t%>%as_tibble(rownames = NA)%>%
   pivot_longer(cols=all_of(CELLTYPES),names_to="cell_type",values_to = "cell_density")
 NichesCellProp[NichesCellProp<0] <-0
 barplot1 <- ggplot(data = NichesCellProp, aes(x = cell_type, y = cell_density,fill = archetype)) +
-  geom_bar(stat = "identity",position = position_dodge(),width = 0.6) + 
+  geom_bar(stat = "identity",position = position_dodge(),width = 0.6) +
   theme(axis.text.x = element_text(angle = 90, vjust = .2))#+
   #scale_fill_manual(values = COLARCHS)+
   #xlab ("") + ylab("cell density")
@@ -116,11 +116,11 @@ cellsNiches <- as_tibble(lapply(json_data4$cells_niches,unlist))%>%
   rename_at(vars(matches("[0-9]")),~niches)%>%
   mutate(cell_id=as.numeric(cell_id))
 #Make combinations of niches interfaces of order nIntf
-# getInterNiches <- function(nIntf,nbNiches){
-#   interfaces <- combn(paste0("a",as.vector(seq(1,nbNiches,1))),nIntf)
-#   coreIntf <- apply(interfaces,2,function(x) paste0(x,collapse=""))
-#   return(coreIntf)
-# }
+getInterNiches <- function(nIntf,nbNiches){
+  interfaces <- combn(paste0("a",as.vector(seq(1,nbNiches,1))),nIntf)
+  coreIntf <- apply(interfaces,2,function(x) paste0(x,collapse=""))
+  return(coreIntf)
+}
 coreIntf2 <- append(paste0("a",as.vector(seq(1,NBNICHES,1))),getInterNiches(NINTERFACES,NBNICHES))
 
 # Get markers expression and niche weigths of cells
@@ -156,7 +156,7 @@ cellsPhen.niches <- read.csv("./TMENS_analysis/data/cellData.csv",check.names=FA
   pivot_longer(cols=all_of(MARKERS),
                names_to="marker",values_to="value")
 
-
+source("./phenotypes_niches/functions_phenotypes_tmens.r")
 CM <- correlation_niches_CM(markersCells.niches=cellsPhen.niches,Markers=markers,corrMeth="spearman",coreIntf2,1/100,0.3)
 
 #Filter the cell phenotypes associated with cancer niche, contaminated by Keratin6 and Beta-catenin
@@ -165,9 +165,9 @@ BCat.filt <- names(which(CM[rownames(CM)[which(grepl("Beta catenin",rownames(CM)
 
 cMf <- CM[!rownames(CM)%in%BCat.filt& !rownames(CM)%in% Krt.filt,] 
 
-## Plot heatmaps & table
-# plot_heatmap_CT(CM.mat=cMf,coreIntf2,paste0(pathFigs,"/CMbyCells2.pdf"))
-# plot_heatmap_markers(CM.mat=cMf,coreIntf2,paste0(pathFigs,"/CMbyMarkers.pdf"))
+############# Plot heatmaps & table
+plot_heatmap_CT(CM.mat=cMf,coreIntf2,paste0(pathFigs,"/CMbyCells2.pdf"))
+plot_heatmap_markers(CM.mat=cMf,coreIntf2,paste0(pathFigs,"/CMbyMarkers.pdf"))
 
 
 ##TABLE OF NICHE-ASSOCIATED CELL PHENOTYPES 
@@ -184,8 +184,12 @@ nichesCA.sort <- nichesCellAb%>%
    pivot_longer(cols = as.vector(NichesNames),names_to="niche",values_to="cell_density")%>%
    group_by(niche)%>%arrange(desc(cell_density))
 
-archsSitesCellAb <- left_join(sitesCellAb,archetypes_sites,by=c("site_id","patient_id"))%>%
+# archsSitesCellAb <- left_join(sitesCellAb,archetypes_sites,by=c("site_id","patient_id"))%>%
+#   pivot_longer(cols=append(CELLTYPES,"Unidentified"),names_to="cell_type",values_to= "cell_density")
+colnames(archetypes_sites) <- niches
+archsSitesCellAb <- cbind(sitesCellAb,archetypes_sites)%>%
   pivot_longer(cols=append(CELLTYPES,"Unidentified"),names_to="cell_type",values_to= "cell_density")
+
 ### Get cell types enriched in each niche (take top 1% sites closest to niche)
 archs.CT <- get_CT_enriched_all_archs(archsSitesCellAb,NichesNames)%>%#(archetypes_sites%>%t%>%as_tibble(rownames=NA),cellAbSites,thresh = 0.99)%>%
   group_by(niche)%>%
