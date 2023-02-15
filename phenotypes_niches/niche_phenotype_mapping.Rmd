@@ -676,7 +676,7 @@ If so, is it a continuum or do we have clusters ?
 #FIXME remove this part ? Useless
 ###PCA on correlation matrix
 library(pheatmap)
-library(RColorBrewer)
+#library(RColorBrewer)
 library(ggplot2)
 CM_TMENs.pca <- dudi.pca(cMf[,c('a1','a2','a3',"a4","a1a2","a1a3","a1a4","a2a3","a2a4","a3a4")],center=FALSE, scale=TRUE,scannf=FALSE,nf=3)
 fviz_eig(CM_TMENs.pca)
@@ -689,7 +689,7 @@ CM <- cMf%>%as_tibble(rownames=NA)%>%rownames_to_column(var="names")%>%separate(
 # CM_TMENs.pca$li[,1:3] <- sweep(CM_TMENs.pca$li[,1:3], 2, CM_TMENs.pca$eig[1:3], FUN='/')
 
 colorCount = length(unique(CM$marker))
-getPalette = colorRampPalette(brewer.pal(9, "Set1"))
+getPalette = colorRampPalette(RColorBrewer::brewer.pal(9, "Set1"))
 
 
 # plot1 <- ggplot(data = cbind(CM_TMENs.pca$li[,1:2],CM), aes(x = Axis1, y = Axis2,color=marker,shape= cell_type,size=3)) + 

@@ -126,7 +126,7 @@ def get_segmentation_matrix(data, cell_types, pca_obj, archetype_obj, color_fun,
     mesh = np.array(np.meshgrid(range(len(x_span)-1), range(len(y_span)-1)))
     combinations = list(mesh.T.reshape(-1, 2)) # creating all grid points
     circle_out_area = {}
-    print(archetype_obj.alfa.shape[0]-1)
+    #print(archetype_obj.alfa.shape[0]-1)
     total_site_area = np.pi * radius ** 2
     for grid_point in combinations:
         site, area_outside = site_generation(x, y, t, x_span, y_span, radius, grid_point, h, w, circle_out_area)
@@ -254,7 +254,7 @@ def plot_cells_markers_tmens(patient_id,cell_types,path_data, data_markers_path,
     data = pd.read_csv(path_data+"/patient{}_cell_positions.csv".format(patient_id))
    # data = data.loc[data["cell_type"] == cell_type]
     groups = data.groupby('cell_type')
-    print(type(marker)==str)
+    #print(type(marker)==str)
     df_markers = pd.read_csv(data_markers_path)
     plt.figure(figsize=(8, 8))
     if segment_image is True:
@@ -265,7 +265,7 @@ def plot_cells_markers_tmens(patient_id,cell_types,path_data, data_markers_path,
             colormap = mpl.cm.Dark2.colors
             
             color_vector=np.array(colormap[0:AA_obj.alfa.shape[0]])*255
-            print(color_vector)
+            #print(color_vector)
         else:
             color_vector =  np.array(color_vector)
         
@@ -280,7 +280,7 @@ def plot_cells_markers_tmens(patient_id,cell_types,path_data, data_markers_path,
         df_markers = df_markers.loc[df_markers["SampleID"] == patient_id]
         df_markers.rename(columns = {"cellLabelInImage":"label"},inplace=True)
         data_CM = pd.merge(data,df_markers,on = "label",how = "left")
-        print(data.shape)
+        #print(data.shape)
         #print(data_CM)
         plt.imshow(z, alpha=.5,origin='lower')#isns.imgplot(z)
         #cm = plt.cm.get_cmap("YlGn")#('RdYlBu')
@@ -291,7 +291,7 @@ def plot_cells_markers_tmens(patient_id,cell_types,path_data, data_markers_path,
         #cm = plt.cm.get_cmap("hot")#('RdYlBu') #works
         #cm = plt.cm.get_cmap("copper")#('RdYlBu') #ok, but DC Ker6 not so visible in cancer
         if type(marker)==str:
-            print("ok")
+            #print("ok")
             maxIntensity = data_CM[marker].quantile(1-intOutQuant)
             data_CM.loc[data_CM[marker] > maxIntensity,marker ] = maxIntensity
             plt.scatter(data_CM['x'], data_CM['y'], marker="o", s=20, c=data_CM[marker],cmap=cm)
@@ -359,7 +359,7 @@ def plot_cells_TI_border(data, cell_types, patientID=1,h=800,w=800,
     if normalize==False and quant!=0:  
         #print("Ok")
         maxWeight = data_niches["interface"].quantile(quant)
-        print(maxWeight)
+        #print(maxWeight)
         data_niches.loc[data_niches["interface"]> maxWeight,"interface"] = maxWeight
     
     for (name, group), col in zip(groups, colors):
@@ -517,15 +517,15 @@ def plot_cells_hclust_tmens(patient_id,cell_types,path_data, data_markers_path,c
         #labs = np.where(hclustID==6,6,np.where(hclustID==3,3,np.where(hclustID==1,1,"others")))
         
         #colors=["pink","white","green","grey"]#plt.get_cmap('Accent')
-        print(len(colors))
-        print(hclustID)
+        #print(len(colors))
+        #print(hclustID)
         #matplotlib.colors.ListedColormap(["pink","white","green","grey"])
         #sns.scatter('x', 'y',data=data_CM_clusts,hue="cluster",alpha=.7)
         groups = data_CM_clusts.groupby("cluster")
         #listNames = 
         
         hclustID = list(groups.groups)
-        print(hclustID)
+        #print(hclustID)
         cols = {hclustID[i]:cols_clusts[i] for i in range(len(hclustID))}
         
         for (name, gp) in groups:
