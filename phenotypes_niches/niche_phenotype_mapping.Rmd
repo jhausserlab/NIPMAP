@@ -403,6 +403,112 @@ plot_roc_niches_cells(CT = CTroc,clustFiles = fileExt,clustIDs = clustCells,
 
 ### Assessing phenotypes-TMENs with spearman correlations
 
+```{r nichesWeights,eval=FALSE, warning=FALSE}
+#coreIntf2<-c("a1","a2","a3","a4","a1a2","a1a3","a1a4","a2a3","a2a4","a3a4")
+#MarkersCellsTMENS2%>%group_by(cell_type,marker)%>%
+NINTERFACES = 2
+NBNICHES = 4
+getInterNiches <- function(nIntf,nbNiches){
+  interfaces <- combn(paste0("a",as.vector(seq(1,nbNiches,1))),nIntf)
+  coreIntf <- apply(interfaces,2,function(x) paste0(x,collapse=""))
+  return(coreIntf)
+}
+
+coreIntf2 <- append(paste0("a",as.vector(seq(1,NBNICHES,1))),getInterNiches(NINTERFACES,NBNICHES))
+
+ CM.gps <- MarkersCellsTMENS2%>%dplyr::rename(a1=arch1)%>%dplyr::rename(a2 = arch2)%>%dplyr::rename(a3 = arch3)%>%dplyr::rename(a4 = arch4)%>%
+   filter(marker %in%FuncMarkers)%>%
+   mutate(id=paste(cell_type,marker,sep=";"))%>%
+     group_by(cell_type, marker)%>%split(f= as.factor(.$id))
+   #print(CM.gps)
+
+res <- lapply(CM.gps,function(x){
+     for(n in coreIntf2){
+       #print(n)
+       #if (n %in%paste0("a",as.vector(seq(1,NBNICHES,1))) &(length(x%>%filter(get(n)>0.5)%>%pull(get(n)))==0)){
+       #    print(unique(x$id))
+       #    print(n)
+       #}
+       if ((n %in%getInterNiches(NINTERFACES,NBNICHES)) &(length(x%>%filter(get(n)>(1/8))%>%pull(get(n)))==0)){
+           print(unique(x$id))
+           print(n)
+        }
+    }
+})
+
+corr_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman",NINTERFACES=2,NBNICHES=4,qThresh=1/100,corThresh=0.3){
+  rareCells<- markersCells.niches%>%group_by(cell_type)%>%summarise(total=n())%>%filter(total<=3*length(Markers))%>%pull(cell_type)
+  if (length(rareCells)>=1){
+    print("These cell types are rare (count<10),")
+    print(rareCells)
+  }
+  #print("They will be removed from the correlation analysis")
+  coreIntf <- append(paste0("a",as.vector(seq(1,NBNICHES,1))),getInterNiches(NINTERFACES,NBNICHES)) 
+  CM.gps <- markersCells.niches%>%filter(!cell_type %in% rareCells)%>% #removing rare cell types
+    filter(marker %in% Markers)%>%
+    mutate(id=paste(cell_type,marker,sep=";"))%>%
+    group_by(cell_type, marker)%>%split(f= as.factor(.$id))
+  #print(CM.gps)
+  res <-lapply(CM.gps,function(x){ #a%>%group_by(cell_type, marker)%>%group_split()%>%setNames(id)
+    corrs <- c()
+    corrpvals <-c()
+    #id <- paste0(unique(pull(x,cell_type)),unique(pull(x,marker)),sep=";")
+    #print(id)
+    for(n in coreIntf){
+      if(any(is.na(pull(x,value))|sd(pull(x,value))==0 |length(pull(x,value))<3)){
+        corrValue <- NA
+        corrp <- NA
+      }
+      else{
+        if ((n %in%getInterNiches(NINTERFACES,NBNICHES) &(length(x%>%filter(get(n)>(1/8))%>%pull(get(n)))==0))|((n %in%paste0("a",as.vector(seq(1,NBNICHES,1))) & (length(x%>%filter(get(n)>0.5)%>%pull(get(n)))==0)))){
+          print(unique(x$id))
+          print()
+          corrValue <- 0
+          corrp <- 0
+        }
+        else{
+          corrValue <- cor.test(pull(x,value),pull(x,get(n)),method = corrMeth,exact=FALSE)$estimate
+          corrp <- cor.test(pull(x,value),pull(x,get(n)),method = corrMeth,exact=FALSE)$p.value 
+        }
+      }
+      corrs <-append(corrs,corrValue)
+      corrpvals <- append(corrpvals,corrp)
+    }
+    #print(corrs)
+    names(corrs) <- coreIntf2
+    names(corrpvals) <- coreIntf2
+    list("corr_value"=corrs,"p_value"= corrpvals)
+  })
+  #print(names(res))
+  CorrMat <- do.call(rbind,lapply(res,'[[',"corr_value"))#do.call(rbind,res["corr_value"])
+  CorrpVal.mat <- do.call(rbind,lapply(res,'[[',"p_value"))#do.call(rbind,res[[2]])
+  #print(CorrpVal.mat)
+  corCMniches.pval <- CorrpVal.mat%>%as_tibble(rownames=NA)%>%
+    rownames_to_column(var="names")%>%
+    drop_na()
+  write_csv(as_tibble(CorrMat,rownames=NA), "./rawCorrMatrix.csv")
+  filtMat <- correct_cor_fdr(CorrMat,corCMniches.pval,qThresh,corThresh)
+  #mean(apply(filtMat, 1, sum) > 0)
+  cM.filt <- CorrMat[names(which(apply(filtMat, 1, sum) > 0)),]
+  return(cM.filt) #return(CorrpVal.mat)
+}
+
+MarkersCellsNiches <- MarkersCellsTMENS2%>%dplyr::rename(a1=arch1)%>%dplyr::rename(a2 = arch2)%>%dplyr::rename(a3 = arch3)%>%dplyr::rename(a4 = arch4)
+
+CMnew <- corr_niches_CM(MarkersCellsNiches,FuncMarkers,corrMeth="spearman",NINTERFACES=2,NBNICHES=4,qThresh=1/100,corThresh=0.3)
+
+#plot_cellMarker_niche(MarkersCellsTMENS2,"Neutrophils","HLA_Class_1",niche=c("TLS","cancer"))
+# cMf <- CMnew
+# Krt.filt <- names(which(cMf[rownames(cMf)[which(grepl("Keratin6",rownames(cMf),fixed=TRUE))],"a3"]>0.3))
+# BCat.filt <- names(which(cMf[rownames(cMf)[which(grepl("Beta catenin",rownames(cMf),fixed=TRUE))],"a3"]>0.2))
+# 
+# cMf2 <- cMf[!rownames(cMf)%in%BCat.filt& !rownames(cMf)%in% Krt.filt,]
+# 
+# pheatmap(cMf2%>%t)
+
+
+```
+
 ```{r plots1,eval=FALSE,warning=FALSE,echo=TRUE}
 start_time <- Sys.time()
 cMf <- correlations_tmens_CM(MarkersCellsTMENs=MarkersCellsTMENS2,cellTypes=CELLTYPES, markers=FuncMarkers)
@@ -433,8 +539,10 @@ pheatmap(cMf2%>%t)
 
 compute correlations between niches and cell phenotypes
 
-```{r corrs,warning=FALSE,echo=TRUE}
+```{r corrs,warning=FALSE,eval=TRUE,echo=TRUE}
 
+source("./functions_phenotypes_tmens.r")
+NINTERFACE = 2
 #test1 <- c("arch1","arch2")
 #a <- MarkersCellsTMENS2%>%filter(marker %in% FuncMarkers)%>%
 #  #select(c(cell_type,marker,value,arch1,arch2,arch3,arch4,a1a2,a1a3,a1a4,a2a3,a2a4,a3a4,a1a2a3,a1a2a4,a1a3a4,a2a3a4,a1a2a3a4))%>%
@@ -445,9 +553,9 @@ coreIntf2<-c("a1","a2","a3","a4","a1a2","a1a3","a1a4","a2a3","a2a4","a3a4")#,"a1
 #corrMeth <- "spearman"# method to compute correlations. We recommend to use spearman unless your dataset respects pearson assumptions
 MarkersCellsNiches <- MarkersCellsTMENS2%>%dplyr::rename(a1=arch1)%>%dplyr::rename(a2 = arch2)%>%dplyr::rename(a3 = arch3)%>%dplyr::rename(a4 = arch4)
 
-cMf <-correlation_niches_CM(markersCells.niches=MarkersCellsNiches,Markers=FuncMarkers,corrMeth="spearman",coreIntf=coreIntf2)#(markersCells.niches=MarkersCellsTMENS2,Markers=FuncMarkers,corrMeth="spearman",coreIntf=coreIntf2)
+cMf <-correlation_niches_CM(markersCells.niches=MarkersCellsNiches,Markers=FuncMarkers,corrMeth="spearman",coreIntf=coreIntf2,nbNiches=NBNICHES,intf=NINTERFACE)#(markersCells.niches=MarkersCellsTMENS2,Markers=FuncMarkers,corrMeth="spearman",coreIntf=coreIntf2)
 
-write_csv(cMf%>%as_tibble(rownames=NA)%>%rownames_to_column(var="cell_marker"), "./outputs/CM_corr_niches_thresh0.3.csv")
+#write_csv(cMf%>%as_tibble(rownames=NA)%>%rownames_to_column(var="cell_marker"), "./outputs/CM_corr_niches_thresh0.3.csv")
 figWidth <- nrow(cMf) * 30/267
 
 Krt.filt <- names(which(cMf[rownames(cMf)[which(grepl("Keratin6",rownames(cMf),fixed=TRUE))],"a3"]>0.3))
@@ -588,7 +696,7 @@ g1 <- tableGrob(tabCellPhen3,rows=NULL,theme = th1)#(tabCellPhen2%>%mutate(regio
                  #gpar.corefill = gpar(fill = "white", col = "grey95"))
 grid.newpage()
 grid.draw(g1)
-ggsave("./figs/tab_tmens.pdf",g1,width=7,height=10)
+#ggsave("./figs/tab_tmens.pdf",g1,width=7,height=10)
 #rm(g1)
  
 

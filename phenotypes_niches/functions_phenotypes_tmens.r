@@ -474,6 +474,13 @@ correlations_tmens_CM <- function(MarkersCellsTMENs,cellTypes, markers, qThresh=
   return(cMf)
 }
 
+#### Get interface and niches names from nb of niches and interface order
+getInterNiches <- function(nIntf,nbNiches){
+  interfaces <- combn(paste0("a",as.vector(seq(1,nbNiches,1))),nIntf)
+  coreIntf <- apply(interfaces,2,function(x) paste0(x,collapse=""))
+  return(coreIntf)
+}
+
 #### Compute correlations between niches (and interfaces) and cell phenotypes
 # markersCells.niches : df with 
 # Markers: string vector of functional markers that identifies cell phenotypes
@@ -481,7 +488,7 @@ correlations_tmens_CM <- function(MarkersCellsTMENs,cellTypes, markers, qThresh=
 # coreIntf: str vector of niches and interfaces to assess correlations (archetypes names from markersCells.niches)
 # qThresh: double, cut-off of q value for FDR correction of p values in correlation test
 # corThresh: double, cut-off to select high correlation
-correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman",coreIntf,qThresh=1/100,corThresh=0.3){
+correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman",coreIntf,qThresh=1/100,corThresh=0.3,nbNiches=NBNICHES,intf=NINTERFACE){
   rareCells<- markersCells.niches%>%group_by(cell_type)%>%summarise(total=n())%>%filter(total<=3*length(Markers))%>%pull(cell_type)
   if (length(rareCells)>=1){
     print("These cell types are rare (count<10),")
@@ -507,9 +514,25 @@ correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman
         corrValue <- NA
         corrp <- NA
       }
+      # else{
+      #   corrValue <- cor.test(pull(x,value),pull(x,get(n)),method = corrMeth,exact=FALSE)$estimate
+      #   corrp <- cor.test(pull(x,value),pull(x,get(n)),method = corrMeth,exact=FALSE)$p.value 
+      # }
+      # corrs <-append(corrs,corrValue)
+      # corrpvals <- append(corrpvals,corrp)
       else{
-        corrValue <- cor.test(pull(x,value),pull(x,get(n)),method = corrMeth,exact=FALSE)$estimate
-        corrp <- cor.test(pull(x,value),pull(x,get(n)),method = corrMeth,exact=FALSE)$p.value 
+        # Checking if a cell phenotype has at least one cell that is present in the niche (niche weigth>1/2)
+        #or in the interface(niche weight>1/8), if not, set correlation/p-value to 0 (no correlation)
+        if ((n %in%getInterNiches(intf,nbNiches) &(length(x%>%filter(get(n)>(1/8))%>%pull(get(n)))==0))|((n %in%paste0("a",as.vector(seq(1,nbNiches,1))) & (length(x%>%filter(get(n)>0.5)%>%pull(get(n)))==0)))){
+          #print(unique(x$id))
+          #print(n)
+          corrValue <- 0
+          corrp <- 0
+        }
+        else{
+          corrValue <- cor.test(pull(x,value),pull(x,get(n)),method = corrMeth,exact=FALSE)$estimate
+          corrp <- cor.test(pull(x,value),pull(x,get(n)),method = corrMeth,exact=FALSE)$p.value 
+        }
       }
       corrs <-append(corrs,corrValue)
       corrpvals <- append(corrpvals,corrp)
@@ -521,11 +544,12 @@ correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman
   #print(names(res))
   CorrMat <- do.call(rbind,lapply(res,'[[',"corr_value"))#do.call(rbind,res["corr_value"])
   CorrpVal.mat <- do.call(rbind,lapply(res,'[[',"p_value"))#do.call(rbind,res[[2]])
-  
+  saveRDS(CorrMat,"./outputs/corMatrix_raw.rds")
   corCMniches.pval <- CorrpVal.mat%>%as_tibble(rownames=NA)%>%
     rownames_to_column(var="names")%>%
     drop_na()
   write_csv(as_tibble(CorrMat,rownames=NA), "./rawCorrMatrix.csv")
+  saveRDS(CorrMat,"./corMatrix_raw.rds")
   filtMat <- correct_cor_fdr(CorrMat,corCMniches.pval,qThresh,corThresh)
   #mean(apply(filtMat, 1, sum) > 0)
   cM.filt <- CorrMat[names(which(apply(filtMat, 1, sum) > 0)),]
@@ -629,7 +653,7 @@ get_cell_type_enriched_arch <- function(cellAb.df,archetype,k=1,thresh=0.99){
   cts <- c()
   for(c in summaryA%>%pull(cell_type)){ #(c in CELLTYPES)
     if(as.numeric(summaryA2[c,"meanCT"]) > k *as.numeric(summaryA2[c,"sdCT"])) {#if(as.numeric(summaryA[c,"meanCT"]) > (as.numeric(summaryNA[c,"meanCT"]) + 1*as.numeric(summaryNA[c,"sdCT"]))){
-      print(c)
+      #print(c)
       #Arch.CT <-append(Arch.CT,c)
       cts <- append(cts,c)
     }
@@ -681,10 +705,10 @@ get_CT_enriched_all_archs <- function(archsSitesCellAb,archNames,thresh=0.99){
 # @param Arch: ArchetypalAnalysis object after AA on PCA onf sites cell abundance
 # @param pcaObj: PCA object of sites cell abundance
 # @return barplot of archetypes cell type composition ==> niches
-NichesCellProfile <- function(sitesCA = sites,Arch = AA,pcaObj = pca_obj){
-  NichesCellProf <- get_niches_cell_abund(sitesCellAb = sitesCA,pcaSites = pcaObj,ArchObj = Arch,nComp = as.integer(NBNICHES-1))
+NichesCellProfile <- function(sitesCA = sites,Arch = AA,pcaObj = pca_obj,nbNiches=NBNICHES){
+  NichesCellProf <- get_niches_cell_abund(sitesCellAb = sitesCA,pcaSites = pcaObj,ArchObj = Arch,nComp = as.integer(nbNiches-1))
   colnames(NichesCellProf) <- CELLTYPES
-  rownames(NichesCellProf) <- paste0("arch",seq(1,NBNICHES))
+  rownames(NichesCellProf) <- paste0("arch",seq(1,nbNiches))
   
   NichesCellProp <- NichesCellProf%>%as_tibble(rownames = NA)%>%
     rownames_to_column(var="archetype")%>%
