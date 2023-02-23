@@ -157,7 +157,7 @@ cellsPhen.niches <- read.csv("./TMENS_analysis/data/cellData.csv",check.names=FA
                names_to="marker",values_to="value")
 
 source("./phenotypes_niches/functions_phenotypes_tmens.r")
-CM <- correlation_niches_CM(markersCells.niches=cellsPhen.niches,Markers=markers,corrMeth="spearman",coreIntf2,1/100,0.3)
+CM <- correlation_niches_CM(markersCells.niches=cellsPhen.niches,Markers=markers,corrMeth="spearman",coreIntf2,1/100,0.3,nbNiches=NBNICHES)
 
 #Filter the cell phenotypes associated with cancer niche, contaminated by Keratin6 and Beta-catenin
 Krt.filt <- names(which(CM[rownames(CM)[which(grepl("Keratin6",rownames(CM),fixed=TRUE))],"a3"]>0.3))
