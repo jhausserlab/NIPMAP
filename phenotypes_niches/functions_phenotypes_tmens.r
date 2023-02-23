@@ -1,6 +1,6 @@
 library(tidyverse)
 library(fdrtool)
-library(geometry)
+#library(geometry)
 library(cluster)
 library(broom)
 library(pROC)
@@ -344,12 +344,15 @@ plot_roc_niches_cells <- function(CT,clustFiles,clustIDs, nichesNames,markers,ce
 correct_cor_fdr <- function(corMatrix,corCMtmens.pval,qThresh,corThresh){
   ### CORRECTIONS P VALUE FDR
   #dim(corCMtmens.pval)
+  print("ok")
   #write_csv(as.data.frame(corMatrix,row.names=rownames(corMatrix)),"./NiPhcorrelations.csv")
+  saveRDS(as.data.frame(corMatrix,row.names=rownames(corMatrix)),"./NiPhcorrs.rds")
   corCMtmens.pval.mat = corCMtmens.pval %>% column_to_rownames(var='names')
   fdrOut = 
     fdrtool(corCMtmens.pval.mat %>% as.matrix %>% as.numeric(), 
             statistic = "pvalue")
   #write_csv(as.data.frame(corCMtmens.pval.mat,row.names=rownames(corCMtmens.pval.mat)),"./NiPhpvalue.csv")
+  saveRDS(as.data.frame(corCMtmens.pval.mat,row.names=rownames(corCMtmens.pval.mat)),"./NiPhpvalue.rds")
   corCMtmens.qval = 
     fdrOut$qval %>% 
     matrix(nrow=nrow(corCMtmens.pval.mat), ncol=ncol(corCMtmens.pval.mat),
@@ -362,6 +365,7 @@ correct_cor_fdr <- function(corMatrix,corCMtmens.pval,qThresh,corThresh){
   # corThreshold <- .3
   # corThreshold2 <- .2
   #write_csv(as.data.frame(corCMtmens.qval,row.names=rownames(corCMtmens.qval)),"./NiPhqvalue.csv")
+  saveRDS(as.data.frame(corCMtmens.qval,row.names=rownames(corCMtmens.qval)),"./NiPhqvalue.rds")
   filterMat <- corCMtmens.qval<qThresh & corMatrix[rownames(corCMtmens.qval),]>corThresh#corCMtmens.qval<qThresh & abs(corMatrix[rownames(corCMtmens.qval),])>corThresh
   return(filterMat)
 }
@@ -488,73 +492,173 @@ getInterNiches <- function(nIntf,nbNiches){
 # coreIntf: str vector of niches and interfaces to assess correlations (archetypes names from markersCells.niches)
 # qThresh: double, cut-off of q value for FDR correction of p values in correlation test
 # corThresh: double, cut-off to select high correlation
-correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman",coreIntf,qThresh=1/100,corThresh=0.3,nbNiches=NBNICHES,intf=NINTERFACE){
+# correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman",coreIntf,qThresh=1/100,corThresh=0.3,nbNiches=NBNICHES,intf=NINTERFACE){
+#   rareCells<- markersCells.niches%>%group_by(cell_type)%>%summarise(total=n())%>%filter(total<=3*length(Markers))%>%pull(cell_type)
+#   if (length(rareCells)>=1){
+#     print("These cell types are rare (count<10),")
+#     print(rareCells)
+#   }
+#   #print("They will be removed from the correlation analysis")
+#   CM.gps <- markersCells.niches%>%filter(!cell_type %in% rareCells)%>% #removing rare cell types
+#     filter(marker %in% Markers)%>%
+#     mutate(id=paste(cell_type,marker,sep=";"))%>%
+#     group_by(cell_type, marker)%>%split(f= as.factor(.$id))
+#   #print(CM.gps)
+#   res <-lapply(CM.gps,function(x){ #a%>%group_by(cell_type, marker)%>%group_split()%>%setNames(id)
+#     corrs <- c()
+#     corrpvals <-c()
+#     #id <- paste0(unique(pull(x,cell_type)),unique(pull(x,marker)),sep=";")
+#     #print(id)
+#     #cellPhen.names <- append(cellPhen.names,id)
+#     for(n in coreIntf){
+#       #print(n)
+#       #print(length(pull(x,value)))
+#       if(any(is.na(pull(x,value))|sd(pull(x,value))==0 |length(pull(x,value))<3)){#|sd(pull(x,value))==0){
+#         #print("ok")
+#         corrValue <- NA
+#         corrp <- NA
+#       }
+#       # else{
+#       #   corrValue <- cor.test(pull(x,value),pull(x,get(n)),method = corrMeth,exact=FALSE)$estimate
+#       #   corrp <- cor.test(pull(x,value),pull(x,get(n)),method = corrMeth,exact=FALSE)$p.value 
+#       # }
+#       # corrs <-append(corrs,corrValue)
+#       # corrpvals <- append(corrpvals,corrp)
+#       else{
+#         # Checking if a cell phenotype has at least one cell that is present in the niche (niche weigth>1/2)
+#         #or in the interface(niche weight>1/8), if not, set correlation/p-value to 0 (no correlation)
+#         if ((n %in%getInterNiches(intf,nbNiches) &(length(x%>%filter(get(n)>(1/8))%>%pull(get(n)))==0))|((n %in%paste0("a",as.vector(seq(1,nbNiches,1))) & (length(x%>%filter(get(n)>0.5)%>%pull(get(n)))==0)))){
+#           #print(unique(x$id))
+#           #print(n)
+#           corrValue <- 0
+#           corrp <- 0.5
+#         }
+#         else{
+#           corrValue <- cor.test(pull(x,value),pull(x,get(n)),method = corrMeth,exact=FALSE)$estimate
+#           corrp <- cor.test(pull(x,value),pull(x,get(n)),method = corrMeth,exact=FALSE)$p.value 
+#         }
+#       }
+#       corrs <-append(corrs,corrValue)
+#       corrpvals <- append(corrpvals,corrp)
+#     }
+#     names(corrs) <- coreIntf2
+#     names(corrpvals) <- coreIntf2
+#     list("corr_value"=corrs,"p_value"= corrpvals)
+#   })
+#   #print(names(res))
+#   CorrMat <- do.call(rbind,lapply(res,'[[',"corr_value"))#do.call(rbind,res["corr_value"])
+#   CorrpVal.mat <- do.call(rbind,lapply(res,'[[',"p_value"))#do.call(rbind,res[[2]])
+#   #saveRDS(CorrMat,"./outputs/corMatrix_raw.rds")
+#   corCMniches.pval <- CorrpVal.mat%>%as_tibble(rownames=NA)%>%
+#     rownames_to_column(var="names")%>%
+#     drop_na()
+#   #write_csv(as_tibble(CorrMat,rownames=NA), "./rawCorrMatrix.csv")
+#   saveRDS(CorrMat,"./corMatrix_raw.rds")
+#   filtMat <- correct_cor_fdr(CorrMat,corCMniches.pval,qThresh,corThresh)
+#   #mean(apply(filtMat, 1, sum) > 0)
+#   cM.filt <- CorrMat[names(which(apply(filtMat, 1, sum) > 0)),]
+#   return(cM.filt)
+# }
+# 
+########-----CORRELATION+ FDR NEW VERSION ------###########
+correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman",coreIntf,qThresh=1/100,corThresh=0.3,nbNiches){
   rareCells<- markersCells.niches%>%group_by(cell_type)%>%summarise(total=n())%>%filter(total<=3*length(Markers))%>%pull(cell_type)
+  # Remove rare cell types, not enough cells to compute correlations
   if (length(rareCells)>=1){
     print("These cell types are rare (count<10),")
     print(rareCells)
   }
-  #print("They will be removed from the correlation analysis")
+  #Groups of all possible cell phenotypes-niches combinations
   CM.gps <- markersCells.niches%>%filter(!cell_type %in% rareCells)%>% #removing rare cell types
     filter(marker %in% Markers)%>%
-    mutate(id=paste(cell_type,marker,sep=";"))%>%
-    group_by(cell_type, marker)%>%split(f= as.factor(.$id))
+    pivot_longer(cols=coreIntf,names_to = "niche",values_to = "weight")%>%
+    mutate(id=paste(cell_type,marker,niche,sep=";"))%>%
+    mutate(threshNiche= ifelse(niche%in%paste0("a",as.vector(seq(1,nbNiches,1))),1/2,1/8))%>% # determine cutoff for cells presence in niche (1/2) or interface(1/8)
+    group_by(cell_type, marker,niche)%>%split(f= as.factor(.$id))
   #print(CM.gps)
-  res <-lapply(CM.gps,function(x){ #a%>%group_by(cell_type, marker)%>%group_split()%>%setNames(id)
-    corrs <- c()
-    corrpvals <-c()
+  #print("ok")
+  
+  #Filter out cells phenotyes-niches that don't have at least one cell present in niche or interface
+  CMgps.filt <- CM.gps[lapply(CM.gps,function(x) length(x%>%filter(weight>threshNiche)%>%pull(weight)))>1]
+  #print(length(CM.gps))
+  #print(length(CMgps.filt))
+  
+  #For each cell phenotypes-niches combination that match the criteria, compute correlation test
+  res <-lapply(CMgps.filt,function(x){ #a%>%group_by(cell_type, marker)%>%group_split()%>%setNames(id)
+    #corrs <- c()
+    #corrpvals <-c()
     #id <- paste0(unique(pull(x,cell_type)),unique(pull(x,marker)),sep=";")
     #print(id)
     #cellPhen.names <- append(cellPhen.names,id)
-    for(n in coreIntf){
-      #print(n)
-      #print(length(pull(x,value)))
-      if(any(is.na(pull(x,value))|sd(pull(x,value))==0 |length(pull(x,value))<3)){#|sd(pull(x,value))==0){
-        #print("ok")
-        corrValue <- NA
-        corrp <- NA
-      }
-      # else{
-      #   corrValue <- cor.test(pull(x,value),pull(x,get(n)),method = corrMeth,exact=FALSE)$estimate
-      #   corrp <- cor.test(pull(x,value),pull(x,get(n)),method = corrMeth,exact=FALSE)$p.value 
-      # }
-      # corrs <-append(corrs,corrValue)
-      # corrpvals <- append(corrpvals,corrp)
-      else{
-        # Checking if a cell phenotype has at least one cell that is present in the niche (niche weigth>1/2)
-        #or in the interface(niche weight>1/8), if not, set correlation/p-value to 0 (no correlation)
-        if ((n %in%getInterNiches(intf,nbNiches) &(length(x%>%filter(get(n)>(1/8))%>%pull(get(n)))==0))|((n %in%paste0("a",as.vector(seq(1,nbNiches,1))) & (length(x%>%filter(get(n)>0.5)%>%pull(get(n)))==0)))){
-          #print(unique(x$id))
-          #print(n)
-          corrValue <- 0
-          corrp <- 0
-        }
-        else{
-          corrValue <- cor.test(pull(x,value),pull(x,get(n)),method = corrMeth,exact=FALSE)$estimate
-          corrp <- cor.test(pull(x,value),pull(x,get(n)),method = corrMeth,exact=FALSE)$p.value 
-        }
-      }
-      corrs <-append(corrs,corrValue)
-      corrpvals <- append(corrpvals,corrp)
-    }
-    names(corrs) <- coreIntf2
-    names(corrpvals) <- coreIntf2
-    list("corr_value"=corrs,"p_value"= corrpvals)
+    #Compute correlations and p-value test
+    corrValue <- cor.test(pull(x,value),pull(x,weight),method = corrMeth,exact=FALSE)$estimate
+    corrp <- cor.test(pull(x,value),pull(x,weight),method = corrMeth,exact=FALSE)$p.value 
+    dfres <- data.frame(rho = corrValue,pvalue = corrp)
+    rownames(dfres) <- unique(x$id)
+    
+    dfres
+    
   })
   #print(names(res))
-  CorrMat <- do.call(rbind,lapply(res,'[[',"corr_value"))#do.call(rbind,res["corr_value"])
-  CorrpVal.mat <- do.call(rbind,lapply(res,'[[',"p_value"))#do.call(rbind,res[[2]])
-  saveRDS(CorrMat,"./outputs/corMatrix_raw.rds")
-  corCMniches.pval <- CorrpVal.mat%>%as_tibble(rownames=NA)%>%
-    rownames_to_column(var="names")%>%
-    drop_na()
-  write_csv(as_tibble(CorrMat,rownames=NA), "./rawCorrMatrix.csv")
-  saveRDS(CorrMat,"./corMatrix_raw.rds")
-  filtMat <- correct_cor_fdr(CorrMat,corCMniches.pval,qThresh,corThresh)
-  #mean(apply(filtMat, 1, sum) > 0)
-  cM.filt <- CorrMat[names(which(apply(filtMat, 1, sum) > 0)),]
-  return(cM.filt)
+  #print(names(res))
+  # Merge list of dataframes
+  CM2 <- do.call(rbind,res)
+  corrOut <- bind_rows(CM2, .id = "id")
+  corMatrix <- as.matrix(corrOut%>%dplyr::select(rho))
+  
+  ##########--------------FDR CORRECTION--------------##########
+  corCMtmens.pval.mat = corrOut%>%
+    #dplyr::select(c(pvalue))%>%
+    drop_na()#%>%
+  #column_to_rownames(var="id")#corCMtmens.pval %>% column_to_rownames(var='names')
+  fdrOut =fdrtool(as.matrix(corCMtmens.pval.mat%>%dplyr::select((pvalue)))%>%as.numeric,statistic = "pvalue")
+  #write_csv(as.data.frame(corCMtmens.pval.mat,row.names=rownames(corCMtmens.pval.mat)),"./NiPhpvalue.csv")
+  #saveRDS(as.data.frame(corCMtmens.pval.mat,row.names=rownames(corCMtmens.pval.mat)),"./NiPhpvalue.rds")
+  corCMtmens.qval <-fdrOut$qval %>%
+    matrix(nrow=nrow(corCMtmens.pval.mat), ncol=1,
+           dimnames = list(rownames(corCMtmens.pval.mat), "qvalue"))
+  #write_csv(as.data.frame(corCMtmens.qval,row.names=rownames(corCMtmens.qval)),"./NiPhqvalue.csv")
+  #saveRDS(as.data.frame(corCMtmens.qval,row.names=rownames(corCMtmens.qval)),"./NiPhqvalue.rds")
+  #hist(corCMtmens.qval)
+  # Build q-value matrix for all niches/interfaces
+  corQval <- corCMtmens.qval%>%as_tibble(rownames=NA)%>%
+    rownames_to_column(var="id")%>%
+    separate(col=id, into=c("ct","marker","niche"),sep=";")%>%
+    mutate(id= paste0(ct,";",marker),.keep="unused")%>%#column_to_rownames(var="id")%>%
+    pivot_wider(id_cols=id, names_from= niche,values_from=qvalue)%>%
+    column_to_rownames(var="id")%>%
+    replace(is.na(.),1) # Set q value to 1 (to bel ater filtered out) to NA values, these associations didn't match aforementioned criteria
+  print(head(corQval))
+  
+  #Recover all possible niches and interfaces with the cell phenotypes
+  if(ncol(corQval)!=length(coreIntf)){
+    corQval[,coreIntf[!(coreIntf %in% colnames(corQval))]]<-0
+  }
+  
+  ##Build correlation matrix for all niches/interfaces
+  colnames(corMatrix)<-"correlation"
+  corMatrix2 <- corMatrix%>%as_tibble(rownames=NA)%>%
+    rownames_to_column(var="id")%>%
+    separate(col=id, into=c("ct","marker","niche"),sep=";")%>%
+    mutate(id= paste0(ct,";",marker),.keep="unused")%>%#column_to_rownames(var="id")%>%
+    pivot_wider(id_cols=id, names_from= niche,values_from=correlation)%>%
+    column_to_rownames(var="id")%>%
+    replace(is.na(.),0)# replace NA correlations by 0 (these correlations didn't match aforementioned criteria)
+  #Recover all possible niches and interfaces with the cell phenotypes
+  if(ncol(corMatrix2 )!=length(coreIntf)){
+    corMatrix2 [,coreIntf[!(coreIntf %in% colnames(corMatrix2 ))]]<-0
+  }
+  
+  #print(dim(corMatrix2 ))
+  ## Filter correlations by qvalue and correlation threshold
+  filterMat <- corQval<qThresh & corMatrix2[rownames(corQval),]>corThresh#corCMtmens.qval<qThresh & corMatrix2[rownames(corCMtmens.qval),]>corThresh
+  # Keep cell phenotypes that are associated with at least one niche/interface, association being determined by correlation value >0.3 , q value<1/100
+  cM.filt <- corMatrix2[names(which(apply(filterMat, 1, sum) > 0)),]%>%as.matrix
+  #cMf2 <- cMf%>%replace(is.na(.),0)
+  
+  return(cM.filt)#(corQval)#(cM.filt)
 }
+
 
 #########---- HEATMAP ORGANIZED BY CELL TYPES ----###########
 # nichsIntf: string vector of archetypes and interfacs as named in correlation matrix

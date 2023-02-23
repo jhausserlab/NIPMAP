@@ -302,6 +302,7 @@ tmens_per_cell$cell_type_site <- as.character(tmens_per_cell$cell_type_site)
 ### Use All gene list for phenotype mapping with raw count
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
 ################---------NICHE-PHENOTYPE MAPPING ------------###################
 NINTERFACES = 2
 # Phenotypic markers
@@ -336,26 +337,6 @@ cellsPhen.niches <- left_join(tmens_per_cell %>% rename(SampleID=patient_id, cel
   pivot_longer(cols=MARKERS,
                names_to="marker",values_to="value")
 
-ASM_HGF_data <- cellsPhen.niches%>%filter(cell_type=="ASM" & marker=="HGF")
-ASM_HGFdata.shuffled <- ASM_HGF_data[sample(1:nrow(ASM_HGF_data)), ]
-ggplot(data = ASM_HGF_data,aes(x=a4,y=value))+
-  geom_point()+
-  stat_cor(method="spearman",cor.coef.name="rho",label.x=0.2)+
-  stat_cor(method="pearson",cor.coef.name="R",label.y=2.7,label.x=0.2)+
-  xlab("vessel niche weight")+ ylab(paste0("HGF expression"))+
-  ggtitle("HGF expr in ASM VS vessel niche")
-
-ggplot(data = ASM_HGFdata.shuffled,aes(x=a4,y=value))+
-  geom_point()+
-  stat_cor(method="spearman",cor.coef.name="rho",label.x=0.2)+
-  stat_cor(method="pearson",cor.coef.name="R",label.y=2.7,label.x=0.2)+
-  xlab("vessel niche weight")+ ylab(paste0("HGF expression"))+
-  ggtitle("HGF expr in ASM VS vessel niche (shuffled)")
-## Contigency table
-table(ASM_HGF_data%>%mutate(vessel=ifelse(a4>=0.2,1,0))%>%dplyr::select(c(vessel,value)))
-## Linear regression over HGF mRNA counts (3 levels)
-model1 <- lm( a4 ~ as.factor(value), data = ASM_HGF_data)
-summary(model1)
 
 ```
 
@@ -363,10 +344,11 @@ summary(model1)
 
 ```{r,warning=FALSE}
 source("../../phenotypes_niches/functions_phenotypes_tmens.r")
-CM <- correlation_niches_CM(markersCells.niches=cellsPhen.niches, Markers=MARKERS, corrMeth="spearman", coreIntf2, 1/100, 0.3)
-cMf <- CM
+CM <- correlation_niches_CM(markersCells.niches=cellsPhen.niches, Markers=MARKERS, corrMeth="spearman", coreIntf2, 1/100, 0.3,nbNiches = NBNICHES)
+#cMf <- CM
 # Plot heatmaps of niches-phenotypes associations
-plot_heatmap_CT(CM.mat=cMf,coreIntf2,"../output/CMbyCells.pdf")
+plot_heatmap_CT(CM.mat=CM,coreIntf2,"../output/CMbyCells.pdf")
+cMf <- CM
 ```
 
 
@@ -447,7 +429,7 @@ tabCellPhen3 <- tabCellPhen2%>%
 
 Can we find cross-cells phenotypes that are associated to niches ? Are they associated to core niches or do they arise at the interface ? If so, is it a continuum or do we have clusters?
 
-```{r, fig.width=8, echo=FALSE}
+```{r, fig.width=8,eval=FALSE, echo=FALSE}
 ###PCA on correlation matrix
 CM_TMENs.pca <- dudi.pca(cMf[,c(core_niche, inter_niche)],center=FALSE, scale=TRUE,scannf=FALSE, nf=3) # ,"a1a2a3","a1a2a4","a1a3a4","a2a3a4"
 fviz_eig(CM_TMENs.pca)

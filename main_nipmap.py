@@ -103,13 +103,13 @@ if __name__ == "__main__":
   # 
   # ##########----- SAVE PLOTS IN ZIP DIRECTORY ----##########
   print("Segmenting images into niches...")
-  for i in ImageIDs:
-    GRANULARITY = 5
-    cell_data = pd.read_csv(ROOT_DATA_PATH+"/patient{}_cell_positions.csv".format(i))
-    fig= plot_cells_positions(cell_data, CELLTYPES, segment_image=True, counting_type=METHOD,
-                           color_vector=COLARCHS,segmentation_type='colors', granularity=GRANULARITY, radius=RADIUS,
-                           pca_obj=pca_obj, AA_obj=AA, to_plot = 'None',
-                           path_fig= path_toFigs+"/nichesSeg_patient{}.svg".format(i))
+  # for i in ImageIDs:
+  #   GRANULARITY = 5
+  #   cell_data = pd.read_csv(ROOT_DATA_PATH+"/patient{}_cell_positions.csv".format(i))
+  #   fig= plot_cells_positions(cell_data, CELLTYPES, segment_image=True, counting_type=METHOD,
+  #                          color_vector=COLARCHS,segmentation_type='colors', granularity=GRANULARITY, radius=RADIUS,
+  #                          pca_obj=pca_obj, AA_obj=AA, to_plot = 'None',
+  #                          path_fig= path_toFigs+"/nichesSeg_patient{}.svg".format(i))
 
   #shutil.make_archive("/figs_niches","zip", path_toFigs)
 
