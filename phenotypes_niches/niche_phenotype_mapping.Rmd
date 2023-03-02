@@ -817,7 +817,7 @@ g1 <- tableGrob(tabCellPhen3,rows=NULL,theme = th1)#(tabCellPhen2%>%mutate(regio
                  #gpar.corefill = gpar(fill = "white", col = "grey95"))
 grid.newpage()
 grid.draw(g1)
-#ggsave("./figs/tab_tmens.pdf",g1,width=7,height=10)
+ggsave("./figs/tab_tmens.pdf",g1,width=7,height=10)
 #rm(g1)
  
 
