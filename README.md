@@ -28,7 +28,7 @@ NIche Phenotype MAPping (NIPMAP) analysis from spatial multiplex data: Multiplex
     ```
 
 ## Quick start
-NIPMAP is a multiplex histology data analysis tool to unravel tissue architecture. It is required prior to starting the analysis to have a .csv file (named *patient<Patient ID or number>_cell_positions.csv*) with cells as rows and their data in these columns: (x,y) positions, cell ID inthe image and its cell type respectively named  *x,y,label* and *cell_type*. 
+NIPMAP is a multiplex histology data analysis tool to unravel tissue architecture. It is required prior to starting the analysis to have one .csv file for each Sample image(one image = one patient or sample) (named patient\<Patient ID or number\>_cell_positions.csv) with cells as rows and their data in these columns: (x,y) positions, cell ID inthe image and its cell type respectively named  *x,y,label* and *cell_type*. 
 To assess niche-phenotype associations, the input file should be a .csv data table named *cellData.csv* reporting for each cell (rows) their label in the image,the sample of origin and their marker intensity value reported in columns respectively named *cellLabelInImage*, *SampleID*, *marker1*, *marker2*, etc...
 
 1. Open main_nipmap.py and set the parameters. Execute it and enter the size (in micrometers) of the radius of sites, after radius analysis. This script will generate these outputs as json files:
@@ -36,7 +36,7 @@ To assess niche-phenotype associations, the input file should be a .csv data tab
 * PCA and Archetype Analysis
 * Niche identification
 * Niche segmentation of images
-2. Open py_wrapper_nipmap.r script,enter the parameters and execute it. This scripts produces these outputs including figures: 
+2. Open py_wrapper_nipmap.r script,enter the parameters and execute it. This script produces these outputs including figures: 
 * Niche-phenotype mappping
 
 Note: in this version of NIPMAP, we consider that one sample = one image
