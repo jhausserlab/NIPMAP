@@ -23,9 +23,10 @@ NIche Phenotype MAPping (NIPMAP) analysis from spatial multiplex data: Multiplex
 * R 4.1.3 with RStudio installed
     List of R libraries to install 
     ```
-    pckgs <- c("tidyverse","ggplot2","ade4","factoextra","plotly","igraph","reshape2","ggrepel","viridis","fdrtool","pheatmap","cluster","broom","pROC","ggpubr","devtools","ggridges")
-    install.packages(pckgs)
+    pkgs <- c("tidyverse","ggplot2","ade4","factoextra","plotly","igraph","reshape2","ggrepel","viridis","fdrtool","pheatmap","cluster","broom","pROC","ggpubr","devtools","ggridges")
+    install.packages(pkgs)
     ```
+Installation will take around 20 min in a environment equipped for standard data science.
 
 ## Quick start
 NIPMAP is a multiplex histology data analysis tool to unravel tissue architecture. It is required prior to starting the analysis to have one .csv file for each Sample image(one image = one patient or sample) (named patient\<Patient ID or number\>_cell_positions.csv) with cells as rows and their data in these columns: (x,y) positions, cell ID inthe image and its cell type respectively named  *x,y,label* and *cell_type*. 
@@ -39,8 +40,10 @@ To assess niche-phenotype associations, the input file should be a .csv data tab
 2. Open py_wrapper_nipmap.r script,enter the parameters and execute it. This script produces these outputs including figures: 
 * Niche-phenotype mappping
 
+Run time is around 20 min for one sample and around 60 min for a 40-patient sample MIBI dataset.
+
 Note: in this version of NIPMAP, we consider that one sample = one image
-Note #2: NIPMAP doesn't aim to correct cell segmentation error or cell type mis-assignments, make sure the 
+Note #2: NIPMAP doesn't aim to correct cell segmentation error or cell type mis-assignments, this needs to be addressed prior to niche-phenotype mapping. 
 
 ## FILES
 
@@ -110,6 +113,8 @@ Note #2: NIPMAP doesn't aim to correct cell segmentation error or cell type mis-
 * **NIPMAP on ISS dataset from Sountoulidis et al**: Open ISS_analysis/notebooks/archetype_analysis.ipynb and excute "Radius Analysis", "Archetype Analysis", "Visualization" and "Save data". The "Save data" part generates all the files needed for downstream analyses. Then, open ISS_analysis/notebooks/HybISS_niche_explore.Rmd and excute the whole Rmarkdown file to generate all the figures included in the section "NIPMAP identifies the cellular and phenotypic architecture of developing lung from in situ RNA sequencing" of the paper. Figures generated for this analysis are found in ISS_analysis/output.
 
 ## License
+
+GNU General Public License version 3
 
 ## Contact
 Anissa El Marrahi - <anissa.el@scilifelab.se>   <anissel12@gmail.com>
