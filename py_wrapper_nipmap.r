@@ -18,6 +18,8 @@ source("./phenotypes_niches/functions_phenotypes_tmens.r")
 #TODO plot correlations heatmaps organized by cell types & by markers
 #TODO plot table of cell phenotypes for each niche/interface
 
+#TODO get control panel from python script 
+
 ### CONTROL PANEL: SET PARAMETERS AND CONSTANTS
 # CELLTYPES = c('CD8-T', 'Other\\\ immune', 'DC\\\ /\\\ Mono', 'CD3-T', 'B', 'NK', 'Keratin-positive\\\ tumor', 'Tumor', 
 #               'CD4-T', 'Mesenchymal-like', 'Macrophages', 'Endothelial', 'Tregs', 'Unidentified', 'DC', 'Mono\\\ /\\\ Neu', 
@@ -194,9 +196,10 @@ archsSitesCellAb <- cbind(sitesCellAb,archetypes_sites)%>%
 archs.CT <- get_CT_enriched_all_archs(archsSitesCellAb,NichesNames)%>%#(archetypes_sites%>%t%>%as_tibble(rownames=NA),cellAbSites,thresh = 0.99)%>%
   group_by(niche)%>%
   filter(!(cell_type %in% c("DC / Mono","CD3-T", "Mono / Neu", "Other immune","Unidentified")))%>%mutate(cell_type = paste(unique(cell_type),collapse="\n"))%>%distinct(niche,cell_type)
+
+
 ## Get table of niches/interfaces-associated cell phenotypes
 TableNichesPhenotypes(CM=cMf,NichesCT=archs.CT,Niches.names=NichesNames,nichesCA.sorted = nichesCA.sort,pathFigs = ".")
-#CM,NichesCT,nichesCA.sorted,Niches.names,pathFigs
 
 
 

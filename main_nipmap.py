@@ -64,7 +64,7 @@ if __name__ == "__main__":
       pca = PCA()
       pc = pca.fit_transform(sites)
       expl_var_ratio_gauss[r] = np.cumsum(pca.explained_variance_ratio_)
-  radius_pc_all_variance(expl_var_ratio_gauss,radius_lim=25,nPC_lim=3,save_fig=True, path_fig="./plot_rad_var_gauss.svg")
+  radius_pc_all_variance(expl_var_ratio_gauss,radius_lim=25,nPC_lim=3,cells_number=len(CELLTYPES)+1,save_fig=True, path_fig="./plot_rad_var_gauss.svg")
   RADIUS = int(input('Enter the size (in micrometers) of the radius of the sites (should be int):\n'))
   print(type(RADIUS))
   
@@ -108,10 +108,11 @@ if __name__ == "__main__":
   #   cell_data = pd.read_csv(ROOT_DATA_PATH+"/patient{}_cell_positions.csv".format(i))
   #   fig= plot_cells_positions(cell_data, CELLTYPES, segment_image=True, counting_type=METHOD,
   #                          color_vector=COLARCHS,segmentation_type='colors', granularity=GRANULARITY, radius=RADIUS,
+  #                          h=YSIZE,w=XSIZE,
   #                          pca_obj=pca_obj, AA_obj=AA, to_plot = 'None',
   #                          path_fig= path_toFigs+"/nichesSeg_patient{}.svg".format(i))
 
-  #shutil.make_archive("/figs_niches","zip", path_toFigs)
+  # shutil.make_archive("/figs_niches","zip", path_toFigs)
 
   #####----- GENERATE SITES CENTERED ON CELLS AND THEIR NICHE WEIGHTS ----#####
   print("Computing cells' niche weights, the operation might take some time...")
