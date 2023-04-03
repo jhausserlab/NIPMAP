@@ -628,7 +628,7 @@ correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman
     pivot_wider(id_cols=id, names_from= niche,values_from=qvalue)%>%
     column_to_rownames(var="id")%>%
     replace(is.na(.),1) # Set q value to 1 (to bel ater filtered out) to NA values, these associations didn't match aforementioned criteria
-  print(head(corQval))
+  #print(head(corQval))
   
   #Recover all possible niches and interfaces with the cell phenotypes
   if(ncol(corQval)!=length(coreIntf)){
@@ -893,17 +893,23 @@ TableNichesPhenotypes <- function(CM,NichesCT,Niches.names,nichesCA.sorted,pathF
     group_by(niche)%>%
     mutate(cell_phenotype=paste(unique(cell_phenotype),collapse="\n")) %>%
     distinct(niche, .keep_all = TRUE)%>%
-    arrange(niche)%>%dplyr::select(niche, cells,cell_phenotype)
-  
+    #ungroup()%>%
+    arrange(niche,.by_group=TRUE)%>%dplyr::select(niche, cells,cell_phenotype)%>%
+    dplyr::select(niche, cells,cell_phenotype)#%>%
+    #arrange(niche)
+  #print(tabCellPhen2)
   tabCellPhen3 <- tabCellPhen2%>%
+    group_by(niche)%>%
     mutate(cellPh =ifelse(niche %in% pull(NichesCT,niche),paste(NichesCT[NichesCT$niche==niche ,"cell_type"],collapse="\n"),""))%>%
     rowwise()%>%
     mutate(ct = ifelse(grepl("\n",cellPh,fixed=TRUE)==FALSE,paste(setdiff(as.vector(cellPh),str_split(cells,"\n")[[1]]),collapse="\n"),ifelse(grepl("\n",cells,fixed=TRUE)==FALSE,paste(setdiff(str_split(cellPh,"\n")[[1]], as.vector(cells)),collapse="\n"),paste(setdiff(str_split(cellPh,"\n")[[1]],str_split(cells,"\n")[[1]]),collapse="\n"))))%>%
     mutate(cell_phenotype = paste(cell_phenotype,ct,sep="\n"),.keep="unused")%>%
     dplyr::select(-c(cells, cellPh))%>%#mutate(sign  = "+")
     #distinct(region, .keep_all = TRUE)%>%
+    #ungroup()%>%
+    data.frame()%>%
     arrange(niche)
-  
+
   ### Display and save table in pdf
   th1 <- ttheme_default()
   g1 <- tableGrob(tabCellPhen3,rows=NULL,theme = th1)#(tabCellPhen2%>%mutate(region=str_replace_all(region," x NA","")),rows=NULL,theme = th1)

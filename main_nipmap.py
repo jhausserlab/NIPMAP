@@ -147,12 +147,14 @@ if __name__ == "__main__":
 
   dict_caSites = {"cellAbSites": CellAb_df.to_dict()}
   dict_caSitesCC = {"cells_niches": sites_archs.to_dict(),"cellAb_sitesCC": CellAbCC_df.to_dict()}
+  dict_params = {"cellTypes":CELLTYPES,"ImageID":ImageIDs,"nbsites":[NSITES],"radiusSize":[RADIUS],"nbniches":[NBNICHES],"countMeth":[METHOD],"xsize":[XSIZE],"ysize":[YSIZE],"rootDataPath":[ROOT_DATA_PATH],"rootOutPath":[ROOT_OUTPUT_PATH],"colNiches":COLARCHS.tolist(),"pathFigs":[path_figs]}
 
   # Serializing json objects
   PCA_json = json.dumps(dict_pca, indent=4)
   AA_json = json.dumps(dict_AA, indent=4)
   caSites_json = json.dumps(dict_caSites,indent=4)
   cellsNiches_json = json.dumps(dict_caSitesCC,indent=4)
+  params_json = json.dumps(dict_params,indent=4)
 
   # Writing to .json files
   with open("./pca_sites.json", "w") as outfile:
@@ -166,4 +168,6 @@ if __name__ == "__main__":
 
   with open("./cells_niches.json","w") as outfile4:
     outfile4.write(cellsNiches_json)
-
+    
+  with open("./params.json","w") as outfile5:
+    outfile5.write(params_json)
