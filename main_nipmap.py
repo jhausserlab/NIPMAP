@@ -64,7 +64,7 @@ if __name__ == "__main__":
       pca = PCA()
       pc = pca.fit_transform(sites)
       expl_var_ratio_gauss[r] = np.cumsum(pca.explained_variance_ratio_)
-  radius_pc_all_variance(expl_var_ratio_gauss,radius_lim=25,nPC_lim=3,save_fig=True, path_fig="./plot_rad_var_gauss.svg")
+  radius_pc_all_variance(expl_var_ratio_gauss,radius_lim=25,nPC_lim=3,cells_number=len(CELLTYPES)+1,save_fig=True, path_fig="./plot_rad_var_gauss.svg")
   RADIUS = int(input('Enter the size (in micrometers) of the radius of the sites (should be int):\n'))
   print(type(RADIUS))
   
@@ -108,10 +108,11 @@ if __name__ == "__main__":
   #   cell_data = pd.read_csv(ROOT_DATA_PATH+"/patient{}_cell_positions.csv".format(i))
   #   fig= plot_cells_positions(cell_data, CELLTYPES, segment_image=True, counting_type=METHOD,
   #                          color_vector=COLARCHS,segmentation_type='colors', granularity=GRANULARITY, radius=RADIUS,
+  #                          h=YSIZE,w=XSIZE,
   #                          pca_obj=pca_obj, AA_obj=AA, to_plot = 'None',
   #                          path_fig= path_toFigs+"/nichesSeg_patient{}.svg".format(i))
 
-  #shutil.make_archive("/figs_niches","zip", path_toFigs)
+  # shutil.make_archive("/figs_niches","zip", path_toFigs)
 
   #####----- GENERATE SITES CENTERED ON CELLS AND THEIR NICHE WEIGHTS ----#####
   print("Computing cells' niche weights, the operation might take some time...")
@@ -146,12 +147,14 @@ if __name__ == "__main__":
 
   dict_caSites = {"cellAbSites": CellAb_df.to_dict()}
   dict_caSitesCC = {"cells_niches": sites_archs.to_dict(),"cellAb_sitesCC": CellAbCC_df.to_dict()}
+  dict_params = {"cellTypes":CELLTYPES,"ImageID":ImageIDs,"nbsites":[NSITES],"radiusSize":[RADIUS],"nbniches":[NBNICHES],"countMeth":[METHOD],"xsize":[XSIZE],"ysize":[YSIZE],"rootDataPath":[ROOT_DATA_PATH],"rootOutPath":[ROOT_OUTPUT_PATH],"colNiches":COLARCHS.tolist(),"pathFigs":[path_figs]}
 
   # Serializing json objects
   PCA_json = json.dumps(dict_pca, indent=4)
   AA_json = json.dumps(dict_AA, indent=4)
   caSites_json = json.dumps(dict_caSites,indent=4)
   cellsNiches_json = json.dumps(dict_caSitesCC,indent=4)
+  params_json = json.dumps(dict_params,indent=4)
 
   # Writing to .json files
   with open("./pca_sites.json", "w") as outfile:
@@ -165,4 +168,6 @@ if __name__ == "__main__":
 
   with open("./cells_niches.json","w") as outfile4:
     outfile4.write(cellsNiches_json)
-
+    
+  with open("./params.json","w") as outfile5:
+    outfile5.write(params_json)

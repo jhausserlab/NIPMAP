@@ -12,51 +12,38 @@ setwd(dirName)
 source("./phenotypes_niches/functions_phenotypes_tmens.r")
 #Master\\\ File
 
-#TODO add input: named vectors of colors codes(html) for visualizing niches
 #TODO add source code: functions_phenotypes_tmens.r ==> functions_nipmap.r 
-
-#TODO plot correlations heatmaps organized by cell types & by markers
-#TODO plot table of cell phenotypes for each niche/interface
-
-### CONTROL PANEL: SET PARAMETERS AND CONSTANTS
-# CELLTYPES = c('CD8-T', 'Other\\\ immune', 'DC\\\ /\\\ Mono', 'CD3-T', 'B', 'NK', 'Keratin-positive\\\ tumor', 'Tumor', 
-#               'CD4-T', 'Mesenchymal-like', 'Macrophages', 'Endothelial', 'Tregs', 'Unidentified', 'DC', 'Mono\\\ /\\\ Neu', 
+# CELLTYPES = c('CD8-T', 'Other immune', 'DC / Mono', 'CD3-T', 'B', 'NK', 'Keratin-positive tumor', 'Tumor',
+#               'CD4-T', 'Mesenchymal-like', 'Macrophages', 'Endothelial', 'Tregs', 'Unidentified', 'DC', 'Mono / Neu',
 #               'Neutrophils')
-CELLTYPES = c('CD8-T', 'Other immune', 'DC / Mono', 'CD3-T', 'B', 'NK', 'Keratin-positive tumor', 'Tumor', 
-              'CD4-T', 'Mesenchymal-like', 'Macrophages', 'Endothelial', 'Tregs', 'Unidentified', 'DC', 'Mono / Neu', 
-              'Neutrophils')
-ImageIDs <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-              20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 34, 35, 36, 37,
-              38, 39, 40, 41)
-NSITES=100 # number of sites generated per image
-RADIUS= 25# radius of site in micrometer²
-NBNICHES = 4 # number of niches to find (in PC space of NBNICHES-1 dimensions)
-METHOD ="gaussian"
-#Method = "gaussian"
-W = 800
-H = 800
-ROOT_DATA_PATH="./TMENS_analysis/data/cell_positions_data" 
-#rootDataPath = 
-ROOT_OUTPUT_PATH="./TMENS_analysis/output"
-pathFigs = "./figs_niches"
+# ImageIDs <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+#               20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 34, 35, 36, 37,
+#               38, 39, 40, 41)
+# NSITES=100 # number of sites generated per image
+# RADIUS= 25# radius of site in micrometer²
+# NBNICHES = 4 # number of niches to find (in PC space of NBNICHES-1 dimensions)
+# METHOD ="gaussian"
+# #Method = "gaussian"
+# W = 800
+# H = 800
+# ROOT_DATA_PATH="./TMENS_analysis/data/cell_positions_data"
+# #rootDataPath =
+# ROOT_OUTPUT_PATH="./TMENS_analysis/output"
+# pathFigs = "./figs_niches"
 
-# CellTypes=paste(CELLTYPES,collapse=",")# 
-# imageID=paste(ImageIDs,collapse = ",")
-# nsites = as.character(NSITES)
-# Radius = as.character(RADIUS)
-# nbNiches =  as.character(NBNICHES)
-# xsize = as.numeric(W)
-# ysize = as.numeric(H)
-# 
-# 
-# COLARCHS=c()#vector of HTML color codes of niches for plots TODO add sys.argv[9]
-# #system("source /scratch/anissa.el/miniconda3/etc/profile.d/conda.sh")
-# condaPath = "/scratch/anissa.el/miniconda3/envs/building-blocks"
-# #pythonPath = "/scratch/anissa.el/miniconda3/bin/python3"
-# pythonPath= "/scratch/anissa.el/miniconda3/envs/building-blocks/bin/python3"
-# condaActiv = "/scratch/anissa.el/miniconda3/bin/activate"
-# system(paste("source",condaActiv,condaPath))
-# system(paste(pythonPath,"./main_nipmap.py",CellTypes," ",imageID," ",nsites," ",Radius," ",nbNiches," ",METHOD," ",xsize, " ",ysize," ",ROOT_DATA_PATH," ",ROOT_OUTPUT_PATH))
+jsonparams <- fromJSON(file="./params.json")
+CELLTYPES <-jsonparams$cellTypes
+ImageIDs <- jsonparams$ImageID
+NSITES <- jsonparams$nbsites
+RADIUS <- jsonparams$radiusSize
+NBNICHES <- jsonparams$nbniches
+METHOD <-jsonparams$countMeth
+W <-jsonparams$xsize
+H <-jsonparams$ysize
+ROOT_DATA_PATH <- jsonparams$rootDataPath
+ROOT_OUTPUT_PATH <-jsonparams$rootOutPath
+COLNICHES <- jsonparams$colNiches
+pathFigs <- jsonparams$pathFigs
 
 
 file1 = "./pca_sites.json" # pca object on sites elements
@@ -73,8 +60,12 @@ json_data4 <- fromJSON(file=file4)
 ##### LOAD OUTPUT OBJECTS
 ## Cell abundance in sites
 sitesCellAb <- as_tibble(lapply(json_data3$cellAbSites,unlist))
-
 write_csv(sitesCellAb%>%dplyr::select(-c(index, patient_id,site_id)),"sitesCA.csv")
+
+niches <- paste0("a",as.vector(seq(1,NBNICHES,1)))
+names(COLNICHES) <- niches
+colNiches.hex <-unlist(lapply(COLNICHES, function(x){rgb(x[1],x[2],x[3],maxColorValue = 255)}))
+
 ## Archetypes coordinates in reduced PC space
 Archs_3D <- do.call(cbind,lapply(json_data2$archs_coord,unlist))
 ## Projection of sites cell abundance in reduced PC space
@@ -82,11 +73,28 @@ pca3D <- matrix(unlist(json_data$PC_proj),nrow=17)[1:3,]
 plotly::plot_ly(x=pca3D[1,],
                 y=pca3D[2,],
                 z=pca3D[3,],
-                type="scatter3d",
-                mode="marker")
+                type = "scatter3d", mode = "markers",
+                marker = list(symbol = "triangle",size = 4),
+                name="sites",
+                mode = "text")%>%
+  add_trace(x = Archs_3D[,1],
+            y = Archs_3D[,2],
+            z =Archs_3D[,3],
+            type = "scatter3d",
+            mode = "markers+text",
+            text = niches,
+            textposition = c('top right','bottom right','top left','top right'),
+            textfont = list(color = '#000000', size = 16),
+            showlegend = TRUE,
+            name = "niches",
+            marker = list(color=~colNiches.hex,symbol = "star-diamond",size = 12),
+            inherit = FALSE)%>%
+  layout(scene = list(xaxis = list(title = "PC1"),
+                      yaxis = list(title = "PC2"),
+                      zaxis = list(title = "PC3")))
 
 ######--- NICHE IDENTIFICATION 
-niches <- paste0("a",as.vector(seq(1,NBNICHES,1)))
+
 NichesCellProf <- do.call(cbind,lapply(json_data2$nichesCA,unlist))
 rownames(NichesCellProf) <- CELLTYPES
 colnames(NichesCellProf) <- niches
@@ -96,8 +104,8 @@ NichesCellProp <- NichesCellProf%>%t%>%as_tibble(rownames = NA)%>%
 NichesCellProp[NichesCellProp<0] <-0
 barplot1 <- ggplot(data = NichesCellProp, aes(x = cell_type, y = cell_density,fill = archetype)) +
   geom_bar(stat = "identity",position = position_dodge(),width = 0.6) +
+  scale_fill_manual(values = colNiches.hex)+
   theme(axis.text.x = element_text(angle = 90, vjust = .2))#+
-  #scale_fill_manual(values = COLARCHS)+
   #xlab ("") + ylab("cell density")
 ggsave("./barplotNiches.pdf",barplot1,height=3,width=4)
 
@@ -184,8 +192,6 @@ nichesCA.sort <- nichesCellAb%>%
    pivot_longer(cols = as.vector(NichesNames),names_to="niche",values_to="cell_density")%>%
    group_by(niche)%>%arrange(desc(cell_density))
 
-# archsSitesCellAb <- left_join(sitesCellAb,archetypes_sites,by=c("site_id","patient_id"))%>%
-#   pivot_longer(cols=append(CELLTYPES,"Unidentified"),names_to="cell_type",values_to= "cell_density")
 colnames(archetypes_sites) <- niches
 archsSitesCellAb <- cbind(sitesCellAb,archetypes_sites)%>%
   pivot_longer(cols=append(CELLTYPES,"Unidentified"),names_to="cell_type",values_to= "cell_density")
@@ -193,10 +199,14 @@ archsSitesCellAb <- cbind(sitesCellAb,archetypes_sites)%>%
 ### Get cell types enriched in each niche (take top 1% sites closest to niche)
 archs.CT <- get_CT_enriched_all_archs(archsSitesCellAb,NichesNames)%>%#(archetypes_sites%>%t%>%as_tibble(rownames=NA),cellAbSites,thresh = 0.99)%>%
   group_by(niche)%>%
-  filter(!(cell_type %in% c("DC / Mono","CD3-T", "Mono / Neu", "Other immune","Unidentified")))%>%mutate(cell_type = paste(unique(cell_type),collapse="\n"))%>%distinct(niche,cell_type)
+  filter(!(cell_type %in% c("DC / Mono","CD3-T", "Mono / Neu", "Other immune","Unidentified")))%>%
+  mutate(cell_type = paste(unique(cell_type),collapse="\n"))%>%
+  distinct(niche,cell_type)
+
+
+source("./phenotypes_niches/functions_phenotypes_tmens.r")
 ## Get table of niches/interfaces-associated cell phenotypes
-TableNichesPhenotypes(CM=cMf,NichesCT=archs.CT,Niches.names=NichesNames,nichesCA.sorted = nichesCA.sort,pathFigs = ".")
-#CM,NichesCT,nichesCA.sorted,Niches.names,pathFigs
+TableNichesPhenotypes(CM = cMf,NichesCT = archs.CT,Niches.names = NichesNames,nichesCA.sorted = nichesCA.sort,pathFigs = pathFigs)
 
 
 
