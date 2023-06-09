@@ -36,7 +36,10 @@ class CellAbundance:
             np.random.seed(random_seed)
 
         self.patient_id = patient_id
-        self.n_sites = n_sites
+        if type(n_sites) is dict:
+            self.n_sites = n_sites[self.patient_id]
+        else:
+            self.n_sites = n_sites
         self.sites_radius = sites_radius
         self.root = root
         self.cell_positions_df = self._load_cell_position_from_csv()
@@ -45,8 +48,13 @@ class CellAbundance:
         self.snr = snr
         self.k = self.snr * self.snr
         self.pca = None
-        self.image_x_size = image_x_size
-        self.image_y_size = image_y_size
+        if type(image_x_size) is dict and type(image_y_size) is dict:
+            self.image_x_size = image_x_size[self.patient_id]
+            self.image_y_size = image_y_size[self.patient_id]
+        else:
+            self.image_x_size = image_x_size
+            self.image_y_size = image_y_size
+        
         self.center_sites_cells = center_sites_cells
         self.border = border
         # for gaussian weigthing we could select a bigger radius
@@ -135,10 +143,13 @@ class CellAbundance:
         radius = self.sites_radius
         if self.method == "gaussian":
             radius = self.radius_coeff*radius
-
+            
+      
         if radius > min(self.image_x_size, self.image_y_size) - radius: # probably twice radius
             raise ValueError("radius too big!")
         # Center sites on cells or generate randomly(uniform) 100 sites per image    
+        #############################
+       
         if self.center_sites_cells == False:
             x_centers = np.random.uniform(low=radius, high=self.image_x_size - radius,size=self.n_sites)
             y_centers = np.random.uniform(low=radius, high=self.image_y_size - radius,size=self.n_sites)
