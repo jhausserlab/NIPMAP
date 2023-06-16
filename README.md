@@ -12,7 +12,7 @@ NIche Phenotype MAPping (NIPMAP) analysis from spatial multiplex data: Multiplex
     ```bash
     pip install matplotlib
     pip install scipy
-    pip install pandas
+    pip install pandas==1.3.5
     pip install numpy==1.8.1
     pip install scikit-learn
     pip install seaborn
