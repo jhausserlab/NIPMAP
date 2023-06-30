@@ -679,7 +679,7 @@ plot_heatmap_CT <- function(CM.mat,nichesIntf,figPath="./figs/cM_byCells3.pdf"){
   Markers<- pull(CM_TMENs_ct ,marker)
   ## Annotations colors = length of cell types
   colorCount = length(cts)#length(CELLTYPES)
-  getPalette = colorRampPalette(RColorBrewer::brewer.pal(9, "Set1"))
+  getPalette = colorRampPalette(RColorBrewer::brewer.pal(12, "Paired")) # change color from "Set1" to "Paired"
   getPalette(colorCount)
   # List with colors for each annotation.
   CTcolors <- list(cell_type = getPalette(colorCount))
@@ -687,7 +687,7 @@ plot_heatmap_CT <- function(CM.mat,nichesIntf,figPath="./figs/cM_byCells3.pdf"){
   rownames(cellTypes) <- rownames(CM_TMENs_ct)
   #rownames(Markers) <-rownames(CM_TMENs_ct)
   figWidth <- nrow(CM.mat) * 30/267
-  pdf(figPath,height=8, width=ifelse(figWidth<6, 6, figWidth+2))
+  pdf(figPath,height= 11, width=ifelse(figWidth<10, 10, figWidth+6)) ######## changed . original was : figWidth<6, 6, figWidth+2)
   pheatmap(t(CM.mat),cluster_cols = hclustCells,cluster_rows = FALSE,annotation_col=cellTypes,annotation_colors= CTcolors,labels_col = Markers)#
   dev.off()
 }
@@ -707,7 +707,7 @@ plot_heatmap_markers <- function(CM.mat,nichesIntf,figPath="./figs/cM_byMarkers2
   cellTypes2 <- pull(CM_TMENs_ph,cell_type) #data.frame(cell_type =pull(CM_TMENs_ph ,cell_type))
   
   colorCount = length(unique(pull(CM_TMENs_ph,marker)))
-  getPalette = colorRampPalette(RColorBrewer::brewer.pal(9, "Set1"))
+  getPalette = colorRampPalette(RColorBrewer::brewer.pal(15, "Paired")) # change color from "Set1" to "Paired"
   getPalette(colorCount)
   CTcolors <- list(marker = getPalette(colorCount))
   names(CTcolors$marker) <- unique(pull(CM_TMENs_ph,marker))
@@ -721,7 +721,7 @@ plot_heatmap_markers <- function(CM.mat,nichesIntf,figPath="./figs/cM_byMarkers2
   # 
   cMf_ordered <- cMf.copy%>%as_tibble(rownames=NA)%>%rownames_to_column(var="names")%>%separate(col="names",into=c("marker","cell_type"),sep=";")%>%group_by(marker)%>%arrange(marker)%>%mutate(names=paste0(marker,";",cell_type))%>%column_to_rownames(var="names")%>%dplyr::select(-c(cell_type,marker))
   figWidth <- nrow(CM.mat) * 30/267
-  pdf(figPath,height=8, width=ifelse(figWidth<6, 6, figWidth+2))
+  pdf(figPath,height=11, width=ifelse(figWidth<10, 10, figWidth+6)) ######## changed . original was : figWidth<6, 6, figWidth+2)
   pheatmap(as.matrix(cMf_ordered%>%t),cluster_cols = hclustPhen,cluster_rows = FALSE,annotation_col = Markers2,labels_col = cellTypes2,annotation_colors=CTcolors)
   dev.off()
 }
@@ -916,7 +916,7 @@ TableNichesPhenotypes <- function(CM,NichesCT,Niches.names,nichesCA.sorted,pathF
   #gpar.corefill = gpar(fill = "white", col = "grey95"))
   grid.newpage()
   grid.draw(g1)
-  ggsave(paste0(pathFigs,"/tabNichePhen.pdf"),g1,width=7,height=10)
+  ggsave(paste0(pathFigs,"/tabNichePhen.pdf"),g1,width=20,height=20) # change the size of the table
   
   return(tabCellPhen3)
   

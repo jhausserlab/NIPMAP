@@ -105,8 +105,9 @@ barplot1 <- ggplot(data = NichesCellProp, aes(x = cell_type, y = cell_density,fi
   geom_bar(stat = "identity",position = position_dodge(),width = 0.6) +
   scale_fill_manual(values = colNiches.hex)+
   theme(axis.text.x = element_text(angle = 90, vjust = .2))#+
-  #xlab ("") + ylab("cell density")
-ggsave("./barplot_niches.pdf",barplot1,height=3,width=4)
+#xlab ("") + ylab("cell density")
+ggsave("./barplotNiches.pdf",barplot1,height=3,width=4)
+ 
 
 ##########--------- NICHE-PHENOTYPE MAPPING --------##########
 ## Niches weights(proportions) of all cells from all images
@@ -188,8 +189,8 @@ nichesCellAb <- NichesCellProf%>%t%>%as_tibble(rownames=NA)%>%rownames_to_column
   as_tibble(rownames=NA)%>%rownames_to_column(var="cell_type")
 # #Sort cell types per niche by decreasing cell abundance
 nichesCA.sort <- nichesCellAb%>%
-   pivot_longer(cols = as.vector(NichesNames),names_to="niche",values_to="cell_density")%>%
-   group_by(niche)%>%arrange(desc(cell_density))
+  pivot_longer(cols = as.vector(NichesNames),names_to="niche",values_to="cell_density")%>%
+  group_by(niche)%>%arrange(desc(cell_density))
 
 colnames(archetypes_sites) <- niches
 archsSitesCellAb <- cbind(sitesCellAb,archetypes_sites)%>%
@@ -206,6 +207,3 @@ archs.CT <- get_CT_enriched_all_archs(archsSitesCellAb,NichesNames)%>%#(archetyp
 source("./phenotypes_niches/functions_phenotypes_tmens.r")
 ## Get table of niches/interfaces-associated cell phenotypes
 TableNichesPhenotypes(CM = cMf,NichesCT = archs.CT,Niches.names = NichesNames,nichesCA.sorted = nichesCA.sort,pathFigs = pathFigs)
-
-
-

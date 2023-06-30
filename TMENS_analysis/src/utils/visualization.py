@@ -175,7 +175,7 @@ def get_segmentation_matrix(data, cell_types, pca_obj, archetype_obj, color_fun,
     return m
 
 
-def plot_cells_positions(data, cell_types, segment_image=False, segmentation_type='hard', color_vector=None,counting_type='abs', h=800, w=800, granularity=25, radius=25, pca_obj=None, AA_obj=None, to_plot='all',path_fig=None):
+def plot_cells_positions(data,patientID, cell_types, segment_image=False, segmentation_type='hard', color_vector=None,counting_type='abs', h=800, w=800, granularity=25, radius=25, pca_obj=None, AA_obj=None, to_plot='all',path_fig=None):
     '''
     plots cells positions in MIBI image of TNBC + saves it in a .svg image
     
@@ -198,6 +198,8 @@ def plot_cells_positions(data, cell_types, segment_image=False, segmentation_typ
     groups = data.groupby('cell_type')
     cells_cols = {cell_types[i]:colors[i] for i in range(len(cell_types))}
     plt.figure(figsize=(8, 8))
+    for i in patientID:
+        plt.title("Image IDs: {}".format(i))
     if segment_image is True:
         if pca_obj is None or AA_obj is None:
             raise ValueError("To segment the image pca and archetypes objects are needed")
@@ -1109,8 +1111,8 @@ def radius_pc_all_variance(expl_var_cum_ratio, radius_lim = 100,nPC_lim = 3,save
         plt.axvline(x = radius_lim, color = 'r', linestyle = '--')  #x = 100
         plt.axhline(y = nPC_lim, color = 'r', linestyle = '--')  #y = 3
     plt.ylim(0, pca_limit) #(0, pca_limit)
-    plt.xlabel("radius in micrometers")
-    plt.ylabel("number of principal components")
+    plt.xlabel("radius in micrometers", fontsize=20)
+    plt.ylabel("number of principal components", fontsize=20) # increase size of the plot to 20
     
     plt.colorbar()
     
