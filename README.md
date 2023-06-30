@@ -113,8 +113,10 @@ Note #2: NIPMAP doesn't aim to correct cell segmentation error or cell type mis-
 * **NIPMAP on ISS dataset from Sountoulidis et al**: Open ISS_analysis/notebooks/archetype_analysis.ipynb and excute "Radius Analysis", "Archetype Analysis", "Visualization" and "Save data". The "Save data" part generates all the files needed for downstream analyses. Then, open ISS_analysis/notebooks/HybISS_niche_explore.Rmd and excute the whole Rmarkdown file to generate all the figures included in the section "NIPMAP identifies the cellular and phenotypic architecture of developing lung from in situ RNA sequencing" of the paper. Figures generated for this analysis are found in ISS_analysis/output.
 
 ## Supplementary analyses
-* **Sampling intensity and niche estimation error** see scripts in .../.../
-* 
+* **Sampling intensity and niche estimation error** see script in /TMENS_analysis/sites_analysis.py. The script computes RMSE for each sampling intensity
+* **Comparing niches in fetal lung with 32 vs 73 cell types** see notebook in /ISS_analysis/notebooks/niches_ISS_original_celltypes.ipynb. It performs niche identification from images with 73 cell types. Figures are available in /ISS_analysis/output.
+* **Power analysis - detecting a rare niche** see scripts in /power_analysis/. T
+* **Reproducing mixed vs compartmentalized sample classification of Keren et al.** open and execute this script: .........................
 
 ## License
 
