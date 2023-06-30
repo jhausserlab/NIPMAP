@@ -1,0 +1,456 @@
+---
+title: "mixed_compartmantalized_scoring"
+author: "AE"
+date: "2023-06-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+gc()
+rm(list=ls())
+
+.libPaths("/home/common/R")
+library(rjson)
+library(tidyverse)
+library(purrr)
+library(patchwork)
+
+source("../../phenotypes_niches/functions_phenotypes_tmens.r")
+
+```
+
+```{r}
+
+
+jsonparams <- fromJSON(file="../data/params.json")
+CELLTYPES <-jsonparams$cellTypes
+# ImageIDs <- jsonparams$ImageID
+# NSITES <- jsonparams$nbsites
+# RADIUS <- jsonparams$radiusSize
+NBNICHES <- jsonparams$nbniches
+# METHOD <-jsonparams$countMeth
+# W <-jsonparams$xsize
+# H <-jsonparams$ysize
+# ROOT_DATA_PATH <- jsonparams$rootDataPath
+# ROOT_OUTPUT_PATH <-jsonparams$rootOutPath
+# COLNICHES <- jsonparams$colNiches
+# pathFigs <- jsonparams$pathFigs
+
+file1 = "../data/pca_sites.json" # pca object on sites elements
+file2 = "../data/AA_sites.json" # archetype Analysis object based on sites cell abundance
+file3 = "../data/ca_sites.json" # cell abundance of randomly generated sites
+file4 = "../data/cells_niches.json" # sites centered on cells and niches weights
+
+#######---- Open .json files ----#######
+# json_data <- fromJSON(file=file1)
+json_data2 <- fromJSON(file=file2)
+json_data3 <- fromJSON(file=file3)
+json_data4 <- fromJSON(file=file4)
+
+```
+
+
+```{r}
+
+sitesCellAb <- as_tibble(lapply(json_data3$cellAbSites,unlist))
+
+niches <- paste0("a",as.vector(seq(1,NBNICHES,1)))
+
+archetypes_sites <- as.data.frame(do.call(cbind,lapply(json_data2$alfas,unlist)))
+colnames(archetypes_sites) <- niches
+
+# NichesNames <- c("a1"="TLS","a2"="inflammatory","a3"="cancer","a4"="fibrotic")
+NichesNames <- niches
+names(NichesNames) <- c("TLS","inflammatory","cancer","fibrotic")
+
+entropy <- function(p) rowSums(-(p * log(p + 0.0000001)))
+
+# archetypes_sites$Entropy <- entropy(archetypes_sites)
+
+archetypes_contributions <- archetypes_sites %>%
+  rename(all_of(NichesNames)) %>%
+  cbind(sitesCellAb[,c("index", "site_id", "patient_id")], .) %>%
+  mutate(MixedScore = inflammatory * cancer) %>%
+  mutate(MixedScore2 = (inflammatory + TLS) * cancer) %>%
+  group_by(patient_id) %>%
+  summarise(MeanMixedScore = mean(MixedScore), MeanMixedScore2 = mean(MixedScore2), TLS = mean(TLS), inflammatory = mean(inflammatory)) %>%
+  mutate(MeanMixedScore3 = MeanMixedScore2 / (TLS + inflammatory)) %>%
+  rename(SampleID = patient_id) %>%
+  as.data.frame()
+
+# rm(sitesCellAb, json_data3, json_data2, archetypes_sites)
+rm(sitesCellAb, archetypes_sites)
+
+kerenSampleInfo <- read.csv2("../data/patient_class.csv", sep = ",", header = F)
+colnames(kerenSampleInfo) <- c("SampleID", "SampleClass")
+
+kerenSampleInfo <- kerenSampleInfo %>%
+  mutate(SampleClass = as.character(SampleClass)) %>%
+  mutate(SampleClass = case_match(SampleClass, "0" ~ "Mixed", "1" ~ "Compartmentalized", "2" ~ "Cold?"))
+
+archetypes_contributions <- archetypes_contributions %>%
+  left_join(kerenSampleInfo, by = "SampleID")
+
+# archetypes_contributions %>%
+#   ggplot(aes(x = MeanMixedScore, y = MeanEntropy)) +
+#   geom_point() +
+#   geom_smooth(method = "lm", se = F) +
+#   ggpubr::stat_cor() +
+#   theme_minimal()
+
+p <- archetypes_contributions %>%
+  filter(!is.na(SampleClass)) %>%
+  filter(SampleClass != "Cold?") %>%
+  mutate(NIPMAP_Category = ifelse(MeanMixedScore3 > 0.19, "Mixed", "Compartmentalized")) %>%
+  ggplot(aes(x = MeanMixedScore3, y = SampleClass)) +
+  geom_point(data = . %>% 
+                              filter( !((MeanMixedScore3 > 0.19 & SampleClass == "Compartmentalized") | (MeanMixedScore3 < 0.19 & SampleClass == "Mixed")) ), 
+                            aes(x = MeanMixedScore3, y = SampleClass, color = NIPMAP_Category )) +
+  scale_color_brewer(palette = "Dark2") +
+  ggrepel::geom_text_repel(data = . %>% 
+                              filter( (MeanMixedScore3 > 0.19 & SampleClass == "Compartmentalized") | (MeanMixedScore3 < 0.19 & SampleClass == "Mixed") ), 
+                            aes(x = MeanMixedScore3, y = SampleClass, label = SampleID), size =5)+
+  geom_point(data = . %>% 
+                              filter( (MeanMixedScore3 > 0.19 & SampleClass == "Compartmentalized") | (MeanMixedScore3 < 0.19 & SampleClass == "Mixed") ), 
+                            aes(x = MeanMixedScore3, y = SampleClass), color = "firebrick") +
+  geom_vline(xintercept = 0.19, color="blue", linetype="dashed") +
+  ylab("Keren et al, 2018 Classification") +
+  xlab("NIPMAP based Mixing Score") +
+  theme_minimal()
+
+# pdf("../out/NIPMAP_scoring_threshold.pdf", height = 3, width = 10)
+print(p)
+# dev.off()
+
+```
+
+
+```{r}
+
+posFiles <- Sys.glob("../../TMENS_analysis/data/cell_positions_data/*.csv")
+
+names(posFiles) <- gsub(pattern = "../../TMENS_analysis/data/cell_positions_data/patient", replacement = "", x = posFiles) %>%
+  gsub(pattern = "_cell_positions.csv", replacement = "", x = .)
+
+
+cellsPositions <- lapply(names(posFiles), function(x){
+  
+  posTemp <- read.csv2(posFiles[x], sep = ",")
+  posTemp$x <- as.numeric(posTemp$x)
+  posTemp$y <- as.numeric(posTemp$y)
+  posTemp$SampleID <- x
+  
+  return(posTemp)
+}) %>% bind_rows()
+
+
+cellsPositions %>%
+  group_by(SampleID) %>%
+  summarise( Xmax = max(x), Xmin = min(x), Ymax = max(y), Ymin = min(y), Count = n())
+
+cols = c(
+  
+        'NK' = '#fee000',
+         
+        'CD3-T' = '#f37421',
+        'CD8-T' = '#fba919',
+        'CD4-T' = '#193a1c',
+        'Tregs' = '#a8dde3',
+        'B' = '#41b8ea',
+        
+        'Other immune' = '#50C878',
+        
+        'Tumor' = '#c19952',
+        'Endothelial' = '#232323',
+        'Keratin-positive tumor' = '#7f7f7f',
+        
+        'DC' = '#d84598',
+        'DC / Mono' = '#ed2024',
+        'Mono / Neu' = '#f15d64',
+        'Macrophages' = '#f6a2a7',
+        
+        'Neutrophils' = '#c677b1',
+        "Mesenchymal-like" = '#80622f',
+        'Unidentified' = '#932169' 
+)
+
+p <- cellsPositions %>%
+  mutate(SampleID = as.numeric(SampleID)) %>%
+  left_join(archetypes_contributions, by = "SampleID") %>%
+  filter(SampleClass != "Cold?") %>%
+  mutate(Sample = paste0("S", as.character(SampleID), "(MS:", sprintf("%.3f", MeanMixedScore3), ")" )) %>%
+  mutate(Sample = fct_reorder(Sample, desc(MeanMixedScore3))) %>%
+  ggplot(aes(x = x, y = y, color = cell_type)) +
+  geom_point() +
+  theme_minimal() +
+  scale_x_continuous(limits = c(10, 790)) + 
+  scale_y_continuous(limits = c(10, 790)) + 
+  scale_color_manual(values = cols) +
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank()) +
+  facet_wrap(.~Sample)
+
+# pdf("../out/MixedScore_Sample_Comparison.pdf", height = 20, width = 20)
+print(p)
+# dev.off()
+
+```
+```{r}
+
+# Get markers expression and niche weigths of cells
+# df with following columns: cell_type, SampleID, cell_id, a1....an & interfaces, marker,value
+cellsPhenotype <- read.csv("../../TMENS_analysis/data/cellData.csv",check.names=FALSE,header = TRUE, sep =',')%>%
+  # dplyr::select(-c(cellSize,C,Na,Si,P,Ca,Fe,immuneCluster,Ta,Au))%>%
+  dplyr::select(SampleID, cellLabelInImage, Group, immuneCluster, immuneGroup, PD1, `PD-L1`, IDO) %>%
+  mutate(immuneGroup = recode(immuneGroup,`0`= 'None',`1`='Tregs', `2`='CD4-T',
+                              `3`='CD8-T', `4`='CD3-T', `5`='NK',
+                              `6`='B', `7`='Neutrophils', `8`='Macrophages', `9`='DC',
+                              `10`='DC / Mono', `11`='Mono / Neu', `12`='Other immune')) %>% 
+  mutate(Group = recode(Group,`1`='Unidentified', `2`='Immune',
+                        `3`='Endothelial', `4`='Mesenchymal-like',
+                        `5` = 'Tumor',
+                        `6` = 'Keratin-positive tumor'))%>%
+  mutate(cell_type = ifelse(Group == 'Immune', cell_type<- immuneGroup,cell_type <- Group))%>%
+  filter(cell_type!="Unidentified") %>%
+  dplyr::rename(cell_id = cellLabelInImage) %>%
+  as.data.frame()
+
+marker_counts <- cellsPhenotype %>%
+  filter(!SampleID %in% archetypes_contributions[archetypes_contributions$SampleClass == "Cold?", "SampleID"]) %>%
+  group_by(SampleID) %>%
+  summarise(CellCount = n(), 
+            PD1_pos_Count = sum(PD1 > 0),
+            PDL1_pos_Count = sum(`PD-L1` > 0),
+            IDO_pos_Count = sum(IDO > 0)) %>%
+  as.data.frame()
+
+# samplePhenotype <- cellsPhenotype %>%
+#   left_join(archetypes_contributions, by = "SampleID") %>%
+#   mutate(PD1_pos = ifelse(PD1 > 0, "PD1+", "PD1-")) %>%
+#   mutate(PDL1_pos = ifelse(`PD-L1` > 0, "PD-L1+", "PD-L1-")) %>%
+#   mutate(IDO_pos = ifelse(IDO > 0, "IDO+", "IDO-")) 
+
+p1 <- cellsPhenotype %>%
+  filter((PD1 > 0) & (cell_type %in% c("CD4-T", "CD8-T"))) %>%
+  group_by(SampleID, cell_type) %>%
+  summarise(Count = n()) %>%
+  ungroup() %>%
+  filter(SampleID %in% marker_counts[marker_counts$PD1_pos_Count > 20, "SampleID"]) %>%
+  tidyr::complete(SampleID, cell_type) %>%
+  mutate( Count = replace_na(Count, 0) + 1) %>%
+  reshape2::dcast(SampleID ~ cell_type) %>%
+  mutate(log2FC = log2(`CD8-T` / `CD4-T`)) %>%
+  left_join(archetypes_contributions, by = "SampleID") %>%
+  # mutate(SampleID = fct_reorder(SampleID, desc(MixedScore))) %>%
+  ggplot(aes( x = MeanMixedScore3, y = log2FC)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = F) +
+  ggpubr::stat_cor(method = "pearson") +
+  ylab("log2( PD1+CD8+Tcells / PD1+CD4+Tcells )") + 
+  theme_minimal()
+
+p2 <- cellsPhenotype %>%
+  # mutate(Group = gsub(pattern = "Keratin-positive tumor", replacement = "Tumor", x = Group)) %>%
+  filter((`PD-L1` > 0) & (Group %in% c("Immune", "Tumor"))) %>%
+  group_by(SampleID, Group) %>%
+  summarise(Count = n()) %>%
+  ungroup() %>%
+  filter(SampleID %in% marker_counts[marker_counts$PDL1_pos_Count > 20, "SampleID"]) %>%
+  tidyr::complete(SampleID, Group) %>%
+  mutate( Count = replace_na(Count, 0) + 1) %>%
+  reshape2::dcast(SampleID ~ Group) %>%
+  mutate(log2FC = log2(Tumor / Immune)) %>%
+  left_join(archetypes_contributions, by = "SampleID") %>%
+  # mutate(SampleID = fct_reorder(SampleID, desc(MixedScore))) %>%
+  ggplot(aes( x = MeanMixedScore3, y = log2FC)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = F) +
+  ggpubr::stat_cor(method = "pearson") +
+  ylab("log2( PD-L1+ Tumor / PD-L1+ Immune )") + 
+  theme_minimal()
+
+p3 <- cellsPhenotype %>%
+  # mutate(Group = gsub(pattern = "Keratin-positive tumor", replacement = "Tumor", x = Group)) %>%
+  filter((IDO > 0) & (Group %in% c("Immune", "Tumor"))) %>%
+  group_by(SampleID, Group) %>%
+  summarise(Count = n()) %>%
+  ungroup() %>%
+  filter(SampleID %in% marker_counts[marker_counts$IDO_pos_Count > 20, "SampleID"]) %>%
+  tidyr::complete(SampleID, Group) %>%
+  mutate( Count = replace_na(Count, 0) + 1) %>%
+  reshape2::dcast(SampleID ~ Group) %>%
+  mutate(log2FC = log2(Tumor / Immune)) %>%
+  left_join(archetypes_contributions, by = "SampleID") %>%
+  # mutate(SampleID = fct_reorder(SampleID, desc(MixedScore))) %>%
+  ggplot(aes( x = MeanMixedScore3, y = log2FC)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = F) +
+  ggpubr::stat_cor(method = "pearson") +
+  ylab("log2( IDO+ Tumor / IDO+ Immune )") + 
+  theme_minimal()
+
+# pdf("../out/Keren_et_al_figure5_MixedScore.pdf", width = 7, height = 12)
+print(p1 + p2 + p3 + plot_layout(ncol = 1))
+# dev.off()
+  
+```
+```{r}
+
+
+samplesKept <- list(
+  
+  "plot1" = c(14, 20, 2, 29, 13, 11, 18, 10, 32, 37, 39, 16, 9, 40, 12, 5, 27, 38, 6, 4, 17, 3, 35, 28),
+  "plot2" = c(8, 33, 27, 31, 18, 23, 38, 21, 14, 29, 36, 20, 3, 17, 2, 11, 13, 40, 12, 28, 39, 16, 41, 4, 10, 32, 5, 35, 9, 37, 6),
+  "plot3" = c(20, 14, 39, 12, 13, 32, 11, 40, 17, 10, 2, 37, 6, 9, 29, 5, 41, 3, 16, 4, 28, 35)
+  
+)
+
+
+p1 <- cellsPhenotype %>%
+  filter((PD1 > 0) & (cell_type %in% c("CD4-T", "CD8-T"))) %>%
+  group_by(SampleID, cell_type) %>%
+  summarise(Count = n()) %>%
+  ungroup() %>%
+  filter(SampleID %in% marker_counts[marker_counts$PD1_pos_Count > 20, "SampleID"] & SampleID %in% samplesKept[["plot1"]]) %>%
+  tidyr::complete(SampleID, cell_type) %>%
+  mutate( Count = replace_na(Count, 0) + 1) %>%
+  reshape2::dcast(SampleID ~ cell_type) %>%
+  mutate(log2FC = log2(`CD8-T` / `CD4-T`)) %>%
+  left_join(archetypes_contributions, by = "SampleID") %>%
+  mutate(NIPMAP_Category = ifelse(MeanMixedScore3 > 0.19, "Mixed", "Compartmentalized")) %>%
+  mutate(SampleID = as.character(SampleID)) %>%
+  mutate(SampleID = fct_reorder(SampleID, desc(log2FC))) %>%
+  ggplot(aes( x = SampleID, y = log2FC, fill = NIPMAP_Category)) +
+  geom_col() +
+  scale_fill_brewer(palette = "Dark2") +
+  ylab("log2( PD1+CD8+Tcells / PD1+CD4+Tcells )") + 
+  xlab("Patients") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90))
+
+p2 <- cellsPhenotype %>%
+  filter(Group != "Tumor") %>%
+  mutate(Group = gsub(pattern = "Keratin-positive tumor", replacement = "Tumor", x = Group)) %>%
+  filter((`PD-L1` > 0) & (Group %in% c("Immune", "Tumor"))) %>%
+  group_by(SampleID, Group) %>%
+  summarise(Count = n()) %>%
+  ungroup() %>%
+  filter(SampleID %in% marker_counts[marker_counts$PDL1_pos_Count > 20, "SampleID"] & SampleID %in% samplesKept[["plot2"]]) %>%
+  tidyr::complete(SampleID, Group) %>%
+  mutate( Count = replace_na(Count, 0) + 1) %>%
+  reshape2::dcast(SampleID ~ Group) %>%
+  mutate(log2FC = log2(Tumor / Immune)) %>%
+  left_join(archetypes_contributions, by = "SampleID") %>%
+  mutate(NIPMAP_Category = ifelse(MeanMixedScore3 > 0.19, "Mixed", "Compartmentalized")) %>%
+  mutate(SampleID = as.character(SampleID)) %>%
+  mutate(SampleID = fct_reorder(SampleID, desc(log2FC))) %>%
+  ggplot(aes( x = SampleID, y = log2FC, fill = NIPMAP_Category)) +
+  geom_col() +
+  scale_fill_brewer(palette = "Dark2") +
+  ylab("log2( PD-L1+ Tumor / PD-L1+ Immune )") + 
+  xlab("Patients") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90))
+
+p3 <- cellsPhenotype %>%
+  filter(Group != "Tumor") %>%
+  mutate(Group = gsub(pattern = "Keratin-positive tumor", replacement = "Tumor", x = Group)) %>%
+  filter((IDO > 0) & (Group %in% c("Immune", "Tumor"))) %>%
+  group_by(SampleID, Group) %>%
+  summarise(Count = n()) %>%
+  ungroup() %>%
+  filter(SampleID %in% marker_counts[marker_counts$IDO_pos_Count > 20, "SampleID"] & SampleID %in% samplesKept[["plot3"]]) %>%
+  tidyr::complete(SampleID, Group) %>%
+  mutate( Count = replace_na(Count, 0) + 1) %>%
+  reshape2::dcast(SampleID ~ Group) %>%
+  mutate(log2FC = log2(Tumor / Immune)) %>%
+  left_join(archetypes_contributions, by = "SampleID") %>%
+  mutate(NIPMAP_Category = ifelse(MeanMixedScore3 > 0.19, "Mixed", "Compartmentalized")) %>%
+  mutate(SampleID = as.character(SampleID)) %>%
+  mutate(SampleID = fct_reorder(SampleID, desc(log2FC))) %>%
+  ggplot(aes( x = SampleID, y = log2FC, fill = NIPMAP_Category)) +
+  geom_col() +
+  scale_fill_brewer(palette = "Dark2") +
+  ylab("log2( IDO+ Tumor / IDO+ Immune )") + 
+  xlab("Patients") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90))
+
+# pdf("../out/Keren_et_al_figure5_MixedScore.pdf", width = 10, height = 12)
+print(p1 + p2 + p3 + plot_layout(ncol = 1))
+# dev.off()
+
+```
+```{r}
+p1 <- cellsPhenotype %>%
+  filter((PD1 > 0) & (cell_type %in% c("CD4-T", "CD8-T"))) %>%
+  group_by(SampleID, cell_type) %>%
+  summarise(Count = n()) %>%
+  ungroup() %>%
+  filter(SampleID %in% marker_counts[marker_counts$PD1_pos_Count > 20, "SampleID"]  & SampleID %in% samplesKept[["plot1"]]) %>%
+  tidyr::complete(SampleID, cell_type) %>%
+  mutate( Count = replace_na(Count, 0) + 1) %>%
+  reshape2::dcast(SampleID ~ cell_type) %>%
+  mutate(log2FC = log2(`CD8-T` / `CD4-T`)) %>%
+  left_join(archetypes_contributions, by = "SampleID") %>%
+  mutate(NIPMAP_Category = ifelse(MeanMixedScore3 > 0.19, "Mixed", "Compartmentalized")) %>%
+  ggplot(aes( x = NIPMAP_Category, y = log2FC, fill = NIPMAP_Category)) +
+  geom_boxplot() +
+  scale_fill_brewer(palette = "Dark2") +
+  stat_compare_means(method = "wilcox.test") +
+  ylab("log2( PD1+CD8+Tcells / PD1+CD4+Tcells )") + 
+  theme_minimal()
+
+p2 <- cellsPhenotype %>%
+  filter(Group != "Tumor") %>%
+  mutate(Group = gsub(pattern = "Keratin-positive tumor", replacement = "Tumor", x = Group)) %>%
+  filter((`PD-L1` > 0) & (Group %in% c("Immune", "Tumor"))) %>%
+  group_by(SampleID, Group) %>%
+  summarise(Count = n()) %>%
+  ungroup() %>%
+  filter(SampleID %in% marker_counts[marker_counts$PDL1_pos_Count > 20, "SampleID"]  & SampleID %in% samplesKept[["plot2"]]) %>%
+  tidyr::complete(SampleID, Group) %>%
+  mutate( Count = replace_na(Count, 0) + 1) %>%
+  reshape2::dcast(SampleID ~ Group) %>%
+  mutate(log2FC = log2(Tumor / Immune)) %>%
+  left_join(archetypes_contributions, by = "SampleID") %>%
+  mutate(NIPMAP_Category = ifelse(MeanMixedScore3 > 0.19, "Mixed", "Compartmentalized")) %>%
+  mutate(SampleID = as.character(SampleID)) %>%
+  mutate(SampleID = fct_reorder(SampleID, desc(log2FC))) %>%
+  ggplot(aes( x = NIPMAP_Category, y = log2FC, fill = NIPMAP_Category)) +
+  geom_boxplot() +
+  scale_fill_brewer(palette = "Dark2") +
+  stat_compare_means(method = "wilcox.test") +
+  ylab("log2( PD-L1+ Tumor / PD-L1+ Immune )") + 
+  theme_minimal()
+
+p3 <- cellsPhenotype %>%
+  filter(Group != "Tumor") %>%
+  mutate(Group = gsub(pattern = "Keratin-positive tumor", replacement = "Tumor", x = Group)) %>%
+  filter((IDO > 0) & (Group %in% c("Immune", "Tumor"))) %>%
+  group_by(SampleID, Group) %>%
+  summarise(Count = n()) %>%
+  ungroup() %>%
+  filter(SampleID %in% marker_counts[marker_counts$IDO_pos_Count > 20, "SampleID"] & SampleID %in% samplesKept[["plot3"]]) %>%
+  tidyr::complete(SampleID, Group) %>%
+  mutate( Count = replace_na(Count, 0) + 1) %>%
+  reshape2::dcast(SampleID ~ Group) %>%
+  mutate(log2FC = log2(Tumor / Immune)) %>%
+  left_join(archetypes_contributions, by = "SampleID") %>%
+  mutate(NIPMAP_Category = ifelse(MeanMixedScore3 > 0.19, "Mixed", "Compartmentalized")) %>%
+  mutate(SampleID = as.character(SampleID)) %>%
+  mutate(SampleID = fct_reorder(SampleID, desc(log2FC))) %>%
+  ggplot(aes( x = NIPMAP_Category, y = log2FC, fill = NIPMAP_Category)) +
+  geom_boxplot() +
+  scale_fill_brewer(palette = "Dark2") +
+  stat_compare_means(method = "wilcox.test") +
+  ylab("log2( IDO+ Tumor / IDO+ Immune )") + 
+  theme_minimal()
+
+# pdf("../out/Keren_et_al_figure5_Wilcox_Test.pdf", width = 5, height = 10)
+print(p1 + p2 + p3 + plot_layout(ncol = 1))
+# dev.off()
+
+
+```
+
