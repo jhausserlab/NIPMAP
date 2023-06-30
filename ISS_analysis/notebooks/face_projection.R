@@ -35,11 +35,11 @@ proj <- function(u, v) {
   return(as.vector((u%*% v)/(v%*%v))*v)
 }
 
-Faceprojection <- function(arche_list, niche_pccompo, niche_alfas){
+Faceprojection <- function(arche_list, niche_pccompo, niche_alfas,cols){
   
   combiniche <- combn(arche_list, 3) # generate all combinations of niches
   plist <- list()
-  cols = cbind(color=c("#FF00DF", "#0000DF", "#46CBEC", "#FF0000", "#000000"), arche=c(arche_list)) %>% as.data.frame()
+  cols = cbind(color=cols, arche=c(arche_list)) %>% as.data.frame() #cbind(color=c("#FF00DF", "#0000DF", "#46CBEC", "#FF0000", "#000000"), arche=c(arche_list)) %>% as.data.frame()
   for (num in seq(1, ncol(combiniche))) {
     
     #print(paste("Round",num))
