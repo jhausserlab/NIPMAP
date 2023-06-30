@@ -1,0 +1,273 @@
+---
+title: "MIBI  tissue power analysis"
+author: "Anissa El Marrahi"
+date: "2023-06-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r libs}
+rm(list=ls())
+gc()
+
+dirName <- dirname(rstudioapi::getSourceEditorContext()$path)
+setwd(dirName)
+library(tidyverse)
+library(rjson)
+library(progress)
+library(ade4)
+library(factoextra)
+library(rjson)
+```
+
+## Get parameters and input data
+
+```{r params}
+
+#PARAMETERS
+L <- 800
+NBNICHES <- 4
+CELLTYPES <- c('CD8-T', 'Other immune', 'DC / Mono', 'CD3-T', 'B', 'NK', 
+               'Keratin-positive tumor', 'Tumor','CD4-T', 'Mesenchymal-like', 
+               'Macrophages', 'Endothelial', 'Tregs', 'Unidentified', 'DC',
+               'Mono / Neu','Neutrophils')
+NITER <- 10
+RADIUS <- 25
+COLNICHES <-c(c(255, 0, 223),c(255,0,0),c(70,203,236),c(0,0,0))
+jsonparams <- fromJSON(file="../params.json")
+COLNICHES <- jsonparams$colNiches
+```
+
+```{r getNiches}
+###### Get niche cell abundance
+niches <- paste0("a",1:NBNICHES)
+jsonData <- fromJSON(file="../AA_sites.json")
+B <- do.call(cbind,lapply(jsonData$nichesCA,unlist))
+rownames(B) <- CELLTYPES
+colnames(B) <- niches
+
+```
+
+## Get tissue maps of niches weigths
+
+```{r alphaMaps}
+###### PROCESS TISSUE MAPS DATA
+mapsNames <- list.files("./", pattern="alphaMap_area\\d{1}.\\d+_len800.0.rds")
+#get different niche prevalences from rds output files
+nichePrevs <- parse_number(str_extract(mapsNames, pattern = "\\d\\.\\d+"))
+#Normalise to 1
+tMap = mapsNames[1]
+alphaMaps <- lapply(mapsNames, function(tMap){
+  mapMat <- read_rds(tMap)
+  mapMatN = apply(mapMat, c(1,2), function(x) {rev(x)/sum(x)}) %>% aperm(c(2,3,1))
+  dim(mapMatN) #should be 50,50, 4
+  return(mapMatN)
+})
+#test : TRUE
+sum(alphaMaps[[1]][2,2,])==1
+apply(alphaMaps[[1]], 3, mean) #1st niche should have low abundance
+
+names(alphaMaps) <- nichePrevs
+#sum(alphaMaps[[1]][1,1,1:4]/sum(alphaMaps[[1]][1,1,1:4]))
+
+```
+
+## Generating sites on tissue maps and infering cell abundance
+
+```{r sitesCellAb}
+#follow progress  
+#progress_bar()
+NITER=1:100
+#nichePrev=c(0.0024); i=nichePrev; nImages=1
+for(i in nichePrevs){
+  #print(i)
+  for(nImages in unique(round(exp(seq(log(1), log(25), len=10))))){ #for(nImages in c(1)){
+    #print(paste0("Nb images: ",nImages))
+    #print(alphaMaps[[as.character(i)]][1:2,1:2,])
+    # Create folder of simulated sites Cell Abundance
+    folderName <- paste0("nichePrev",i,"_",nImages,"img")
+    filesPath <- file.path(dirname(path='.'),folderName)
+    if (!dir.exists(path=filesPath)){
+      dir.create(path=filesPath)
+    }
+    print(filesPath)
+    for (j in NITER){
+      nbSites <- round(L^2 / (pi*RADIUS^2)) * nImages
+      xCenter <- runif(nbSites, 0, L)
+      yCenter <- runif(nbSites, 0, L)
+      sitesCoord <- cbind(xCenter,yCenter)
+      #print(xCenter)
+      #print(yCenter)
+      ## Interpolation of sites niches weights from tissue map
+      xgrid <- seq(0,L, len=ncol(alphaMaps[[as.character(i)]])) 
+      ygrid <- seq(0,L, len=nrow(alphaMaps[[as.character(i)]]))
+      alfasSites <-map(1:nrow(sitesCoord), function(a){  #nrow(sitesCoord) #for(xs in sitesCoord[,1]){   #FIXME use map 
+        # get coordinates of sites centers
+        xs <- sitesCoord[a,"xCenter"]
+        ys <- sitesCoord[a,"yCenter"]
+        xidx <- ifelse(xs == L, length(xgrid), which(xgrid>xs)[1]-1)
+        yidx <- ifelse(ys == L, length(ygrid), which(ygrid>ys)[1]-1)
+        #print(xidx)
+        ## get prevalence of each weight
+        wl <- as.numeric((xs-xgrid[xidx])/(xgrid[xidx+1]-xgrid[xidx]))
+        #print(wl)
+        wr <- 1-wl
+        #print(wr)
+        wb <- as.numeric((ys-ygrid[yidx])/(ygrid[yidx+1]-ygrid[yidx]))
+        #print(wb)
+        wa <- 1-wb
+        alfas <- .25*((wb +wl)*alphaMaps[[as.character(i)]][yidx,xidx,]+
+          (wb+wr)*alphaMaps[[as.character(i)]][yidx,xidx+1,]+
+          (wa+wl)*alphaMaps[[as.character(i)]][yidx+1,xidx,]+
+          (wa+wr)*alphaMaps[[as.character(i)]][yidx+1,xidx+1,])
+        #print(alfas)
+      })
+      alphasMat <- do.call(rbind,alfasSites)
+      write_csv(as.data.frame(alphasMat),paste0(filesPath,"/sitesAlfas_MIBI_sim",as.character(j),".csv"))
+      X = B %*% (as.matrix(alphasMat)%>%t)#t(alfas) %*% t(B) #t(B)%*% alfas 
+      sitesCellAb = t(X)
+      #print(tail(sitesCellAb))
+      write_csv(as.data.frame(sitesCellAb),paste0(filesPath,"/sitesCellAb_MIBI_sim",as.character(j),".csv"))
+    }
+    #print(nbSites)
+  }
+}
+
+
+```
+
+
+## Debugging: PCA on sites cell abundance
+
+```{r pca}
+# colors
+names(COLNICHES) <- niches
+#print(COLNICHES)
+colNiches.hex <-unlist(lapply(COLNICHES, function(x){rgb(x[1],x[2],x[3],maxColorValue = 255)}))
+
+#nichePrev = 0.008; nbImg = 32;
+plots_sites <- function(nichePrev, nbImg){
+  Nbsims = 1
+  niches <- paste0("a",as.vector(seq(1,NBNICHES,1)))
+  
+  pdf(paste0("./pcaSites_",nichePrev,"_",nbImg,"img.pdf"),height=2*3, width=Nbsims * 3)
+  par(mfcol=c(2,Nbsims))
+  errors <- read.csv(paste0("./nichePrev",nichePrev,"_",nbImg,"img/errors_nichePrev",nichePrev,"_",nbImg,"img.csv"))
+  map(1:Nbsims,function(x){
+    colScale <- 1
+    #pdf(paste0("./pcaSites_",nichePrev,"_",nbImg,"img.pdf"),height=10, width=16)
+    ## Get RSE in TLS niche
+    #par(mfcol=c(3,Nbsims))
+    err <- as.numeric(errors%>%filter(simulation_nb==x)%>%pull(error))
+    # get sites Cell Abundance and niches weights
+    sitesCA <- read.csv(paste0("./nichePrev",nichePrev,"_",nbImg,"img/sitesCellAb_MIBI_sim",x,".csv"))
+    NichesCellProf <- read.csv(paste0("./nichePrev",nichePrev,"_",nbImg,"img/nichesCellAb_MIBI_sim",x,".csv"))[,-1]
+    #hist(sitesTLSw, breaks=round(length(sitesTLSw)/50),main=paste0("TLS-Sim ",x,"\n RSE: ",formatC(err, format = "e", digits = 4))) #weight of TLS niche
+    # PCA on sites cell abundance
+    pcaSites <- dudi.pca(sitesCA, center=TRUE,scale=FALSE,scannf= FALSE,nf=3)
+    #get niches cell abundance from standard analysis
+    tArchs = scale(NichesCellProf, center=apply(sitesCA, 2, mean), scale=F) %*% as.matrix(pcaSites$c1)
+    #archs <- t(B - rowMeans(B)) %*% as.matrix(pcaSites$c1[,c(1,2,3)])
+    #PC1 vs PC2 
+    xRange = range(c(pcaSites$li[,1], tArchs[,1]))
+    yRange = range(c(pcaSites$li[,2], tArchs[,2]))
+    zRange = range(c(pcaSites$li[,3], tArchs[,3]))
+
+    if ( nrow(pcaSites$li) > 1000 ) {
+      idcs = sample(1:nrow(pcaSites$li), 1e3)
+    } else {
+      idcs = 1:nrow(pcaSites$li)
+    }
+    plot(pcaSites$li[idcs,c(1,2)],pch=19,col="dodgerblue",lwd = 4,
+         xlim=xRange, ylim=yRange)
+    points(x=tArchs[,1],y=tArchs[,2],pch = 19, col=colNiches.hex, lwd=8)
+    
+    # plot(x=archs[,1],y=archs[,2],pch = 19, col="red", lwd=8)
+    # points(pcaSites$li[,c(1,2)],pch=19,col="dodgerblue",lwd = 4)
+    #s.arrow(pcaSites$co[,c(1,2)] * colScale)
+    #PC1 vs PC3 
+    plot(pcaSites$li[idcs,c(1,3)],pch=19,col="dodgerblue",lwd = 4,
+         xlim=xRange,
+         ylim=zRange)
+    points(x=tArchs[,1],y=tArchs[,3],pch = 19, col=colNiches.hex, lwd=8)
+    #get niches from simulation identified in mibi_sites_power_analysis.py
+    
+    colnames(NichesCellProf) <- CELLTYPES
+    rownames(NichesCellProf) <- niches 
+    #print(head(NichesCellProf))
+    #pdf(paste0("./nichesCA_",nichePrev,"_",nbImg,"img.pdf"),height=10, width=16)
+    NichesCellProp <- NichesCellProf%>%as_tibble(rownames = NA)%>%
+    rownames_to_column(var="archetype")%>%
+    pivot_longer(cols=all_of(CELLTYPES),names_to="cell_type",values_to = "cell_density")
+    #print(head(NichesCellProp))
+    NichesCellProp[NichesCellProp<0] <-0
+    barplot1 <- ggplot(data = NichesCellProp, aes(x = cell_type, y = cell_density,fill = archetype)) +
+      geom_bar(stat = "identity",position = position_dodge(),width = 0.6) +
+      scale_fill_manual(values = colNiches.hex)+
+      theme(axis.text.x = element_text(angle = 90, vjust = .2))
+    ggsave(paste0("./nichesCA_",nichePrev,"_",nbImg,"img_",x,"sim.pdf"),barplot1,height=3,width=4)
+    #dev.off()
+  })
+ dev.off() 
+  #hist(weight of niche 1, nBins=nSites/100, title=error in that sim) 
+}
+
+#46 images for 0.0048 prevalence VS  2 images
+plots_sites(0.008, 32) #same as with 1 image
+
+plots_sites(0.0048,46) #when you have many sites, AA doesn't find the minority archetype; archs are stuck in the plane with most points. Solution: increase nIterations
+plots_sites(0.0048, 2)
+
+#10 images for 0.008 prevalence VS 1 img
+plots_sites(0.008,10) #same as with 1 image
+plots_sites(0.008, 1) #low error= last arch moves out of the busy plane, high erro=arch stuck in plane
+
+## conclusion: the density of sites matters to define archs, not the absolute number ofsites
+plots_sites(0.0068, 2)
+
+
+```
+
+## Heatmap of mean errors in TLS cell composition across niche weights and images
+### Interpretation of RMSE from new simulations
+
+```{r heatmap}
+##### DOWNSTREAM ANALYSES
+#get outputs from niche identifications for all niche prevalences-nb of images
+outDirs <- list.dirs(path=".")[grepl("nichePrev\\d{1}.\\d+_\\d+img",list.dirs(path="."))]
+
+#get different niche prevalences from rds output files
+#nichePrev <- parse_number(str_extract(mapsNames, pattern = "\\d\\.\\d+"))
+errorTLSdata2 <-lapply(outDirs,function(x){
+  print(x)
+  #open files
+  errFilename <- list.files(path=paste0("./",x), pattern="errors_nichePrev\\d{1}.\\d+_\\d+img.csv")
+  print(errFilename)
+  nichePrev <-parse_number(str_extract(x,pattern ="\\d{1}\\.\\d+"))
+  nbImg <- parse_number(str_extract(x,pattern="\\d+img"))
+  #paste0(nbImg,x)
+  dataRSE <- read.csv(paste0(x,"/",errFilename))
+  #print(x)
+  return(data.frame(mean_error=mean(dataRSE$error),nb_image=nbImg,niche_prevalence=nichePrev))
+})
+
+rse.mat2 <-do.call(rbind,errorTLSdata2)%>%
+  pivot_wider(names_from = "niche_prevalence",values_from="mean_error")%>%
+  arrange(nb_image)%>%
+  column_to_rownames(var="nb_image")
+library(pheatmap)
+
+pheatmap(rse.mat2,cluster_rows=FALSE,cluster_cols=FALSE)
+
+```
+
+

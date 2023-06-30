@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 def generate_abundance_matrix(cell_types, patient_ids, n_site, radius, method, snr=1, root="../../output/",image_x_size=800, image_y_size=800,
                               random_seed=False,center_sites_cells=False,border=False):
+    #print()
     return [CellAbundance(p, n_site, radius, cell_types, method=method, snr=snr, root=root,image_x_size=image_x_size, image_y_size=image_y_size, random_seed=random_seed,center_sites_cells=center_sites_cells,border=border) for
             p in patient_ids]
 
@@ -114,7 +115,6 @@ class CellAbundance:
         x,y coordinates,label and cell type
         '''
         df = pd.read_csv("{}/patient{}_cell_positions.csv".format(self.root, self.patient_id))
-
         # Load the image size (for Nature paper)
         if 'x_size' in df.columns and 'y_size' in df.columns:
             self.image_x_size = df['x_size'][0]

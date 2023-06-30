@@ -28,6 +28,16 @@ colors = ['#629563', '#044E75', '#CA8F04', '#645D0D','#43BC52',
 '#B0C4DE','#CD853F','#9400D3','#0000FF']
 
 
+
+colors = ["#c752e5","#b90609","#b84ce2","#867d47","#c40232","#0ec3a4","#8a3ed0","#36f532","#6a8d36","#5fe12d",
+"#acb07b","#04018c","#e5ed76","#a5ab4f","#b52200","#16cdc5","#bdc0ef","#676571","#0077d1","#1b8b43",
+"#2bd7bf","#f76ad5","#3c9dfc","#ad16cc","#b098e2","#4865e3","#f6f941","#dec311","#dae122","#64f4f7",
+"#fcaef7","#f5df03","#288039","#a02c31","#f40d30","#036f36","#64c769","#0f0673","#98a8a9","#7f4dae",
+"#7a02c6","#ec3705","#6042ea","#1f12fe","#c50c67","#aa84ba","#b64d1c","#131e66","#946be7","#b005d3",
+"#6cc08d","#10321e","#18e0ef","#1b06c4","#89f725","#8a97ab","#4da148","#fb6b8f","#e7dc02","#9462e7",
+"#65d1dc","#9efee6","#d5a383","#19ca2c","#e9e72a","#17cbf2","#beef77","#ad8e58","#158ad3","#564de2",
+"#e075c1","#301d2d","#57134c"]#"#5cde7c"]
+
 def is_in_square(x, y, x_min, x_max, y_min, y_max):
     return x_min < x < x_max and y_min < y < y_max
 
@@ -989,7 +999,7 @@ def archetypes_bar_plot(cell_number_archetypes, cell_types, colors, y_axis='coun
     plt.legend()
 
     plt.xticks(y_pos, cell_types, rotation=90)
-    #plt.savefig(path_fig,format="svg")
+    plt.savefig(path_fig,format="svg")
     plt.show()
 
 
