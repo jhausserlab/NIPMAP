@@ -35,14 +35,23 @@ from shutil import make_archive
 CELLTYPES = ['CD8-T', 'Other immune', 'DC / Mono', 'CD3-T', 'B', 'NK', 'Keratin-positive tumor', 'Tumor','CD4-T', 'Mesenchymal-like', 'Macrophages', 'Endothelial', 'Tregs', 'Unidentified', 'DC', 'Mono / Neu','Neutrophils']
 ImageIDs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32, 33, 34, 35, 36, 37,38, 39, 40, 41]
 NSITES = 100
-#RADIUS = 25
-NBNICHES = 4
+RADIUS = 25
+NBNICHES = 7 #3 #2 #7 #6#7 #4 #5
 METHOD ="gaussian"
 XSIZE= 800
 YSIZE = 800
 ROOT_DATA_PATH = "./TMENS_analysis/data/cell_positions_data"
 ROOT_OUTPUT_PATH = "./TMENS_analysis/output"
-COLARCHS = np.array([[255, 0, 223],[255,0,0],[70,203,236],[0,0,0]]) #TODO  sys.argv[9]
+# COLARCHS = np.array([[255, 0, 223],[255,0,0],[70,203,236],[0,0,0],[18,243,85]])#,[241,185,22]])#,[204,102,0]]) #TODO  sys.argv[9]
+# COLARCHS = np.array([[255, 0, 223],[255,0,0],[70,203,236],[0,0,0],[18,243,85],[241,185,22],[204,102,0]])
+# COLARCHS = np.array([[255, 0, 223],[255,0,0],[70,203,236],[0,0,0],[18,243,85],[241,185,22],[204,102,0]])
+
+#COLARCHS = np.array([[70,203,236],[255, 0, 0]])
+#COLARCHS = np.array([[255, 0, 223],[70,203,236],[255, 0, 0]])
+#COLARCHS = np.array([[255, 0, 223],[255,0,0],[241,185,22],[70,203,236],[0,0,0]])
+#COLARCHS = np.array([[255, 0, 223],[255,0,0],[204,102,0],[241,185,22],[70,203,236],[0,0,0]])
+COLARCHS = np.array([[255, 0, 223],[255,0,0],[204,102,0],[18,243,85],[241,185,22],[70,203,236],[0,0,0]])
+#,[70,203,236],[0,0,0]])
 ## create figs directory for niches
 path_figs = "figs_niches"
 path_toFigs = os.path.join(myDir,path_figs)
@@ -68,7 +77,7 @@ if __name__ == "__main__":
   RADIUS = int(input('Enter the size (in micrometers) of the radius of the sites (should be int):\n'))
   print(type(RADIUS))
   
-  # #####----- GENERATE SITES AND COMPUTE CELL ABUNDANCE ----#####
+  #####----- GENERATE SITES AND COMPUTE CELL ABUNDANCE ----#####
   CellAb_list = generate_abundance_matrix(CELLTYPES, ImageIDs, NSITES,RADIUS,method=METHOD,random_seed=1022,snr=3,center_sites_cells=False,root=ROOT_DATA_PATH)
   sites, patients_ids,sites_ids, _ = join_abundance_matrices(CellAb_list)
   CellAb_df = pd.DataFrame()
@@ -100,20 +109,20 @@ if __name__ == "__main__":
   
   if os.path.isdir(path_toFigs)==False:
     os.mkdir(path_toFigs)
-  # 
+  ImageIDs = [17]
   # ##########----- SAVE PLOTS IN ZIP DIRECTORY ----##########
   print("Segmenting images into niches...")
-  # for i in ImageIDs:
-  #   GRANULARITY = 5
-  #   cell_data = pd.read_csv(ROOT_DATA_PATH+"/patient{}_cell_positions.csv".format(i))
-  #   fig= plot_cells_positions(cell_data, CELLTYPES, segment_image=True, counting_type=METHOD,
-  #                          color_vector=COLARCHS,segmentation_type='colors', granularity=GRANULARITY, radius=RADIUS,
-  #                          h=YSIZE,w=XSIZE,
-  #                          pca_obj=pca_obj, AA_obj=AA, to_plot = 'None',
-  #                          path_fig= path_toFigs+"/nichesSeg_patient{}.svg".format(i))
-
+  for i in ImageIDs:
+    GRANULARITY = 5
+    cell_data = pd.read_csv(ROOT_DATA_PATH+"/patient{}_cell_positions.csv".format(i))
+    fig= plot_cells_positions(cell_data, CELLTYPES, segment_image=True, counting_type=METHOD,
+                           color_vector=COLARCHS,segmentation_type='colors', granularity=GRANULARITY, radius=RADIUS,
+                           h=YSIZE,w=XSIZE,
+                           pca_obj=pca_obj, AA_obj=AA, to_plot = 'None',
+                           path_fig= path_toFigs+"/"+str(NBNICHES)+"nichesSeg_patient{}.svg".format(i))
+  
   # shutil.make_archive("/figs_niches","zip", path_toFigs)
-
+  
   #####----- GENERATE SITES CENTERED ON CELLS AND THEIR NICHE WEIGHTS ----#####
   print("Computing cells' niche weights, the operation might take some time...")
   CellAbCC_list = generate_abundance_matrix(CELLTYPES, ImageIDs, NSITES,RADIUS,method=METHOD, snr=3,center_sites_cells=True, border=False,root=ROOT_DATA_PATH)
@@ -146,24 +155,24 @@ if __name__ == "__main__":
   dict_AA = {"archs_coord": AA.archetypes.tolist(), "alfas": AA.alfa.tolist(),"nichesCA":niches_cell_profile.tolist()}
 
   dict_caSites = {"cellAbSites": CellAb_df.to_dict()}
-  dict_caSitesCC = {"cells_niches": sites_archs.to_dict(),"cellAb_sitesCC": CellAbCC_df.to_dict()}
+  #dict_caSitesCC = {"cells_niches": sites_archs.to_dict(),"cellAb_sitesCC": CellAbCC_df.to_dict()}
   dict_params = {"cellTypes":CELLTYPES,"ImageID":ImageIDs,"nbsites":[NSITES],"radiusSize":[RADIUS],"nbniches":[NBNICHES],"countMeth":[METHOD],"xsize":[XSIZE],"ysize":[YSIZE],"rootDataPath":[ROOT_DATA_PATH],"rootOutPath":[ROOT_OUTPUT_PATH],"colNiches":COLARCHS.tolist(),"pathFigs":[path_figs]}
 
   # Serializing json objects
   PCA_json = json.dumps(dict_pca, indent=4)
   AA_json = json.dumps(dict_AA, indent=4)
   caSites_json = json.dumps(dict_caSites,indent=4)
-  cellsNiches_json = json.dumps(dict_caSitesCC,indent=4)
+  #cellsNiches_json = json.dumps(dict_caSitesCC,indent=4)
   params_json = json.dumps(dict_params,indent=4)
 
   # Writing to .json files
-  with open("./pca_sites.json", "w") as outfile:
+    with open("./pca_sites_niches.json", "w") as outfile:
     outfile.write(PCA_json)
-
+  
   with open("./AA_sites.json","w") as outfile2:
     outfile2.write(AA_json)
-
-  with open("./ca_sites.json","w") as outfile3:
+  
+  with open("./ca_sites_niches.json","w") as outfile3:
     outfile3.write(caSites_json)
 
   with open("./cells_niches.json","w") as outfile4:
@@ -171,3 +180,4 @@ if __name__ == "__main__":
     
   with open("./params.json","w") as outfile5:
     outfile5.write(params_json)
+
