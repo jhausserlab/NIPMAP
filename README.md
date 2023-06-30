@@ -112,6 +112,10 @@ Note #2: NIPMAP doesn't aim to correct cell segmentation error or cell type mis-
 * **Macroscopic analysis of niches from CyTOF data (Wagner et al,2019)**: Open and excute the following R scripts from /macro_niches_analysis folder: 1. Processing of CyTOF data: scBC_analysis.Rmd, 2.Macro-microscopic cell composition of tumors mapping:  scBC_newCells.Rmd, 3. Linear regression of macroscopic cellular abundance over niches: lm_TMENS.Rmd Figures are found in /figs folder from /macro_niches_analysis
 * **NIPMAP on ISS dataset from Sountoulidis et al**: Open ISS_analysis/notebooks/archetype_analysis.ipynb and excute "Radius Analysis", "Archetype Analysis", "Visualization" and "Save data". The "Save data" part generates all the files needed for downstream analyses. Then, open ISS_analysis/notebooks/HybISS_niche_explore.Rmd and excute the whole Rmarkdown file to generate all the figures included in the section "NIPMAP identifies the cellular and phenotypic architecture of developing lung from in situ RNA sequencing" of the paper. Figures generated for this analysis are found in ISS_analysis/output.
 
+## Supplementary analyses
+* **Sampling intensity and niche estimation error** see scripts in .../.../
+* 
+
 ## License
 
 GNU General Public License version 3
