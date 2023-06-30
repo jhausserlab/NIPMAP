@@ -1,0 +1,112 @@
+{
+    "cellTypes": [
+        "CD8-T",
+        "Other immune",
+        "DC / Mono",
+        "CD3-T",
+        "B",
+        "NK",
+        "Keratin-positive tumor",
+        "Tumor",
+        "CD4-T",
+        "Mesenchymal-like",
+        "Macrophages",
+        "Endothelial",
+        "Tregs",
+        "Unidentified",
+        "DC",
+        "Mono / Neu",
+        "Neutrophils"
+    ],
+    "ImageID": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41
+    ],
+    "nbsites": [
+        100
+    ],
+    "radiusSize": [
+        25
+    ],
+    "nbniches": [
+        4
+    ],
+    "countMeth": [
+        "gaussian"
+    ],
+    "xsize": [
+        800
+    ],
+    "ysize": [
+        800
+    ],
+    "rootDataPath": [
+        "./TMENS_analysis/data/cell_positions_data"
+    ],
+    "rootOutPath": [
+        "./TMENS_analysis/output"
+    ],
+    "colNiches": [
+        [
+            255,
+            0,
+            223
+        ],
+        [
+            255,
+            0,
+            0
+        ],
+        [
+            70,
+            203,
+            236
+        ],
+        [
+            0,
+            0,
+            0
+        ]
+    ],
+    "pathFigs": [
+        "figs_niches"
+    ]
+}
