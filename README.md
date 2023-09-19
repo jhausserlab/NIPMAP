@@ -2,13 +2,13 @@
 
 NIche Phenotype MAPping (NIPMAP) analysis from spatial multiplex data: Multiplex Ion Imaging on 41 Triple Negative Breast tumors from [Keren et al, Cell(2018)](10.1016/j.cell.2018.08.039) and In Situ Sequencing data on human lung development from [Sountoulidis et al, 2022](https://doi.org/10.1101/2022.01.11.475631)
 
+The spatial architecture of tumors has high relevance for diagnostic and therapy and can be surveyed by multiplex histology techniques such as imaging mass cytometry and multiplex immunofluorescence. These techniques produce spatial maps of dozens to hundreds of cellular and phenotypic markers. Surveying these spatial maps exhaustively requires browsing through 10’000+ images per sample. To address this, NIPMAP uses unsupervised machine-learning to (1) concisely and accurately summarize the architecture of tissues, and (2) automatically identify phenotypes with salient spatial architecture spheroids.
+
 ## Prerequisites
 
 * Jupyter notebook installed
 
-* Python 3.7.13 installed
-    List of python libraries to install 
-
+* Python 3.7.13 installed, together with these libraries:
     ```bash
     pip install matplotlib
     pip install scipy
@@ -20,8 +20,7 @@ NIche Phenotype MAPping (NIPMAP) analysis from spatial multiplex data: Multiplex
     pip install qpsolvers==1.9.0
     pip install mpl_toolkits
     ```
-* R 4.1.3 with RStudio installed
-    List of R libraries to install 
+* R 4.1.3 with RStudio installed, together with these libraries:
     ```
     pkgs <- c("tidyverse","ggplot2","ade4","factoextra","plotly","igraph","reshape2","ggrepel","viridis","fdrtool","pheatmap","cluster","broom","pROC","ggpubr","devtools","ggridges")
     install.packages(pkgs)
@@ -29,20 +28,39 @@ NIche Phenotype MAPping (NIPMAP) analysis from spatial multiplex data: Multiplex
 Installation will take around 20 min in a environment equipped for standard data science.
 
 ## Quick start
-NIPMAP is a multiplex histology data analysis tool to unravel tissue architecture. It is required prior to starting the analysis to have one .csv file for each Sample image(one image = one patient or sample) (named patient\<Patient ID or number\>_cell_positions.csv) with cells as rows and their data in these columns: (x,y) positions, cell ID inthe image and its cell type respectively named  *x,y,label* and *cell_type*. 
-To assess niche-phenotype associations, the input file should be a .csv data table named *cellData.csv* reporting for each cell (rows) their label in the image,the sample of origin and their marker intensity value reported in columns respectively named *cellLabelInImage*, *SampleID*, *marker1*, *marker2*, etc...
 
-1. Open main_nipmap.py and set the parameters. Execute it and enter the size (in micrometers) of the radius of sites, after radius analysis. This script will generate these outputs as json files:
+### Inputs
+1. One CSV file per sample named *patient\<Patient ID\>_cell_positions.csv*, with cells as rows and the following columns:
+* *x*, x position of the cell in the image
+* *y*, y position of the cell in the image
+* *label*, an integer index for the cell, to cross reference with the *cellData.csv* file (below)
+* *cell_type*, a string describing the cell type
+2. One CSV file named *cellData.csv* with cells as rows and the following columns:
+* *cellLabelInImage*, an integer index for the cell, to cross reference with the *patient\<Patient ID\>_cell_positions.csv* files (above)
+* *SampleID*, the sample of origin, matching the *\<Patient ID\>* of the *patient\<Patient ID\>_cell_positions.csv* files
+* one column per marker containing the intensity of each marker (for example MHCI, CD68, CD45RO, ...)
+The repository contains example CSV files from the Keren et al. and Sountoulidis et al. studies.
+
+### Performing the niche-phenotyping analysis
+1. Open *main_nipmap.py*. Set the parameters in the script header. Execute the script in Jupyther or on the command line:
+ ```bash
+ python3 main_nipmap.py
+ ```
+This script will generate these outputs as json files:
 * Generation of sites and cellular abundances within them (+ radius size selection)
 * PCA and Archetype Analysis
 * Niche identification
 * Niche segmentation of images
-2. Open py_wrapper_nipmap.r script,enter the parameters and execute it. This script produces these outputs including figures: 
+2. Open *py_wrapper_nipmap.r* script. Set the parameters in the script header. Execute the script in Rstudio or on the command line:
+  ```bash
+  R --vanilla < py_wrapper_nipmap.r
+  ```
+  This script produces these outputs including figures: 
 * Niche-phenotype mappping
 
 Run time is around 20 min for one sample and around 60 min for a 40-patient sample MIBI dataset.
 
-Note: in this version of NIPMAP, we consider that one sample = one image
+Note: one sample = one image
 Note #2: NIPMAP doesn't aim to correct cell segmentation error or cell type mis-assignments, this needs to be addressed prior to niche-phenotype mapping. 
 
 ## FILES
