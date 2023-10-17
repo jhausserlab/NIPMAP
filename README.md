@@ -16,7 +16,6 @@ The spatial architecture of tumors has high relevance for diagnostic and therapy
     pip install numpy==1.8.1
     pip install scikit-learn
     pip install seaborn
-    pip install matplotlib
     pip install qpsolvers==1.9.0
     pip install mpl_toolkits
     ```
