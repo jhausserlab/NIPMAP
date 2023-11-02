@@ -193,6 +193,7 @@ arche_list <- c()
 for (i in seq(1,NBNICHES)) {
   arche_list <- arche_list %>% append(paste("arch",i) %>% str_replace_all(" ",""))
 }
+cols = c("#FF00DF", "#0000DF", "#46CBEC", "#FF0000", "#000000")
 
 #######---- The pc composition of all niches ----#######
 
@@ -206,7 +207,7 @@ niche_pccompo <- read.csv(paste(RESULT_DATA_PATH,"niche_pcabundance.csv") %>% st
 niche_alfas <- matrix(unlist(AA_sites$alfas), ncol=length(arche_list)) %>% as.data.frame()
 colnames(niche_alfas) <- arche_list
 
-plist <- Faceprojection(arche_list, niche_pccompo, niche_alfas)
+plist <- Faceprojection(arche_list, niche_pccompo, niche_alfas,cols=cols)
 plot <- do.call("grid.arrange", c(plist, ncol = 4))
 
 ggsave("../output/face_projection.pdf", plot, height=10,width=12)
