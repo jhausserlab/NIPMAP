@@ -43,7 +43,7 @@ def generate_sites_ca(patient_ids):
   RADIUS, method = METHOD, snr=3, center_sites_cells=False,root = ROOT_DATA_PATH)
   sites, patients_ids,sites_ids, _ = join_abundance_matrices(cell_ab_list) 
   
-  return sites
+  return sites,patients_ids
 
 
 
@@ -234,15 +234,20 @@ def plot_sites_kmeans(pc3d, km_labs,pca_sites_EV):#archetypes= AA_3D.archetypes,
 
 if __name__ == '__main__':
   NB_NEIGHBORHOODS = 10
-  sites = generate_sites_ca(patient_ids=patient_ids)
+  sites = generate_sites_ca(patient_ids=patient_ids)[0]
   pca_obj = PCA(n_components=NB_COMP)
   pca_pts = pca_obj.fit_transform(sites)
   
   labelskm = kmeans_clust_sites(sites_toclust =sites)
+  patients_ids = generate_sites_ca(patient_ids=patient_ids)[1]
   sites_cells = pd.DataFrame(sites,columns = CELL_TYPES)
   sites_cells['neighborhood_id'] = labelskm # CLUSTERS IDS for each site
+  sites_cells['patient_id'] = patients_ids
+  print(sites_cells.head())
+  print(sites_cells.tail())
+  sites_cells.to_csv("./sitesClusters.csv")
   #archetypes_analysis_sites(pc3d = pc3d)
-
+  '''
   plot_sites_kmeans(pc3d=pca_pts, km_labs =labelskm,pca_sites_EV = pca_obj.explained_variance_ratio_)
   
   n_archs = list(range(2,18))
@@ -254,7 +259,7 @@ if __name__ == '__main__':
   
   plot_EV(sites, n_archs, pca_pts, pca_obj) #(sites, n_archs, pc3d_sites, pca_sites)
   #plot_aic_niches_kmeans(sites,pca_pts,pca_obj,TSS)
-
+  '''
 
 
 
