@@ -403,7 +403,7 @@ plot_roc_niches_cells(CT = CTroc,clustFiles = fileExt,clustIDs = clustCells,
 
 ### Assessing phenotypes-TMENs with spearman correlations
 
-```{r nichesWeights,eval=FALSE, warning=FALSE}
+```{r nichesWeights, eval=FALSE, warning=FALSE}
 #coreIntf2<-c("a1","a2","a3","a4","a1a2","a1a3","a1a4","a2a3","a2a4","a3a4")
 #MarkersCellsTMENS2%>%group_by(cell_type,marker)%>%
 NINTERFACES = 2
@@ -860,7 +860,7 @@ markersCorr <- unique(pull(as_tibble(cMf2,rownames=NA)%>%rownames_to_column(var=
 # same color bar
 # export heatmaps into pdf with same cell size of the matrix
 # group them manually in Inkscape 
-
+#rds  created in the function correlation_niches_CM
 corrCM <- readRDS("./corMatrix_raw.rds")
 # @param corrMatrix.raw: matrix of correlations between niches and cell phneotyes of dim nbCellPhenotypes x niches(and/or interfaces)
 

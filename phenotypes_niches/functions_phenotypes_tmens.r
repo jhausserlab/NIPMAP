@@ -605,7 +605,7 @@ correlation_niches_CM <- function(markersCells.niches,Markers,corrMeth="spearman
   CM2 <- do.call(rbind,res)
   corrOut <- bind_rows(CM2, .id = "id")
   corMatrix <- as.matrix(corrOut%>%dplyr::select(rho))
-  
+  saveRDS(corMatrix,"./corMatrix_raw.rds")
   ##########--------------FDR CORRECTION--------------##########
   corCMtmens.pval.mat = corrOut%>%
     #dplyr::select(c(pvalue))%>%
