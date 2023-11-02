@@ -128,7 +128,9 @@ RESULT_DATA_PATH=paste(ROOT_DATA_PATH,"niche",NBNICHES,"_radius",RADIUS,"_patien
 ```
 
 
-```{r Tidy mRNA count matrix, include=FALSE}
+## Run once from original data: tidy cells mRNA counts dataset
+
+```{r Tidy mRNA count matrix, eval=FALSE, include=FALSE}
 
 #if (file.exists(paste(ROOT_DATA_PATH,"cellData_",ImageIDs,".csv") %>% str_replace_all(" ", ""))){
   
@@ -138,10 +140,11 @@ RESULT_DATA_PATH=paste(ROOT_DATA_PATH,"niche",NBNICHES,"_radius",RADIUS,"_patien
 #}else{
   
   cellMarkers <- read.csv("/scratch/ziqi.kang/HIFI_TMENs_analysis/My_cell_positions_data/ISS_dataset/Cell_type_deep_clusters/PCW13/S1T1_mALL_complex_celltypes_formatted.csv")
+  #cellMarkers <- read_csv(paste0(ROOT_DATA_PATH,"S1T1_mALL_complex_celltypes_formatted.csv"))
   cellMarkers <- cellMarkers %>% select(c(X.1, X, Y, cell.type, all_of(MARKERS)))
   names(cellMarkers)[names(cellMarkers) == 'X.1'] <- 'cell_id'
   names(cellMarkers)[names(cellMarkers) == 'cell.type'] <- 'complex_celltype'
-  
+
   # read in patient data information
   
   datalist = list()
@@ -166,9 +169,13 @@ RESULT_DATA_PATH=paste(ROOT_DATA_PATH,"niche",NBNICHES,"_radius",RADIUS,"_patien
   cell_markers <- right_join(cellMarkers, patient_data, by = "cell_id") %>%
     select(patient_id, cell_id, x_origin, y_origin, cell_type, complex_celltype, all_of(MARKERS))
   colnames(cell_markers) = c("SampleID", "cellLabelInImage", "X", "Y", "cell_type", "complex_celltype", all_of(MARKERS))
-  write_csv(cell_markers , paste(ROOT_DATA_PATH,"cellData_",ImageIDs,"2.csv") %>% str_replace_all(" ", ""))
+  write_csv(cell_markers, paste(ROOT_DATA_PATH,"cellData_",ImageIDs,"2.csv") %>% str_replace_all(" ", ""))
 
 #}
+```
+
+```{r tidy mRNA count data}
+cell_markers <- read.csv(paste0(ROOT_DATA_PATH,"cellData_",ImageIDs,"2.csv"))
 ```
 
 
