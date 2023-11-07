@@ -707,7 +707,7 @@ plot_heatmap_markers <- function(CM.mat,nichesIntf,figPath="./figs/cM_byMarkers2
   cellTypes2 <- pull(CM_TMENs_ph,cell_type) #data.frame(cell_type =pull(CM_TMENs_ph ,cell_type))
   
   colorCount = length(unique(pull(CM_TMENs_ph,marker)))
-  getPalette = colorRampPalette(RColorBrewer::brewer.pal(15, "Paired")) # change color from "Set1" to "Paired"
+  getPalette = colorRampPalette(RColorBrewer::brewer.pal(12, "Paired")) # change color from "Set1" to "Paired"
   getPalette(colorCount)
   CTcolors <- list(marker = getPalette(colorCount))
   names(CTcolors$marker) <- unique(pull(CM_TMENs_ph,marker))
