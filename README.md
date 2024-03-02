@@ -1,8 +1,11 @@
 # README
 
-NIche Phenotype MAPping (NIPMAP) analysis from spatial multiplex data: Multiplex Ion Imaging on 41 Triple Negative Breast tumors from [Keren et al, Cell(2018)](10.1016/j.cell.2018.08.039) and In Situ Sequencing data on human lung development from [Sountoulidis et al, 2022](https://doi.org/10.1101/2022.01.11.475631)
+NIche Phenotype MAPping (NIPMAP) analysis from spatial multiplex data.
+Publication describing the method: El Marrahi et al., Nature Communications 2023 https://www.nature.com/articles/s41467-023-42878-z
 
 The spatial architecture of tumors has high relevance for diagnostic and therapy and can be surveyed by multiplex histology techniques such as imaging mass cytometry and multiplex immunofluorescence. These techniques produce spatial maps of dozens to hundreds of cellular and phenotypic markers. Surveying these spatial maps exhaustively requires browsing through 10’000+ images per sample. To address this, NIPMAP uses unsupervised machine-learning to (1) concisely and accurately summarize the architecture of tissues, and (2) automatically identify phenotypes with salient spatial architecture spheroids.
+
+Data: Multiplex Ion Imaging on 41 Triple Negative Breast tumors from [Keren et al, Cell(2018)](10.1016/j.cell.2018.08.039) and In Situ Sequencing data on human lung development from [Sountoulidis et al, 2022](https://doi.org/10.1101/2022.01.11.475631)
 
 ## Prerequisites
 
