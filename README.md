@@ -21,7 +21,7 @@ The spatial architecture of tumors has high relevance for diagnostic and therapy
     pip install seaborn
     pip install 'qpsolvers[proxqp]'
     pip install geopandas
-```
+  ```
 
 * R 4.1.3 with RStudio installed, together with these libraries:
     ```
