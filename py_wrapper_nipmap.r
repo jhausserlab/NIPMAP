@@ -54,7 +54,7 @@ Archs_3D <- do.call(cbind,lapply(json_data2$archs_coord,unlist))
 
 
 ## Projection of sites cell abundance in reduced PC space
-pca3D <- matrix(unlist(json_data$PC_proj),nrow=13)[1:3,] #length(CELLTYPES)
+pca3D <- matrix(unlist(json_data$PC_proj),nrow=length(CELLTYPES))[1:3,]
 plotly::plot_ly(x=pca3D[1,],
                 y=pca3D[2,],
                 z=pca3D[3,],
@@ -112,7 +112,7 @@ Archs_3D <- do.call(cbind,lapply(json_data2$archs_coord,unlist))
 
 
 ## Projection of sites cell abundance in reduced PC space
-pca3D <- matrix(unlist(json_data$PC_proj),nrow=13)[1:3,] #length(CELLTYPES)
+pca3D <- matrix(unlist(json_data$PC_proj),nrow=length(CELLTYPES))[1:3,]
 plotly::plot_ly(x=pca3D[1,],
                 y=pca3D[2,],
                 z=pca3D[3,],
