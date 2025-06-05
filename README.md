@@ -8,8 +8,7 @@ The spatial architecture of tumors has high relevance for diagnostic and therapy
 
 * Jupyter notebook installed
 
-* Python 3.9.13 installed, together with these libraries:
-    Using conda environment :
+* Python 3.9.13 installed, using a conda environment for exemple, together with these libraries:
   ```bash
     conda create -n nipmap_env python=3.9.13
     conda activate nipmap_env
