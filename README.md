@@ -1,4 +1,4 @@
-# README
+![image](https://github.com/user-attachments/assets/8f2da12a-c098-4f18-adb3-e252814177db)# README
 
 NIche Phenotype MAPping (NIPMAP) analysis from spatial multiplex data: Multiplex Ion Imaging on 41 Triple Negative Breast tumors from [Keren et al, Cell(2018)](10.1016/j.cell.2018.08.039) and In Situ Sequencing data on human lung development from [Sountoulidis et al, 2022](https://doi.org/10.1101/2022.01.11.475631)
 
@@ -9,16 +9,21 @@ The spatial architecture of tumors has high relevance for diagnostic and therapy
 * Jupyter notebook installed
 
 * Python 3.9.13 installed, together with these libraries:
-    ```bash
+    Using conda environment :
+  ```bash
+    conda create -n nipmap_env python=3.9.13
+    conda activate nipmap_env
+    
     pip install matplotlib
     pip install scipy
     pip install pandas
     pip install numpy
     pip install scikit-learn
     pip install seaborn
-    pip install qpsolvers[proxqp]
+    pip install 'qpsolvers[proxqp]'
     pip install geopandas
-    ```
+```
+
 * R 4.1.3 with RStudio installed, together with these libraries:
     ```
     pkgs <- c("tidyverse","ggplot2","ade4","factoextra","plotly","igraph","reshape2","ggrepel","viridis","fdrtool","pheatmap","cluster","broom","pROC","ggpubr","devtools","ggridges")
