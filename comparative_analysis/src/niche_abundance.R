@@ -50,7 +50,7 @@ Niche_Interfaces_ShortVSLong_survivors <- function(alfas, col_names, short_inter
   alfas_NI_patients$patientIDs <- ImageIDs
   
   # Use the %in% operator to check if each value of "patientIDs" is in the list
-  alfas_NI_patients$surv <- as.integer(alfas_NI_patients$patientIDs %in% long_survivors4000)
+  alfas_NI_patients$response <- as.integer(alfas_NI_patients$patientIDs %in% long_survivors4000)
   
   # Create df with the weight of niches for each long survivor
   long_survivors <- alfas_NI_patients[alfas_NI_patients$patientIDs %in% long_survivors4000, ]
@@ -77,13 +77,13 @@ barplot_N.I_abundance <- function(long_df, short_df, group_variable) {
   
   # Create a data frame for plotting
   combined_df <- rbind(
-    cbind(surv = "short_survivor", short_df),
-    cbind(surv = "long_survivor", long_df)
+    cbind(response = "Non responders", short_df),
+    cbind(response = "Responders", long_df)
   )
   
   # Pivot long based on the provided group variable
   barplot_table <- combined_df %>%
-    pivot_longer(cols = -surv, names_to = group_variable, values_to = "alfa")
+    pivot_longer(cols = -response, names_to = group_variable, values_to = "alfa")
   
   x_axis_labels <- list()
   
@@ -98,7 +98,7 @@ barplot_N.I_abundance <- function(long_df, short_df, group_variable) {
   
   for (group_value in names(group_variable_groups)) {
     group_data <- group_variable_groups[[group_value]]
-    wilcox_result <- wilcox.test(group_data$alfa ~ group_data$surv)
+    wilcox_result <- wilcox.test(group_data$alfa ~ group_data$response)
     
     # Extract p-value and create x-axis label with stars
     p_value <- wilcox_result$p.value
@@ -106,6 +106,7 @@ barplot_N.I_abundance <- function(long_df, short_df, group_variable) {
     star <- strrep("*", star_coeff)
     
     if (star != "") {
+      print(p_value)
       cat(rep("-", 30), "\n")
       cat(group_value, star, "\n")
       cat(rep("-", 30), "\n")
@@ -118,8 +119,8 @@ barplot_N.I_abundance <- function(long_df, short_df, group_variable) {
   ggbarplot(barplot_table, x = group_variable, y = "alfa", 
             add = c("mean_se", "point"),
             add.params = list(color = "black", size = 0.5),
-            fill = "surv", color = "surv",
-            palette = c("lightgreen", "red"),
+            fill = "response", color = "response",
+            palette = c("red", "#238000"),
             position = position_dodge(0.8)) +
     scale_x_discrete(labels = x_axis_labels) +
     xlab(NULL) +  

@@ -1,21 +1,38 @@
 library(plotly)
 
 ## Create a color map assigned to long vs short survivors for the simplex
-create_color_map <- function(long_survivors4000, pca3D) {
-  site_groups <- rep(1, length(pca3D[1,]))
+create_color_map <- function(long_survivors4000, pca3D, nb_sites, patient_ids) {
+  site_groups <- rep(1, ncol(pca3D))  # Default all to group 1 (e.g., short survivors)
   value_to_set <- 2
   
-  for (i in seq_along(long_survivors4000)) {
-    start_index <- 100 * (long_survivors4000[i] - 1) + 1
-    end_index <- 100 * long_survivors4000[i]
-    site_groups[start_index:end_index] <- value_to_set
+  # Match long_survivor IDs to their index positions
+  patient_index_map <- match(long_survivors4000, patient_ids)
+  
+  for (index in patient_index_map) {
+    if (!is.na(index)) {
+      start_index <- nb_sites * (index - 1) + 1
+      end_index <- nb_sites * index
+      
+      if (end_index <= length(site_groups)) {
+        site_groups[start_index:end_index] <- value_to_set
+      } else {
+        warning(paste("Index", index, "is out of bounds."))
+      }
+    } else {
+      warning("Some patient IDs in long_survivors4000 were not found in patient_ids.")
+    }
   }
   
+  # Map group to color
   map_site_group_to_color <- function(site_group) {
-    if (site_group == 1) {
-      return("rgba(200, 0, 0, 0.2)")
+    if (is.na(site_group)) {
+      return("black")
+    } else if (site_group == 1) {
+      return("red")
     } else if (site_group == 2) {
       return("green")
+    } else {
+      return("blue")
     }
   }
   
@@ -39,28 +56,28 @@ plot_simplex <- function(pca3D, Archs_3D, color, custom_nichesLabels, colNiches.
                   z = pca3D[3, ],
                   type = "scatter3d",
                   mode = "markers",
-                  marker = list(symbol = "triangle", size = 4, color = color),
+                  marker = list(symbol = "triangle", size = 1, color = color),
                   name = "sites",
                   mode = "text") %>%
+    # Remove this trace to avoid plotting Archs_3D as individual points
     add_trace(x = Archs_3D[, 1],
               y = Archs_3D[, 2],
               z = Archs_3D[, 3],
               type = "scatter3d",
               mode = "markers+text",
               text = custom_nichesLabels,
-              textposition = c('top right', 'bottom right', 'top left', 'top right'),
+              textposition = c('top left','top right','top left','top right','top left'),
               textfont = list(color = '#000000', size = 16),
               showlegend = TRUE,
               name = "niches",
-              marker = list(color = ~colNiches.hex, symbol = "star-diamond", size = 12),
-              inherit = FALSE) %>%
-    add_trace(x = simplex_x,
-              y = simplex_y,
-              z = simplex_z,
-              type = "scatter3d",
-              mode = "markers+lines",
-              name = "Simplex",
-              line = list(color = "blue", width = 2)) %>%
+              marker = list(color = ~colNiches.hex, symbol = "star-diamond", size = 12)) %>%
+    # add_trace(x = simplex_x,
+    #           y = simplex_y,
+    #           z = simplex_z,
+    #           type = "scatter3d",
+    #           mode = "lines",  # Remove "markers" to avoid plotting Archs_3D points
+    #           name = "Simplex",
+    #           line = list(color = "blue", width = 2)) %>%
     layout(scene = list(xaxis = list(title = "PC1"),
                         yaxis = list(title = "PC2"),
                         zaxis = list(title = "PC3"))
