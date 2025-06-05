@@ -1,31 +1,44 @@
-
-
-createInterfaces <- function(cellsNichesInterfaces, col_names, short_interfaces_names) {
+createInterfaces <- function(cellsNichesInterfaces, niche_cols = NULL) {
   
-  # Rename niches
-  colnames(cellsNichesInterfaces)[1:NBNICHES] <- col_names
-  
-  # Get all combinations of niches
-  column_combinations <- combn(col_names, 2, simplify = FALSE)
-  
-  # Iterate through the niches combinations to create interfaces columns
-  for (cols in column_combinations) {
-    col1 <- cols[1]
-    col2 <- cols[2]
-    new_col_name <- paste(col1, col2, sep = ".")
-    cellsNichesInterfaces[new_col_name] <- cellsNichesInterfaces[[col1]] * cellsNichesInterfaces[[col2]]
+  # Automatically detect niches if not specified
+  if (is.null(niche_cols)) {
+    niche_cols <- c("Cancer", "Inflammatory", "Bfollicle", "Other", "Lowdensity")
   }
   
-  # Rename interfaces with shorten names
-  names(cellsNichesInterfaces)[(ncol(cellsNichesInterfaces) - (choose(NBNICHES, 2)-1)):(ncol(cellsNichesInterfaces))] <- short_interfaces_names
+  NBNICHES <- length(niche_cols)
+  
+  # Get original column names to preserve
+  original_cols <- colnames(cellsNichesInterfaces)
+  
+  # Rename niche columns to standard order if needed
+  colnames(cellsNichesInterfaces)[match(niche_cols, colnames(cellsNichesInterfaces))] <- niche_cols
+  
+  # Create pairwise interfaces
+  pairwise_combos <- combn(niche_cols, 2, simplify = FALSE)
+  for (cols in pairwise_combos) {
+    new_name <- paste(cols, collapse = ".")
+    cellsNichesInterfaces[[new_name]] <- cellsNichesInterfaces[[cols[1]]] * cellsNichesInterfaces[[cols[2]]]
+  }
+  
+  # Create triple interfaces
+  triple_combos <- combn(niche_cols, 3, simplify = FALSE)
+  for (cols in triple_combos) {
+    new_name <- paste(cols, collapse = ".")
+    cellsNichesInterfaces[[new_name]] <- cellsNichesInterfaces[[cols[1]]] * cellsNichesInterfaces[[cols[2]]] * cellsNichesInterfaces[[cols[3]]]
+  }
+  # Assign short names to the new columns
+  interface_start <- length(original_cols) + 1
+  interface_end <- ncol(cellsNichesInterfaces)
   
   return(cellsNichesInterfaces)
 }
 
 
-associateCellsToNichesInterfaces <- function(cellsNichesInterfaces, col_names, treshold_niches, short_interfaces_names, treshold_interfaces) {
+
+
+associateCellsToNichesInterfaces <- function(cellsNichesInterfaces, col_names, treshold_niches, short_interfaces_names, treshold_interfaces, triple_interfaces_names, treshold_triple_interfaces) {
   # Initialize a variable to store the result
-  cellsNichesInterfaces$niche <- "undefined"
+  cellsNichesInterfaces$niche <- "mixed"
   
   # Loop through each niche and check the condition
   for (niche in col_names) {
@@ -35,8 +48,14 @@ associateCellsToNichesInterfaces <- function(cellsNichesInterfaces, col_names, t
   
   # Repeat the process for interfaces
   for (interface in short_interfaces_names) {
-    condition <- cellsNichesInterfaces[[interface]] > treshold_interfaces & cellsNichesInterfaces$niche == "undefined"
+    condition <- (cellsNichesInterfaces[[interface]] > treshold_interfaces) & (cellsNichesInterfaces$niche == "mixed")
     cellsNichesInterfaces$niche[condition] <- interface
+  }
+  
+  # Repeat the process for triple interfaces
+  for (triple_interface in triple_interfaces_names) {
+    condition <- (cellsNichesInterfaces[[triple_interface]] > treshold_triple_interfaces) & (cellsNichesInterfaces$niche == "mixed")
+    cellsNichesInterfaces$niche[condition] <- triple_interface
   }
   
   # Proportion of niches and interfaces
@@ -44,6 +63,537 @@ associateCellsToNichesInterfaces <- function(cellsNichesInterfaces, col_names, t
   
   return(cellsNichesInterfaces)
 }
+
+associateCellsToFunctionalMarkersBI3 <- function(cellsNichesInterfaces, directory_path) {
+  file_names <- list.files(directory_path, pattern = "\\.csv$", full.names = TRUE)
+  # Initialize an empty list to store data frames
+  data_list <- list()
+  # Loop through each file
+  for (file in file_names) {
+    file_name <- basename(file)
+    sample_id <- as.numeric(gsub("[^0-9]", "", file_name))  # Extract numeric SampleID
+    data <- read.csv(file)  
+    # Check if necessary columns exist
+    if ("Phenotype" %in% colnames(data) & "label" %in% colnames(data)) {
+      temp_data <- data[, c("Phenotype", "label", "x", "y")]
+      temp_data$SampleID <- sample_id
+      # Create unique key by merging SampleID and label
+      temp_data$UniqueKey <- paste0(sample_id, "_", as.character(temp_data$label))
+      data_list[[length(data_list) + 1]] <- temp_data
+    }
+  }
+  # Combine all data frames into one
+  final_table <- do.call(rbind, data_list)
+  # Create a unique key in cellsNichesInterfaces
+  cellsNichesInterfaces$UniqueKey <- paste0(cellsNichesInterfaces$SampleID, "_", format(as.numeric(cellsNichesInterfaces$cell_id), scientific = FALSE, trim = TRUE))
+  # Perform a left join to add the Phenotype column to cellsNichesInterfaces
+  cellsNichesInterfaces <- merge(cellsNichesInterfaces, final_table[, c("UniqueKey", "Phenotype", "x", "y")], 
+                                 by = "UniqueKey", all.x = TRUE)
+  
+  return(cellsNichesInterfaces)
+}
+
+
+
+
+
+compute_interactions_and_pval <- function(cells.NichesInterface.Phen, Niches_Interfaces, possible_interactions, survival_data){
+  survival_data_allinteractions <- survival_data
+  for (NI in Niches_Interfaces) {
+    print(NI)
+    NI_table <- cells.NichesInterface.Phen[cells.NichesInterface.Phen$niche == NI, ]
+    
+    # convert to data.table
+    DT  <- as.data.table(NI_table)
+    PI  <- as.data.table(possible_interactions)
+    
+    # prepare output list
+    out <- vector("list", length = 0)
+    
+    # loop over samples
+    sample_ids <- sort(unique(DT$SampleID))
+    pb <- progress_bar$new(
+      total = length(sample_ids),
+      format = "  Processing [:bar] :current/:total (:percent) - Patient :patient",
+      clear = FALSE, width = 60
+    )
+    
+    for (s in sample_ids) {
+      pb$tick(tokens = list(patient = s))
+      subDT <- DT[SampleID == s]
+      coords <- as.matrix(subDT[, .(x, y)])
+      
+      # build a radius‐neighbor index for this sample
+      fr <- frNN(coords, eps = 50)  # eps in same units as x,y
+      
+      # precompute cell‐type indices
+      idx_by_type <- split(seq_len(nrow(subDT)), subDT$cell_type)
+      
+      # for each requested interaction
+      for(i in seq_len(nrow(PI))) {
+        ref_type <- PI$Reference[i]
+        tgt_type <- PI$Target[i]
+        
+        ref_idx <- idx_by_type[[ref_type]] %||% integer(0)
+        tgt_idx <- idx_by_type[[tgt_type]] %||% integer(0)
+        
+        if (length(ref_idx)==0 || length(tgt_idx)==0) {
+          conn <- 0L
+          norm <- 0
+        } else {
+          # All neighbor IDs of ref_idx
+          neighbors_list <- fr$id[ref_idx]
+          
+          # Flatten all neighbor indices to one vector
+          all_neighbors <- unlist(neighbors_list, use.names = FALSE)
+          
+          # Efficient counting: how many of them are target cells
+          conn <- sum(all_neighbors %in% tgt_idx)
+          
+          norm <- conn / length(tgt_idx)
+        }
+        
+        out[[length(out)+1]] <- list(
+          SampleID         = s,
+          Reference        = ref_type,
+          Target           = tgt_type,
+          interactions     = conn,
+          norm_interactions = norm
+        )
+      }
+    }
+    
+    # bind into one data.table
+    result_DT <- rbindlist(out)
+    
+    
+    norm_long <- result_DT %>%
+      mutate(
+        Reference_Target = paste0(
+          "Interactions_",
+          Reference, "_",
+          Target, "_", NI
+        )
+      ) %>%
+      select(SampleID, Reference_Target, norm_interactions)
+    
+    
+    norm_wide <- norm_long %>%
+      pivot_wider(
+        names_from  = Reference_Target,
+        values_from = norm_interactions
+      ) %>%
+      rename(patient_id = SampleID)
+    
+    survival_data_allinteractions <- merge(survival_data_allinteractions, norm_wide, by = "patient_id", all.x = TRUE)
+  }
+  ## Compute cox model on each interactions
+  # 1) Which columns are your interactions?
+  interaction_cols <- setdiff(
+    names(survival_data_allinteractions),
+    c("patient_id", "PFS_months", "event_status")
+  )
+  
+  # 2) Fit one Cox model per interaction and extract HR + p-value
+  cox_results <- map_dfr(interaction_cols, function(col) {
+    # build formula with backticks
+    f <- as.formula(paste0("Surv(PFS_months, event_status) ~ `", col, "`"))
+    
+    # fit safely
+    fit <- tryCatch(coxph(f, data = survival_data_allinteractions),
+                    error = function(e) NULL)
+    # Compute median number of interactions for this column
+    median_nb_interactions <- median(survival_data_allinteractions[[col]], na.rm = TRUE)
+    
+    if (is.null(fit)) {
+      return(tibble(
+        interaction = col,
+        hr          = NA_real_,
+        p.value     = NA_real_,
+        median_nb_interactions = median_nb_interactions
+      ))
+    }
+    
+    # pull out the 1×5 numeric vector: coef, exp(coef), se, z, Pr(>|z|)
+    stats <- summary(fit)$coefficients[1, ]
+    
+    tibble(
+      interaction = col,
+      hr          = stats["exp(coef)"],
+      p.value     = stats["Pr(>|z|)"],
+      median_nb_interactions = median_nb_interactions
+    )
+  })
+  
+  # 3) Sort by p-value
+  cox_results %>% arrange(p.value)
+  
+  return(list(cox_results, survival_data_allinteractions))
+}
+
+
+
+compute_count_logRatio_and_pvaluesBI3_final <- function(cells.NichesInterface.Phen, long_survivors4000, Niches_Interfaces, cell_types, Functionnal_markers, unique_sample_ids, survival_data) {
+  pvalues <- numeric(0)
+  log_ratio_LS.SS <- data.frame(
+    niche = character(),
+    cell_type = character(),
+    marker = character(),
+    Density_R = numeric(),
+    Density_NR = numeric(),
+    log_ratio_density = numeric(),
+    pvalue = numeric()
+  )
+  survival_data_allratios <- survival_data
+  
+  for (NI in Niches_Interfaces) {
+    print(NI)
+    # Filter lines for current niche / interface
+    NI_table <- cells.NichesInterface.Phen[cells.NichesInterface.Phen$niche == NI, ]
+    for (CT in cell_types) {
+      # Filter lines for current niche / interface and cell type
+      NI_CT_table <- NI_table[NI_table$cell_type == CT, ]
+      for (FM in Functional_markers) {
+        # Remove cases where the cell type is Plasma cells and functional marker "IgA/IgG"
+        if (CT == "Plasma cell") {
+          # Case 1: If the list FM contains only "IgA/IgG", skip to next iteration
+          if (length(FM) == 1 && FM == "IgA/IgG") {
+            next 
+          }
+          
+          # Case 2: If the list FM contains "IgA/IgG", remove it from the list
+          if ("IgA/IgG" %in% FM) {
+            FM <- FM[FM != "IgA/IgG"] 
+          }
+        }
+        match_matrix <- do.call(cbind, lapply(FM, function(fm) str_detect(NI_CT_table$Phenotype, fm)))
+        match_matrix <- as.matrix(match_matrix)
+        match_matrix[is.na(match_matrix)] <- FALSE
+        NI_CT_FM_table <- NI_CT_table[rowSums(match_matrix) == length(FM), ]
+        
+        ## Get number of cell for the specified CT with corresponding FM and in the corresponding NI
+        NI_CT_FM_table_num_cell <- NI_CT_FM_table %>%
+          group_by(SampleID) %>%
+          summarise(num_cells = n()) 
+        # Check if any of the unique SampleIDs are missing in NI_CT_FM_table_num_cell$SampleID
+        missing_sample_ids <- setdiff(unique_sample_ids, NI_CT_FM_table_num_cell$SampleID)
+        
+        
+        # If there are missing SampleIDs, create a new data frame with them and num_cells set to 0
+        if (length(missing_sample_ids) > 0) {
+          new_rows <- data.frame(SampleID = missing_sample_ids, num_cells = 0)
+          NI_CT_FM_table_num_cell <- rbind(NI_CT_FM_table_num_cell, new_rows)
+        }
+        
+        ## Get number of total cells in the specified niches
+        NI_table_num_cell <- NI_table %>%
+          group_by(SampleID) %>%
+          summarise(num_cells = n()) 
+        # Check if any of the unique SampleIDs are missing in NI_CT_FM_table_num_cell$SampleID
+        missing_sample_ids <- setdiff(unique_sample_ids, NI_table_num_cell$SampleID)
+        
+        # Remove patients where there is no cells in the niche
+        if (length(missing_sample_ids) > 0) {
+          NI_CT_FM_table_num_cell <- NI_CT_FM_table_num_cell %>%
+            filter(!SampleID %in% missing_sample_ids)
+        }
+        
+        count_table <- NI_table_num_cell %>%
+          rename(num_cells_NI = num_cells) %>%  # Rename num_cells column
+          left_join(NI_CT_FM_table_num_cell %>% rename(num_cells_NI_CT_FM = num_cells), by = "SampleID")
+        # Remove patients where number of cells in the niche is less than 100
+        # count_table <- count_table %>%
+        #   filter(num_cells_NI >= 100)
+        
+        count_table$ratio_num_cells <- count_table$num_cells_NI_CT_FM / count_table$num_cells_NI
+        
+        
+        ratio_data <- data.frame(
+          patient_id = count_table$SampleID,
+          ratio = count_table$ratio_num_cells  # Example ratio values
+        )
+        
+        if (exists("survival_data") && nrow(ratio_data) >= 1) {
+          survival_data_ <- merge(survival_data, ratio_data, by = "patient_id")
+          FM_concatenated <- paste(FM, collapse = ",")
+          FM_clean <- gsub(",", "_", gsub("/", "", FM_concatenated))
+          ratio_col_name <- paste0("Ratio_", CT, "_", FM_clean, "_", NI)
+          colnames(survival_data_)[colnames(survival_data_) == "ratio"] <- ratio_col_name
+          
+          # Find the column with "Ratio" in the name
+          ratio_col <- grep("Ratio", names(survival_data_), value = TRUE)
+          survival_data_allratios <- merge(survival_data_allratios, survival_data_, by = c("patient_id", "PFS_months", "event_status"), all.x = TRUE)
+          
+          # Build formula safely, handling special characters
+          cox_formula <- as.formula(paste("Surv(PFS_months, event_status) ~", paste0("`", ratio_col, "`")))
+          
+          # Try fitting the Cox model, handle error gracefully
+          p_value <- tryCatch({
+            # Try to run the Cox model
+            cox_model <- coxph(cox_formula, data = survival_data_)
+            
+            # Try to extract p-value
+            p_value <- summary(cox_model)$coefficients[, "Pr(>|z|)"]
+            
+          }, error = function(e) {
+            # If error happens, print message and the merged survival data
+            message("❌ Cox model failed: ", e$message)
+            message("🔍 Merged survival_data_ that caused the error:")
+            print(survival_data_)
+            
+            # Return NA or NULL so your code continues
+            return(NA)
+          })
+          
+          
+        } else {
+          LS_count_table <- subset(count_table, SampleID %in% long_survivors4000)
+          SS_count_table <- subset(count_table, !(SampleID %in% long_survivors4000))
+          
+          
+          LS_filtered <- na.omit(LS_count_table$ratio_num_cells)
+          SS_filtered <- na.omit(SS_count_table$ratio_num_cells)
+          
+          # Check again the length after removing NA values
+          length(LS_filtered)
+          length(SS_filtered)
+          
+          # Only run Wilcoxon test if both groups have at least two observations
+          if (length(LS_filtered) >= 1 && length(SS_filtered) >= 1) {
+            p_value <- wilcox.test(LS_filtered, SS_filtered, exact = FALSE)$p.value
+          } else {
+            p_value <- "No niche for one group of patients"
+          }
+          
+          
+          ## Add pseudo count for logratio
+          # The pseudo count is computed based on the total number of cells in the niche
+          # so if the niche has low number of cells the pseudo count don't impact too much compare to just adding 1
+          count_table_for_logratio <- NI_table_num_cell %>%
+            rename(num_cells_NI = num_cells) %>%  # Rename num_cells column
+            left_join(NI_CT_FM_table_num_cell %>% rename(num_cells_NI_CT_FM = num_cells), by = "SampleID")
+          # Remove patients where number of cells in the niche is less than 100
+          # count_table_for_logratio <- count_table_for_logratio %>%
+          #   filter(num_cells_NI >= 100)
+          ## Add pseudo count max
+          # max_nb_cells_in_niche <- max(count_table_for_logratio$num_cells_NI)
+          # count_table_for_logratio$num_cells_NI_CT_FM <- count_table_for_logratio$num_cells_NI_CT_FM + (count_table_for_logratio$num_cells_NI / max_nb_cells_in_niche)
+          # count_table_for_logratio$ratio_num_cells <- count_table_for_logratio$num_cells_NI_CT_FM / count_table_for_logratio$num_cells_NI
+          
+          ## Add pseudo count 1
+          count_table_for_logratio$num_cells_NI_CT_FM <- count_table_for_logratio$num_cells_NI_CT_FM + 1
+          count_table_for_logratio$ratio_num_cells <- count_table_for_logratio$num_cells_NI_CT_FM / count_table_for_logratio$num_cells_NI
+          
+          LS_count_table <- subset(count_table_for_logratio, SampleID %in% long_survivors4000)
+          SS_count_table <- subset(count_table_for_logratio, !(SampleID %in% long_survivors4000))
+          
+          # Compute the mean density for each group
+          LS_count <- median(LS_count_table$ratio_num_cells, na.rm = TRUE)
+          SS_count <- median(SS_count_table$ratio_num_cells, na.rm = TRUE)
+          # Calculate the log ratio (log of density for long survivors divided by short survivors)
+          ratio_count <- LS_count / SS_count
+        }
+        
+        
+
+        
+        # Create the data frame and append it to log_ratio_LS.SS
+        # log_ratio_LS.SS <- rbind(log_ratio_LS.SS, 
+        #                          data.frame(niche = NI, cell_type = CT, marker = FM_concatenated, 
+        #                                     log_ratioLS = log10(ratio_count), 
+        #                                     pvalue = p_value))
+        log_ratio_LS.SS <- rbind(log_ratio_LS.SS, 
+                                 data.frame(niche = NI, cell_type = CT, marker = FM_concatenated,
+                                            nb_cells = as.integer(median(count_table$num_cells_NI_CT_FM[!is.nan(count_table$ratio_num_cells)], na.rm = TRUE)),
+                                            hr = exp(coef(cox_model)), 
+                                            pvalue = p_value))
+      }
+    }
+  }
+  log_ratio_LS.SS$Combination_ID <- seq_len(nrow(log_ratio_LS.SS))
+  return(list(log_ratio_LS.SS = log_ratio_LS.SS, survival_data = survival_data_allratios))
+}
+
+
+
+
+
+
+
+
+
+compute_count_logRatio_and_pvaluesBI3_allcells <- function(cells.NichesInterface.Phen, long_survivors4000, Niches_Interfaces, cell_types, Functionnal_markers, unique_sample_ids, survival_data = NULL) {
+  pvalues <- numeric(0)
+  log_ratio_LS.SS <- data.frame(
+    niche = character(),
+    cell_type = character(),
+    marker = character(),
+    Density_R = numeric(),
+    Density_NR = numeric(),
+    log_ratio_density = numeric(),
+    pvalue = numeric()
+  )
+  survival_data_allratios <- survival_data
+  for (NI in Niches_Interfaces) {
+    print(NI)
+    # Filter lines for current niche / interface
+    NI_table <- cells.NichesInterface.Phen[cells.NichesInterface.Phen$niche == NI, ]
+    for (CT in cell_types) {
+      # Filter lines for current niche / interface and cell type
+      NI_CT_table <- NI_table[NI_table$cell_type == CT, ]
+      NI_CT_FM_table <- NI_CT_table
+      
+      ## Get number of cell for the specified CT with corresponding FM and in the corresponding NI
+      NI_CT_FM_table_num_cell <- NI_CT_FM_table %>%
+        group_by(SampleID) %>%
+        summarise(num_cells = n()) 
+      # Check if any of the unique SampleIDs are missing in NI_CT_FM_table_num_cell$SampleID
+      missing_sample_ids <- setdiff(unique_sample_ids, NI_CT_FM_table_num_cell$SampleID)
+      # If there are missing SampleIDs, create a new data frame with them and num_cells set to 0
+      if (length(missing_sample_ids) > 0) {
+        new_rows <- data.frame(SampleID = missing_sample_ids, num_cells = 0)
+        NI_CT_FM_table_num_cell <- rbind(NI_CT_FM_table_num_cell, new_rows)
+      }
+      
+      ## Get number of total cells in the specified niches
+      NI_table_num_cell <- NI_table %>%
+        group_by(SampleID) %>%
+        summarise(num_cells = n()) 
+      # Check if any of the unique SampleIDs are missing in NI_CT_FM_table_num_cell$SampleID
+      missing_sample_ids <- setdiff(unique_sample_ids, NI_table_num_cell$SampleID)
+      # If there are missing SampleIDs, create a new data frame with them and num_cells set to 0
+      if (length(missing_sample_ids) > 0) {
+        new_rows <- data.frame(SampleID = missing_sample_ids, num_cells = 0)
+        NI_table_num_cell <- rbind(NI_table_num_cell, new_rows)
+      }
+      
+      
+      
+      count_table <- NI_table_num_cell %>%
+        rename(num_cells_NI = num_cells) %>%  # Rename num_cells column
+        left_join(NI_CT_FM_table_num_cell %>% rename(num_cells_NI_CT_FM = num_cells), by = "SampleID")
+      # Remove patients where number of cells in the niche is less than 100
+      # count_table <- count_table %>%
+      #   filter(num_cells_NI >= 100)
+      
+      count_table$ratio_num_cells <- count_table$num_cells_NI_CT_FM / count_table$num_cells_NI
+      
+      
+      ratio_data <- data.frame(
+        patient_id = count_table$SampleID,
+        ratio = count_table$ratio_num_cells  # Example ratio values
+      )
+      
+      if (exists("survival_data") && nrow(ratio_data) >= 1) {
+        survival_data_ <- merge(survival_data, ratio_data, by = "patient_id")
+        ratio_col_name <- paste0("Ratio_", CT, "_", NI)
+        colnames(survival_data_)[colnames(survival_data_) == "ratio"] <- ratio_col_name
+        
+        # Find the column with "Ratio" in the name
+        ratio_col <- grep("Ratio", names(survival_data_), value = TRUE)
+        survival_data_allratios <- merge(survival_data_allratios, survival_data_, by = c("patient_id", "PFS_months", "event_status"), all.x = TRUE)
+        
+        # Build formula safely, handling special characters
+        cox_formula <- as.formula(paste("Surv(PFS_months, event_status) ~", paste0("`", ratio_col, "`")))
+        
+        # Try fitting the Cox model, handle error gracefully
+        p_value <- tryCatch({
+          # Try to run the Cox model
+          cox_model <- coxph(cox_formula, data = survival_data_)
+          
+          # Try to extract p-value
+          p_value <- summary(cox_model)$coefficients[, "Pr(>|z|)"]
+          
+        }, error = function(e) {
+          # If error happens, print message and the merged survival data
+          message("❌ Cox model failed: ", e$message)
+          message("🔍 Merged survival_data_ that caused the error:")
+          print(survival_data_)
+          
+          # Return NA or NULL so your code continues
+          return(NA)
+        })
+
+        
+      } else {
+        LS_count_table <- subset(count_table, SampleID %in% long_survivors4000)
+        SS_count_table <- subset(count_table, !(SampleID %in% long_survivors4000))
+        
+        
+        LS_filtered <- na.omit(LS_count_table$ratio_num_cells)
+        SS_filtered <- na.omit(SS_count_table$ratio_num_cells)
+        
+        # Check again the length after removing NA values
+        length(LS_filtered)
+        length(SS_filtered)
+        
+        # Only run Wilcoxon test if both groups have at least two observations
+        if (length(LS_filtered) >= 1 && length(SS_filtered) >= 1) {
+          p_value <- wilcox.test(LS_filtered, SS_filtered, exact = FALSE)$p.value
+        } else {
+          p_value <- "No niche for one group of patients"
+        }
+        
+        
+        ## Add pseudo count for logratio
+        # The pseudo count is computed based on the total number of cells in the niche
+        # so if the niche has low number of cells the pseudo count don't impact too much compare to just adding 1
+        count_table_for_logratio <- NI_table_num_cell %>%
+          rename(num_cells_NI = num_cells) %>%  # Rename num_cells column
+          left_join(NI_CT_FM_table_num_cell %>% rename(num_cells_NI_CT_FM = num_cells), by = "SampleID")
+        # Remove patients where number of cells in the niche is less than 100
+        # count_table_for_logratio <- count_table_for_logratio %>%
+        #   filter(num_cells_NI >= 100)
+        ## Add pseudo count max
+        # max_nb_cells_in_niche <- max(count_table_for_logratio$num_cells_NI)
+        # count_table_for_logratio$num_cells_NI_CT_FM <- count_table_for_logratio$num_cells_NI_CT_FM + (count_table_for_logratio$num_cells_NI / max_nb_cells_in_niche)
+        # count_table_for_logratio$ratio_num_cells <- count_table_for_logratio$num_cells_NI_CT_FM / count_table_for_logratio$num_cells_NI
+        
+        ## Add pseudo count 1
+        count_table_for_logratio$num_cells_NI_CT_FM <- count_table_for_logratio$num_cells_NI_CT_FM + 1
+        count_table_for_logratio$ratio_num_cells <- count_table_for_logratio$num_cells_NI_CT_FM / count_table_for_logratio$num_cells_NI
+        
+        LS_count_table <- subset(count_table_for_logratio, SampleID %in% long_survivors4000)
+        SS_count_table <- subset(count_table_for_logratio, !(SampleID %in% long_survivors4000))
+        
+        # Compute the mean density for each group
+        LS_count <- median(LS_count_table$ratio_num_cells, na.rm = TRUE)
+        SS_count <- median(SS_count_table$ratio_num_cells, na.rm = TRUE)
+        # Calculate the log ratio (log of density for long survivors divided by short survivors)
+        ratio_count <- LS_count / SS_count
+      }
+      
+      
+
+      
+
+      
+      # Create the data frame and append it to log_ratio_LS.SS
+      # log_ratio_LS.SS <- rbind(log_ratio_LS.SS, 
+      #                          data.frame(niche = NI, cell_type = CT, 
+      #                                     LS_nb_cells = as.integer(sum(LS_count_table$num_cells_NI_CT_FM)), 
+      #                                     SS_nb_cells = as.integer(sum(SS_count_table$num_cells_NI_CT_FM)), 
+      #                                     log_ratioLS = log10(ratio_count), 
+      #                                     pvalue = p_value))
+      log_ratio_LS.SS <- rbind(log_ratio_LS.SS, 
+                               data.frame(niche = NI, cell_type = CT, 
+                                          # LS_nb_cells = as.integer(sum(LS_count_table$num_cells_NI_CT_FM)), 
+                                          # SS_nb_cells = as.integer(sum(SS_count_table$num_cells_NI_CT_FM)), 
+                                          nb_cells = as.integer(median(count_table$num_cells_NI_CT_FM[!is.nan(count_table$ratio_num_cells)], na.rm = TRUE)), 
+                                          hr = exp(coef(cox_model)), 
+                                          pvalue = p_value))
+    }
+  }
+  log_ratio_LS.SS$Combination_ID <- seq_len(nrow(log_ratio_LS.SS))
+  return(list(log_ratio_LS.SS = log_ratio_LS.SS, survival_data = survival_data_allratios))
+}
+
+
+
+
+
+
+
 
 associateCellsToFunctionalMarkers <- function(cellsNichesInterfaces, Unwanted_markers) {
   cells.NichesInterface.Phen <- read.csv("./TMENS_analysis/data/cellData.csv",check.names=FALSE,header = TRUE, sep =',')%>%

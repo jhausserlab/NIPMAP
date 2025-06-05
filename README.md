@@ -11,17 +11,21 @@ Data: Multiplex Ion Imaging on 41 Triple Negative Breast tumors from [Keren et a
 
 * Jupyter notebook installed
 
-* Python 3.9.13 installed, together with these libraries:
-    ```bash
+* Python 3.9.13 installed, using a conda environment for exemple, together with these libraries:
+  ```bash
+    conda create -n nipmap_env python=3.9.13
+    conda activate nipmap_env
+    
     pip install matplotlib
     pip install scipy
     pip install pandas
     pip install numpy
     pip install scikit-learn
     pip install seaborn
-    pip install qpsolvers[proxqp]
+    pip install 'qpsolvers[proxqp]'
     pip install geopandas
-    ```
+  ```
+
 * R 4.1.3 with RStudio installed, together with these libraries:
     ```
     pkgs <- c("tidyverse","ggplot2","ade4","factoextra","plotly","igraph","reshape2","ggrepel","viridis","fdrtool","pheatmap","cluster","broom","pROC","ggpubr","devtools","ggridges")
