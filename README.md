@@ -152,7 +152,7 @@ Note #2: NIPMAP doesn't aim to correct cell segmentation error or cell type mis-
 GNU General Public License version 3
 
 ## Contact
-Anissa El Marrahi - <anissa.el@scilifelab.se>   <anissel12@gmail.com>
+Anissa El Marrahi - <anissa.el@scilifelab.se>
 Ziqi Kang - <ziqi.kang@scilifelab.se>
 Jean Hausser - <jean.hausser@scilifelab.se>
 
